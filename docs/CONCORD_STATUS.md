@@ -80,9 +80,13 @@ Explorer links:
   [GitHub Actions verification run](https://github.com/etvjay/Concord/actions/runs/31633719358).
 - The passing jobs were Solidity/Foundry lifecycle tests, Go extension and
   tooling tests, TypeScript SDK compilation, and repository/documentation gates.
-- The Coston2 asset resolver is available as a read-only workflow and can be
-  run manually or on the rebuild branch. No successful resolver run is claimed
-  here until its workflow URL is recorded.
+- The Coston2 asset resolver passed on commit `8cc4eff4fe76e08d672c56bbd5021fc9e5270ce6` in the read-only
+  [Coston2 asset-resolution run](https://github.com/etvjay/Concord/actions/runs/31640930512).
+- The resolver artifact recorded ContractRegistry/FXRP resolution and USDT0 metadata checks. This is
+  asset-resolution evidence only, not contract deployment or FCC lifecycle evidence.
+- The same commit passed the complete deterministic
+  [Concord verification run](https://github.com/etvjay/Concord/actions/runs/31640930525) across Solidity,
+  Go, TypeScript SDK, and repository/documentation gates.
 - Green CI confirms repository-level correctness checks only. It does not prove
   deployed contracts, FCC registration, funded provider accounts, settlement,
   repayment, or production hardware-backed confidential execution.
