@@ -1,0 +1,476 @@
+openapi: 3.1.0
+info:
+  title: Concord API
+  version: 0.1.0
+  license:
+    name: MIT
+    identifier: MIT
+  description: >-
+    Read and prepare-only access to Concord's FXRP-backed syndicated capital
+    facility. The API projects authoritative onchain state and verified FCC
+    evidence; it does not custody assets or replace Accord authority.
+servers:
+  - url: https://api.concord.invalid
+    description: Placeholder; use the local CLI or an explicitly configured deployment URL.
+tags:
+  - name: Read model
+    description: Authoritative onchain relationship projections.
+  - name: Transaction intents
+    description: Unsigned calldata preparation with explicit approval boundaries.
+  - name: Evidence
+    description: FCC verification metadata and disclosure status.
+security: []
+x-security-status: >-
+  The local scaffold is intentionally unauthenticated. A production deployment
+  must add caller authentication and role-scoped disclosure before exposing
+  private quote or institution data.
+paths:
+  /v1/health:
+    get:
+      tags: [Read model]
+      summary: Check API and configured network
+      operationId: getHealth
+      responses:
+        '200':
+          description: API process and configured network status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+  /v1/facilities/{rootAccordId}:
+    get:
+      tags: [Read model]
+      summary: Read one Root Accord facility
+      operationId: getFacility
+      parameters:
+        - $ref: '#/components/parameters/RootAccordId'
+      responses:
+        '200':
+          description: Root Accord with observed child relationships and round summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FacilityResponse'
+        '404':
+          $ref: '#/components/responses/NotObserved'
+  /v1/facilities/{rootAccordId}/lineage:
+    get:
+      tags: [Read model]
+      summary: Read Root Accord causal lineage
+      operationId: getFacilityLineage
+      parameters:
+        - $ref: '#/components/parameters/RootAccordId'
+      responses:
+        '200':
+          description: Causal relationship graph rooted at the Accord
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LineageResponse'
+        '404':
+          $ref: '#/components/responses/NotObserved'
+  /v1/rounds/{roundId}:
+    get:
+      tags: [Read model]
+      summary: Read one Makkari round
+      operationId: getRound
+      parameters:
+        - $ref: '#/components/parameters/RoundId'
+      responses:
+        '200':
+          description: Public round metadata and allocation status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoundResponse'
+        '404':
+          $ref: '#/components/responses/NotObserved'
+  /v1/draws/{drawId}:
+    get:
+      tags: [Read model]
+      summary: Read one draw and its DrawLegs
+      operationId: getDraw
+      parameters:
+        - $ref: '#/components/parameters/DrawId'
+      responses:
+        '200':
+          description: Root draw and explicit child DrawLeg objects
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DrawResponse'
+        '404':
+          $ref: '#/components/responses/NotObserved'
+  /v1/evidence/{resultDigest}:
+    get:
+      tags: [Evidence]
+      summary: Read allocation evidence metadata
+      operationId: getAllocationEvidence
+      parameters:
+        - $ref: '#/components/parameters/ResultDigest'
+      responses:
+        '200':
+          description: Evidence metadata available to the caller
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvidenceResponse'
+        '404':
+          $ref: '#/components/responses/NotObserved'
+  /v1/transactions/prepare:
+    post:
+      tags: [Transaction intents]
+      summary: Prepare unsigned transaction calldata
+      operationId: prepareTransaction
+      description: >-
+        Builds unsigned calldata only. The caller must review, authorize, sign,
+        broadcast, and wait for the chain receipt. The API never returns a
+        claim that the action succeeded.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrepareTransactionRequest'
+      responses:
+        '200':
+          description: Unsigned transaction intent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionIntentResponse'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+components:
+  parameters:
+    RootAccordId:
+      name: rootAccordId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Bytes32' }
+    RoundId:
+      name: roundId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Bytes32' }
+    DrawId:
+      name: drawId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Bytes32' }
+    ResultDigest:
+      name: resultDigest
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Bytes32' }
+  responses:
+    NotObserved:
+      description: The requested authoritative object was not observed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InvalidRequest:
+      description: Invalid identifier or action arguments
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalError:
+      description: The API could not produce a read model response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    Bytes32:
+      type: string
+      pattern: '^0x[0-9a-fA-F]{64}$'
+      description: Hex-encoded Solidity bytes32 value.
+    Address:
+      type: string
+      pattern: '^0x[0-9a-fA-F]{40}$'
+    DecimalString:
+      type: string
+      pattern: '^[0-9]+$'
+      description: Non-negative integer in base-10 notation; never a floating-point JSON number.
+    Observation:
+      type: object
+      required: [status, source, network, chainId, observedAt]
+      properties:
+        status:
+          type: string
+          enum: [observed, partial, not_observed]
+        source:
+          type: string
+          enum: [onchain, fcc_evidence, derived]
+        network: { type: string, example: coston2 }
+        chainId: { type: integer, example: 114 }
+        blockNumber:
+          $ref: '#/components/schemas/DecimalString'
+        observedAt:
+          type: string
+          format: date-time
+        warning: { type: string }
+    Meta:
+      type: object
+      required: [observation]
+      properties:
+        observation: { $ref: '#/components/schemas/Observation' }
+        apiVersion: { type: string, example: v1 }
+    RootState:
+      type: string
+      enum: [NONE, PROPOSED, SYNDICATING, FUNDING, ACTIVE, CLOSED, FROZEN, EXPIRED]
+    ChildState:
+      type: string
+      enum: [NONE, SELECTED, FUNDED, ACTIVE, CLOSED, EXPIRED, DEFAULTED]
+    RoundStatus:
+      type: string
+      enum: [NONE, OPEN, FINALIZED, EXPIRED]
+    LineageKind:
+      type: string
+      enum: [ROOT_ACCORD, MAKKARI_SESSION, COFILL_ALLOCATION, CHILD_ACCORD, DRAW, DRAW_LEG, SETTLEMENT, REPAYMENT]
+    StateCopy:
+      type: object
+      required: [state, label, explanation]
+      properties:
+        state: { type: string }
+        label: { type: string }
+        explanation: { type: string }
+    Asset:
+      type: object
+      required: [address, symbol, decimals]
+      properties:
+        address: { $ref: '#/components/schemas/Address' }
+        symbol: { type: string, example: USDT0 }
+        decimals: { type: integer, minimum: 0, maximum: 255 }
+    ChildAccord:
+      type: object
+      required: [id, rootAccordId, allocationId, provider, selectedCapacity, committedCapacity, drawnPrincipal, availableCapacity, feeBps, validUntil, termsCommitment, state, stateCopy]
+      properties:
+        id: { $ref: '#/components/schemas/Bytes32' }
+        rootAccordId: { $ref: '#/components/schemas/Bytes32' }
+        allocationId: { $ref: '#/components/schemas/Bytes32' }
+        provider: { $ref: '#/components/schemas/Address' }
+        selectedCapacity: { $ref: '#/components/schemas/DecimalString' }
+        committedCapacity: { $ref: '#/components/schemas/DecimalString' }
+        drawnPrincipal: { $ref: '#/components/schemas/DecimalString' }
+        availableCapacity: { $ref: '#/components/schemas/DecimalString' }
+        feeBps: { type: integer, minimum: 0, maximum: 10000 }
+        validUntil: { type: string, format: date-time }
+        validUntilUnix: { $ref: '#/components/schemas/DecimalString' }
+        termsCommitment: { $ref: '#/components/schemas/Bytes32' }
+        state: { $ref: '#/components/schemas/ChildState' }
+        stateCopy: { $ref: '#/components/schemas/StateCopy' }
+    Round:
+      type: object
+      required: [id, rootAccordId, targetCapacity, maxFeeBps, roundExpiry, status, stateCopy, eligibleProviderCount]
+      properties:
+        id: { $ref: '#/components/schemas/Bytes32' }
+        rootAccordId: { $ref: '#/components/schemas/Bytes32' }
+        targetCapacity: { $ref: '#/components/schemas/DecimalString' }
+        maxFeeBps: { type: integer, minimum: 0, maximum: 10000 }
+        roundExpiry: { type: string, format: date-time }
+        roundExpiryUnix: { $ref: '#/components/schemas/DecimalString' }
+        status: { $ref: '#/components/schemas/RoundStatus' }
+        stateCopy: { $ref: '#/components/schemas/StateCopy' }
+        eligibleProviderCount: { type: integer, minimum: 0 }
+        privateQuoteData:
+          type: string
+          enum: [withheld, authorized]
+          description: Indicates whether private quote fields are withheld from this caller.
+    Facility:
+      type: object
+      required: [id, borrower, collateralAsset, liquidityAsset, targetCapacity, committedCapacity, drawnPrincipal, collateralLocked, availableCapacity, validUntil, policyHash, syndicationRoundId, state, stateCopy, children, invariants]
+      properties:
+        id: { $ref: '#/components/schemas/Bytes32' }
+        borrower: { $ref: '#/components/schemas/Address' }
+        collateralAsset: { $ref: '#/components/schemas/Asset' }
+        liquidityAsset: { $ref: '#/components/schemas/Asset' }
+        targetCapacity: { $ref: '#/components/schemas/DecimalString' }
+        committedCapacity: { $ref: '#/components/schemas/DecimalString' }
+        drawnPrincipal: { $ref: '#/components/schemas/DecimalString' }
+        collateralLocked: { $ref: '#/components/schemas/DecimalString' }
+        availableCapacity: { $ref: '#/components/schemas/DecimalString' }
+        validUntil: { type: string, format: date-time }
+        validUntilUnix: { $ref: '#/components/schemas/DecimalString' }
+        policyHash: { $ref: '#/components/schemas/Bytes32' }
+        syndicationRoundId: { $ref: '#/components/schemas/Bytes32' }
+        state: { $ref: '#/components/schemas/RootState' }
+        stateCopy: { $ref: '#/components/schemas/StateCopy' }
+        round: { $ref: '#/components/schemas/Round' }
+        children:
+          type: array
+          items: { $ref: '#/components/schemas/ChildAccord' }
+        invariants:
+          type: object
+          required: [rootDrawWithinCommitment, childDrawWithinCommitment, rootExposureMatchesChildren, committedMatchesFundedChildren]
+          properties:
+            rootDrawWithinCommitment: { type: boolean }
+            childDrawWithinCommitment: { type: boolean }
+            rootExposureMatchesChildren: { type: boolean }
+            committedMatchesFundedChildren: { type: boolean }
+    LineageNode:
+      type: object
+      required: [id, parentId, kind, createdAt, children]
+      properties:
+        id: { $ref: '#/components/schemas/Bytes32' }
+        parentId: { $ref: '#/components/schemas/Bytes32' }
+        kind: { $ref: '#/components/schemas/LineageKind' }
+        createdAt: { type: string, format: date-time }
+        children:
+          type: array
+          items: { $ref: '#/components/schemas/Bytes32' }
+    DrawLeg:
+      type: object
+      required: [id, drawId, childAccordId, provider, principal, repaidPrincipal, outstandingPrincipal]
+      properties:
+        id: { $ref: '#/components/schemas/Bytes32' }
+        drawId: { $ref: '#/components/schemas/Bytes32' }
+        childAccordId: { $ref: '#/components/schemas/Bytes32' }
+        provider: { $ref: '#/components/schemas/Address' }
+        principal: { $ref: '#/components/schemas/DecimalString' }
+        repaidPrincipal: { $ref: '#/components/schemas/DecimalString' }
+        outstandingPrincipal: { $ref: '#/components/schemas/DecimalString' }
+    Draw:
+      type: object
+      required: [id, rootAccordId, principal, repaidPrincipal, outstandingPrincipal, createdAt, legs]
+      properties:
+        id: { $ref: '#/components/schemas/Bytes32' }
+        rootAccordId: { $ref: '#/components/schemas/Bytes32' }
+        principal: { $ref: '#/components/schemas/DecimalString' }
+        repaidPrincipal: { $ref: '#/components/schemas/DecimalString' }
+        outstandingPrincipal: { $ref: '#/components/schemas/DecimalString' }
+        createdAt: { type: string, format: date-time }
+        legs:
+          type: array
+          items: { $ref: '#/components/schemas/DrawLeg' }
+    Evidence:
+      type: object
+      required: [resultDigest, status, disclosure]
+      properties:
+        resultDigest: { $ref: '#/components/schemas/Bytes32' }
+        status:
+          type: string
+          enum: [verified, invalid, withheld, not_observed]
+        disclosure:
+          type: string
+          enum: [metadata_only, authorized_full, withheld]
+        extensionId: { $ref: '#/components/schemas/Bytes32' }
+        roundId: { $ref: '#/components/schemas/Bytes32' }
+        rootAccordId: { $ref: '#/components/schemas/Bytes32' }
+        instructionId: { $ref: '#/components/schemas/Bytes32' }
+        source: { type: string, enum: [coston2_fcc, local_simulated_tee, not_observed] }
+        warning: { type: string }
+    PrepareTransactionRequest:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum: [create_root, lock_collateral, approve_asset, fund_child, draw, repay]
+        rootAccordId: { $ref: '#/components/schemas/Bytes32' }
+        childAccordId: { $ref: '#/components/schemas/Bytes32' }
+        drawId: { $ref: '#/components/schemas/Bytes32' }
+        targetCapacity: { $ref: '#/components/schemas/DecimalString' }
+        amount: { $ref: '#/components/schemas/DecimalString' }
+        validUntilUnix: { $ref: '#/components/schemas/DecimalString' }
+        policyHash: { $ref: '#/components/schemas/Bytes32' }
+        asset: { $ref: '#/components/schemas/Address' }
+        spender: { $ref: '#/components/schemas/Address' }
+        actor:
+          type: string
+          enum: [treasury, provider, institution, agent]
+    TransactionIntent:
+      type: object
+      required: [action, chainId, to, data, value, summary, requiresExplicitApproval, preconditions]
+      properties:
+        action: { type: string }
+        chainId: { type: integer, example: 114 }
+        to: { $ref: '#/components/schemas/Address' }
+        data: { type: string, pattern: '^0x[0-9a-fA-F]*$' }
+        value: { $ref: '#/components/schemas/DecimalString' }
+        summary: { type: string }
+        requiresExplicitApproval: { type: boolean, const: true }
+        preconditions:
+          type: array
+          items: { type: string }
+        warnings:
+          type: array
+          items: { type: string }
+    Health:
+      type: object
+      required: [service, network, chainId, configured, readModel]
+      properties:
+        service: { type: string, const: concord-api }
+        network: { type: string }
+        chainId: { type: integer }
+        configured: { type: boolean }
+        readModel: { type: string, enum: [chain, unavailable] }
+        facilityAddress: { $ref: '#/components/schemas/Address' }
+        registryAddress: { $ref: '#/components/schemas/Address' }
+    FacilityResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data: { $ref: '#/components/schemas/Facility' }
+        meta: { $ref: '#/components/schemas/Meta' }
+    RoundResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data: { $ref: '#/components/schemas/Round' }
+        meta: { $ref: '#/components/schemas/Meta' }
+    DrawResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data: { $ref: '#/components/schemas/Draw' }
+        meta: { $ref: '#/components/schemas/Meta' }
+    LineageResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          required: [rootAccordId, nodes]
+          properties:
+            rootAccordId: { $ref: '#/components/schemas/Bytes32' }
+            nodes:
+              type: array
+              items: { $ref: '#/components/schemas/LineageNode' }
+        meta: { $ref: '#/components/schemas/Meta' }
+    EvidenceResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data: { $ref: '#/components/schemas/Evidence' }
+        meta: { $ref: '#/components/schemas/Meta' }
+    TransactionIntentResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data: { $ref: '#/components/schemas/TransactionIntent' }
+        meta: { $ref: '#/components/schemas/Meta' }
+    HealthResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data: { $ref: '#/components/schemas/Health' }
+        meta: { $ref: '#/components/schemas/Meta' }
+    ErrorResponse:
+      type: object
+      required: [error, meta]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: { type: string }
+            message: { type: string }
+            details: { type: object, additionalProperties: true }
+        meta: { $ref: '#/components/schemas/Meta' }

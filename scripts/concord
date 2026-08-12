@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Unified Concord operator/developer CLI entrypoint.
+#
+# Examples:
+#   ./scripts/concord doctor
+#   ./scripts/concord api -facility 0x... -registry 0x...
+#   ./scripts/concord mcp -api-url http://127.0.0.1:8080
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+GO_BIN="${CONCORD_GO_BIN:-go}"
+
+cd "$PROJECT_DIR/tools"
+exec "$GO_BIN" run ./cmd/concord "$@"

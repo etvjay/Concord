@@ -91,7 +91,29 @@ tools/                      deployment, FCC verification, and test commands
 config/                     network and proxy configuration templates
 docs/                       product, architecture, truth, and runbooks
 scripts/                    scaffold lifecycle and binding commands
+api/                        REST/OpenAPI integration contract
+sdk/typescript/             typed read and unsigned-intent client
+frontend/                   frontend boundary and implementation map
 ```
+
+## Shared surfaces
+
+The shared product contract is documented in
+[docs/shared-product-contract.md](docs/shared-product-contract.md). The
+frontend map is in [docs/frontend-map.md](docs/frontend-map.md), and the
+machine-readable REST contract is [api/openapi.yaml](api/openapi.yaml).
+
+The unified CLI can check the environment and run the read-only API/MCP
+surfaces:
+
+```bash
+./scripts/concord doctor --offline
+./scripts/concord api -facility 0x... -registry 0x...
+./scripts/concord mcp -api-url http://127.0.0.1:8080
+```
+
+These surfaces prepare unsigned transaction intents only. They do not custody,
+sign, broadcast, or grant FCC verifier authority.
 
 ## Official Flare sources
 
