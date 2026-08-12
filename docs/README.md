@@ -23,6 +23,8 @@ record before making a deployment or privacy claim.
   deployment inputs, and the FCC sequence.
 - [testing.md](testing.md) — contract, extension, and tooling tests.
 - [testing-against-coston2.md](testing-against-coston2.md) — Coston2 test path.
+- [coston2-live-runbook.md](coston2-live-runbook.md) — credential-gated live
+  integration sequence and evidence checklist.
 - [cloudflared.md](cloudflared.md) — proxy exposure guidance.
 - [cli.md](cli.md) — unified CLI, API, and MCP entry points.
 - [pre-deployment-hardening.md](pre-deployment-hardening.md) — immediate CI,
@@ -31,6 +33,8 @@ record before making a deployment or privacy claim.
 ## Evidence and truth
 
 - [CONCORD_STATUS.md](CONCORD_STATUS.md) — what is and is not evidenced.
+- [templates/coston2-evidence.template.json](templates/coston2-evidence.template.json)
+  — blank evidence shape with `not_observed` defaults.
 - [canonical-reconciliation-audit.md](canonical-reconciliation-audit.md) —
   reconciliation of the handoff, addendum, whitepaper, and implementation.
 - [skills-foundry-pack-ingestion.md](skills-foundry-pack-ingestion.md) — durable

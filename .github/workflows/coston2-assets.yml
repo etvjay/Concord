@@ -1,6 +1,13 @@
 name: Coston2 asset resolution
 
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - agent/concord-rebuild
+
+permissions:
+  contents: read
 
 jobs:
   resolve:
@@ -9,5 +16,18 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-      - name: State manual gate
-        run: echo "Coston2 asset resolution is a manual live-RPC gate."
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+      - name: Resolve live Coston2 assets
+        run: |
+          set -euo pipefail
+          ./scripts/resolve-coston2-assets.sh | tee "$RUNNER_TEMP/coston2-assets.json"
+      - name: Upload resolver output
+        uses: actions/upload-artifact@v4
+        with:
+          name: coston2-asset-resolution-${{ github.sha }}
+          path: ${{ runner.temp }}/coston2-assets.json
+          if-no-files-found: error
+          retention-days: 14

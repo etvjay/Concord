@@ -55,8 +55,10 @@ affected configuration and record the contradiction before continuing.
 
 ## Deployment evidence template
 
-When the live slice is run, append the evidence below. Until then, leave the
-deployment fields empty rather than inferring them from local tests:
+When the live slice is run, copy
+`docs/templates/coston2-evidence.template.json` to an ignored local evidence
+file and fill only observed values. Until then, leave deployment fields empty
+rather than inferring them from local tests:
 
 ~~~text
 Network:
@@ -78,8 +80,9 @@ Explorer links:
   [GitHub Actions verification run](https://github.com/etvjay/Concord/actions/runs/31633719358).
 - The passing jobs were Solidity/Foundry lifecycle tests, Go extension and
   tooling tests, TypeScript SDK compilation, and repository/documentation gates.
-- The Coston2 asset resolver remains a separate manual live-RPC workflow and
-  has not been represented as deployment evidence.
+- The Coston2 asset resolver is available as a read-only workflow and can be
+  run manually or on the rebuild branch. No successful resolver run is claimed
+  here until its workflow URL is recorded.
 - Green CI confirms repository-level correctness checks only. It does not prove
   deployed contracts, FCC registration, funded provider accounts, settlement,
   repayment, or production hardware-backed confidential execution.

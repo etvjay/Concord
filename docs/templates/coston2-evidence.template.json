@@ -1,0 +1,70 @@
+{
+  "status": "not_observed",
+  "network": {
+    "name": "coston2",
+    "chainId": 114,
+    "rpcUrl": "https://coston2-api.flare.network/ext/C/rpc",
+    "explorerUrl": "https://coston2-explorer.flare.network",
+    "observedAt": null
+  },
+  "assets": {
+    "fxrp": {
+      "assetManager": null,
+      "token": null,
+      "decimals": null,
+      "resolutionStatus": "not_observed",
+      "resolverRunUrl": null
+    },
+    "usdt0": {
+      "token": null,
+      "symbol": null,
+      "decimals": null,
+      "resolutionStatus": "not_observed",
+      "resolverRunUrl": null
+    }
+  },
+  "deployment": {
+    "accordRegistry": null,
+    "capitalFacility": null,
+    "instructionSender": null,
+    "allocationVerifier": null,
+    "extensionId": null,
+    "teeRegistry": null,
+    "activeMachine": null,
+    "teeMode": "not_observed"
+  },
+  "syndication": {
+    "rootAccordId": null,
+    "roundId": null,
+    "submitQuoteInstructionIds": [],
+    "finalizeInstructionId": null,
+    "resultDigest": null,
+    "selectedChildAccordIds": [],
+    "fundedChildAccordIds": []
+  },
+  "lifecycle": {
+    "rootCreationTx": null,
+    "collateralDepositTx": null,
+    "childMaterializationTx": null,
+    "fundingTransfers": [],
+    "activationTx": null,
+    "drawTx": null,
+    "drawLegs": [],
+    "repaymentTx": null,
+    "closureTx": null
+  },
+  "lineage": {
+    "rootToRound": null,
+    "roundToAllocation": null,
+    "allocationToChildren": [],
+    "drawToLegs": [],
+    "repaymentToExposure": null
+  },
+  "privacyDisclosure": [
+    "No private FXRP transfers are claimed.",
+    "No private USDT0 transfers are claimed.",
+    "No fully private EVM execution is claimed.",
+    "TEE mode must be recorded as simulated development or hardware-backed only when observed."
+  ],
+  "notes": []
+}
