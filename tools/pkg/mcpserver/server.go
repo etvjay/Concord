@@ -151,6 +151,8 @@ func (s *Server) dispatch(ctx context.Context, method string, params json.RawMes
 
 func resourceTemplates() []map[string]any {
 	return []map[string]any{
+		{"uriTemplate": "concord://health", "name": "health", "description": "Configured API and network observation"},
+		{"uriTemplate": "concord://evidence/{resultDigest}", "name": "evidence", "description": "FCC allocation evidence metadata and disclosure status"},
 		{"uriTemplate": "concord://facility/{rootAccordId}", "name": "facility", "description": "Observed Root Accord, round, and child state"},
 		{"uriTemplate": "concord://facility/{rootAccordId}/lineage", "name": "facility-lineage", "description": "Observed causal lineage rooted at a Root Accord"},
 		{"uriTemplate": "concord://round/{roundId}", "name": "round", "description": "Observed Makkari round metadata without private quotes"},
@@ -160,6 +162,8 @@ func resourceTemplates() []map[string]any {
 
 func tools() []map[string]any {
 	return []map[string]any{
+		{"name": "get_health", "description": "Read API and configured network status.", "inputSchema": map[string]any{"type": "object"}},
+		{"name": "get_evidence", "description": "Read FCC evidence metadata without exposing private quote payloads.", "inputSchema": objectSchema("resultDigest")},
 		{"name": "get_facility", "description": "Read one Root Accord and its observed children. Private losing quotes remain withheld.", "inputSchema": objectSchema("rootAccordId")},
 		{"name": "get_lineage", "description": "Read the causal relationship graph for one Root Accord.", "inputSchema": objectSchema("rootAccordId")},
 		{"name": "get_round", "description": "Read one public Makkari round summary without private quote data.", "inputSchema": objectSchema("roundId")},
@@ -179,6 +183,12 @@ func objectSchema(property string) map[string]any {
 }
 
 func (s *Server) readResource(ctx context.Context, uri string) ([]byte, error) {
+	if uri == "concord://health" {
+		return s.request(ctx, http.MethodGet, "/v1/health", nil)
+	}
+	if strings.HasPrefix(uri, "concord://evidence/") {
+		return s.request(ctx, http.MethodGet, "/v1/evidence/"+strings.TrimPrefix(uri, "concord://evidence/"), nil)
+	}
 	if strings.HasPrefix(uri, "concord://facility/") {
 		id := strings.TrimPrefix(uri, "concord://facility/")
 		if strings.HasSuffix(id, "/lineage") {
@@ -199,6 +209,10 @@ func (s *Server) readResource(ctx context.Context, uri string) ([]byte, error) {
 func (s *Server) callTool(ctx context.Context, name string, args map[string]any) ([]byte, error) {
 	var path string
 	switch name {
+	case "get_health":
+		path = "/v1/health"
+	case "get_evidence":
+		path = "/v1/evidence/" + stringArg(args, "resultDigest")
 	case "get_facility":
 		path = "/v1/facilities/" + stringArg(args, "rootAccordId")
 	case "get_lineage":
