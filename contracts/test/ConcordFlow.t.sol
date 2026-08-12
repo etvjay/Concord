@@ -146,6 +146,10 @@ contract ConcordFlowTest {
 
         // Only the configured verifier may authorize materialization.
         providerC.mark(facility, result.resultDigest);
+        (bool unauthorizedMaterializeOk,) = address(providerA).call(
+            abi.encodeWithSelector(ConcordActor.materialize.selector, facility, result)
+        );
+        require(!unauthorizedMaterializeOk, "provider materialized allocation");
         treasury.materialize(facility, result);
 
         bytes32 childA = keccak256(abi.encode(ROOT_ID, result.resultDigest, address(providerA)));
@@ -164,6 +168,15 @@ contract ConcordFlowTest {
         require(facility.getChild(childB).drawnPrincipal == 150, "B exposure mismatch");
         require(facility.getDrawLegIds(DRAW_ID).length == 2, "draw was not split");
 
+        (bool overdrawOk,) = address(treasury).call(
+            abi.encodeWithSelector(ConcordActor.draw.selector, facility, keccak256("DRAW-02"), ROOT_ID, 251)
+        );
+        require(!overdrawOk, "draw exceeded available capacity");
+        (bool exposedCloseOk,) = address(providerA).call(
+            abi.encodeWithSelector(ConcordActor.closeChild.selector, facility, childA)
+        );
+        require(!exposedCloseOk, "provider closed a child with exposure");
+
         usdt0.mint(address(treasury), 750);
         treasury.approve(usdt0, address(facility), type(uint256).max);
         treasury.repay(facility, DRAW_ID, 750);
@@ -175,6 +188,77 @@ contract ConcordFlowTest {
         treasury.closeRoot(facility, ROOT_ID);
         require(facility.getRoot(ROOT_ID).state == ConcordTypes.RootState.CLOSED, "root not closed");
         require(fxrp.balanceOf(address(treasury)) == 100, "collateral not returned");
+    }
+
+    function testPartialFundingLineageAndAllocationReplay() public {
+        uint64 expiry = uint64(block.timestamp + 30 days);
+        treasury.createRoot(facility, ROOT_ID, 1_000, expiry, keccak256("POLICY"));
+        treasury.lock(facility, ROOT_ID, 100);
+
+        address[] memory providers = new address[](2);
+        providers[0] = address(providerA);
+        providers[1] = address(providerB);
+        treasury.open(facility, ROOT_ID, ROUND_ID, 700, expiry - 1 days, providers);
+
+        address[] memory selected = new address[](2);
+        selected[0] = address(providerA);
+        selected[1] = address(providerB);
+        uint256[] memory allocations = new uint256[](2);
+        allocations[0] = 600;
+        allocations[1] = 400;
+        uint32[] memory fees = new uint32[](2);
+        fees[0] = 610;
+        fees[1] = 640;
+        bytes32[] memory terms = new bytes32[](2);
+        terms[0] = keccak256("A-TERMS");
+        terms[1] = keccak256("B-TERMS");
+
+        ConcordTypes.AllocationResult memory result = ConcordTypes.AllocationResult({
+            extensionId: EXTENSION_ID,
+            roundId: ROUND_ID,
+            rootAccordId: ROOT_ID,
+            success: true,
+            selectedProviders: selected,
+            allocatedCapacity: allocations,
+            acceptedFeeBps: fees,
+            termsCommitments: terms,
+            roundExpiry: expiry - 1 days,
+            resultDigest: bytes32(0)
+        });
+        result.resultDigest = allocationDigest(result);
+        providerC.mark(facility, result.resultDigest);
+        treasury.materialize(facility, result);
+
+        bytes32 childA = keccak256(abi.encode(ROOT_ID, result.resultDigest, address(providerA)));
+        bytes32 childB = keccak256(abi.encode(ROOT_ID, result.resultDigest, address(providerB)));
+
+        providerA.fund(facility, childA, 300);
+        require(facility.getChild(childA).state == ConcordTypes.ChildState.FUNDED, "partial funding not recorded");
+        require(facility.getChild(childA).committedCapacity == 300, "partial commitment mismatch");
+        require(facility.getRoot(ROOT_ID).state == ConcordTypes.RootState.FUNDING, "root activated too early");
+        require(facility.getRoot(ROOT_ID).committedCapacity == 300, "root partial commitment mismatch");
+
+        providerA.fund(facility, childA, 300);
+        providerB.fund(facility, childB, 400);
+        require(facility.getRoot(ROOT_ID).state == ConcordTypes.RootState.ACTIVE, "root did not activate");
+        require(facility.getRoot(ROOT_ID).committedCapacity == 1_000, "root commitment sum mismatch");
+
+        bytes32[] memory rootChildren = registry.getChildren(ROOT_ID);
+        require(rootChildren.length == 1 && rootChildren[0] == ROUND_ID, "root lineage mismatch");
+        bytes32[] memory roundChildren = registry.getChildren(ROUND_ID);
+        require(roundChildren.length == 1 && roundChildren[0] == result.resultDigest, "round lineage mismatch");
+        bytes32[] memory allocationChildren = registry.getChildren(result.resultDigest);
+        require(allocationChildren.length == 2, "child Accord lineage missing");
+        require(
+            facility.getChild(childA).validUntil <= facility.getRoot(ROOT_ID).validUntil &&
+                facility.getChild(childB).validUntil <= facility.getRoot(ROOT_ID).validUntil,
+            "child validity exceeded root"
+        );
+
+        (bool replayOk,) = address(treasury).call(
+            abi.encodeWithSelector(ConcordActor.materialize.selector, facility, result)
+        );
+        require(!replayOk, "allocation replay succeeded");
     }
 
     function testUnauthorizedResultAndOverfundingFail() public {

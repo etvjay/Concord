@@ -245,6 +245,10 @@ contract CapitalFacility {
         ConcordTypes.RootAccord storage root = _root(result.rootAccordId);
         MakkariRound storage round = rounds[result.roundId];
 
+        // The verifier authorizes the digest; the treasury still controls
+        // when its root relationship materializes those selected children.
+        if (msg.sender != root.borrower) revert Unauthorized();
+
         if (result.extensionId != extensionId || result.rootAccordId != round.rootAccordId) {
             revert InvalidAllocation();
         }

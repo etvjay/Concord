@@ -32,6 +32,8 @@ type Extension struct {
 	Server          *http.Server
 	signPort        int
 	quotes          map[string]map[string]types.QuoteRequest
+	finalized       map[string]bool
+	finalizing      map[string]bool
 	quoteCount      int
 	finalizedRounds int
 	decrypt         func([]byte) ([]byte, error)
@@ -39,8 +41,10 @@ type Extension struct {
 
 func New(extensionPort, signPort int) *Extension {
 	e := &Extension{
-		signPort: signPort,
-		quotes:   make(map[string]map[string]types.QuoteRequest),
+		signPort:   signPort,
+		quotes:     make(map[string]map[string]types.QuoteRequest),
+		finalized:  make(map[string]bool),
+		finalizing: make(map[string]bool),
 	}
 	e.decrypt = e.decryptPayload
 
@@ -124,10 +128,11 @@ func (e *Extension) processSubmitQuote(action teetypes.Action, df *instruction.D
 	}
 	provider := strings.ToLower(common.HexToAddress(req.Provider).Hex())
 	e.mu.Lock()
-	if e.quotes[req.RoundID] == nil {
-		e.quotes[req.RoundID] = make(map[string]types.QuoteRequest)
+	key := roundKey(req.RoundID)
+	if e.quotes[key] == nil {
+		e.quotes[key] = make(map[string]types.QuoteRequest)
 	}
-	e.quotes[req.RoundID][provider] = req
+	e.quotes[key][provider] = req
 	e.quoteCount++
 	e.mu.Unlock()
 
@@ -140,24 +145,65 @@ func (e *Extension) processFinalizeRound(action teetypes.Action, df *instruction
 	if err := decodeStrict(payload, &req); err != nil {
 		return marshalActionResult(action, df, nil, 0, fmt.Errorf("decoding finalization: %w", err))
 	}
-	if len(req.Quotes) == 0 {
-		e.mu.RLock()
-		for _, quote := range e.quotes[req.RoundID] {
-			req.Quotes = append(req.Quotes, quote)
-		}
-		e.mu.RUnlock()
-	}
 	if req.EvaluationTime == 0 {
 		req.EvaluationTime = uint64(time.Now().Unix())
 	}
+
+	round := roundKey(req.RoundID)
+	e.mu.Lock()
+	if e.finalized[round] {
+		e.mu.Unlock()
+		return marshalActionResult(action, df, nil, 0, fmt.Errorf("round has already been finalized"))
+	}
+	if e.finalizing[round] {
+		e.mu.Unlock()
+		return marshalActionResult(action, df, nil, 0, fmt.Errorf("round finalization is already in progress"))
+	}
+
+	storedQuotes := make([]types.QuoteRequest, 0, len(e.quotes[round]))
+	for _, quote := range e.quotes[round] {
+		storedQuotes = append(storedQuotes, quote)
+	}
+	if len(storedQuotes) == 0 {
+		e.mu.Unlock()
+		return marshalActionResult(action, df, nil, 0, fmt.Errorf("round has no submitted quotes"))
+	}
+
+	// FINALIZE_ROUND may repeat the submitted set for auditability, but it may
+	// not introduce a new quote. Compare provider -> quote digest against the
+	// stored SUBMIT_QUOTE set, then always run CoFill over the stored snapshot.
+	if len(req.Quotes) != 0 {
+		storedDigests, err := quoteDigestSet(storedQuotes)
+		if err != nil {
+			e.mu.Unlock()
+			return marshalActionResult(action, df, nil, 0, err)
+		}
+		requestDigests, err := quoteDigestSet(req.Quotes)
+		if err != nil {
+			e.mu.Unlock()
+			return marshalActionResult(action, df, nil, 0, err)
+		}
+		if !sameQuoteSet(storedDigests, requestDigests) {
+			e.mu.Unlock()
+			return marshalActionResult(action, df, nil, 0, fmt.Errorf("finalization quotes do not match submitted quotes"))
+		}
+	}
+	req.Quotes = storedQuotes
+	e.finalizing[round] = true
+	e.mu.Unlock()
+
 	result, err := CoFill(req)
+	e.mu.Lock()
+	delete(e.finalizing, round)
+	if err == nil {
+		e.finalized[round] = true
+		e.finalizedRounds++
+	}
+	e.mu.Unlock()
 	if err != nil {
 		return marshalActionResult(action, df, nil, 0, err)
 	}
 	data, _ := json.Marshal(result)
-	e.mu.Lock()
-	e.finalizedRounds++
-	e.mu.Unlock()
 	return marshalActionResult(action, df, data, 1, nil)
 }
 
@@ -237,6 +283,38 @@ func buildResult(a teetypes.Action, df *instruction.DataFixed, data []byte, stat
 
 func validBytes32(value string) bool {
 	return strings.HasPrefix(value, "0x") && len(value) == 66 && common.HexToHash(value) != (common.Hash{})
+}
+
+func roundKey(value string) string {
+	return strings.ToLower(value)
+}
+
+func quoteDigestSet(quotes []types.QuoteRequest) (map[string]string, error) {
+	digests := make(map[string]string, len(quotes))
+	for _, quote := range quotes {
+		provider := strings.ToLower(common.HexToAddress(quote.Provider).Hex())
+		if _, exists := digests[provider]; exists {
+			return nil, fmt.Errorf("duplicate provider quote")
+		}
+		digest, err := quoteDigest(quote)
+		if err != nil {
+			return nil, err
+		}
+		digests[provider] = digest.Hex()
+	}
+	return digests, nil
+}
+
+func sameQuoteSet(left, right map[string]string) bool {
+	if len(left) != len(right) {
+		return false
+	}
+	for provider, digest := range left {
+		if right[provider] != digest {
+			return false
+		}
+	}
+	return true
 }
 
 func validateQuote(q types.QuoteRequest, now uint64, maxFee uint32, roundExpiry uint64, eligible map[string]bool) error {

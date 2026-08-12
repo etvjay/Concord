@@ -13,6 +13,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/flare-foundation/go-flare-common/pkg/tee/instruction"
 	teetypes "github.com/flare-foundation/tee-node/pkg/types"
@@ -55,6 +56,19 @@ func buildAction(opCommand string, payload []byte) teetypes.Action {
 	}
 	b, _ := json.Marshal(data)
 	return teetypes.Action{Data: teetypes.ActionData{ID: common.HexToHash("0x1234"), Message: b}}
+}
+
+func actionResult(t *testing.T, body []byte) (status uint8, data []byte, log string) {
+	t.Helper()
+	var result struct {
+		Status uint8         `json:"status"`
+		Data   hexutil.Bytes `json:"data"`
+		Log    string        `json:"log"`
+	}
+	if err := json.Unmarshal(body, &result); err != nil {
+		t.Fatal(err)
+	}
+	return result.Status, []byte(result.Data), result.Log
 }
 
 func TestCoFillDeterministicPartialAllocation(t *testing.T) {
@@ -123,5 +137,76 @@ func TestActionRequiresTEEDecryption(t *testing.T) {
 	status, body := e.processAction(buildAction(config.OPCommandSubmitQuote, []byte("not-plaintext")))
 	if status != 200 || !strings.Contains(string(body), "decrypting Concord payload") {
 		t.Fatalf("expected encrypted payload boundary, got status=%d body=%s", status, body)
+	}
+}
+
+func TestFinalizationUsesOnlySubmittedQuotesAndCannotReplay(t *testing.T) {
+	e := New(0, 1)
+	e.decrypt = func(payload []byte) ([]byte, error) { return payload, nil }
+
+	keyA, _ := crypto.GenerateKey()
+	providerA := crypto.PubkeyToAddress(keyA.PublicKey).Hex()
+	submitted := quoteFixture(t, keyA, providerA, 610, "100")
+
+	payload, _ := json.Marshal(submitted)
+	status, body := e.processAction(buildAction(config.OPCommandSubmitQuote, payload))
+	if status != 200 {
+		t.Fatalf("submit returned HTTP %d", status)
+	}
+	submitStatus, _, submitLog := actionResult(t, body)
+	if submitStatus != 1 {
+		t.Fatalf("submit failed: status=%d log=%s", submitStatus, submitLog)
+	}
+
+	keyB, _ := crypto.GenerateKey()
+	providerB := crypto.PubkeyToAddress(keyB.PublicKey).Hex()
+	unsubmitted := quoteFixture(t, keyB, providerB, 620, "100")
+	finalize := types.FinalizeRoundRequest{
+		ExtensionID:       "0x0300000000000000000000000000000000000000000000000000000000000000",
+		RoundID:           submitted.RoundID,
+		RootAccordID:      submitted.RootAccordID,
+		TargetCapacity:    "100",
+		MaxFeeBps:         700,
+		RoundExpiry:       uint64(time.Now().Unix()) + 7200,
+		EvaluationTime:    uint64(time.Now().Unix()),
+		EligibleProviders: []string{providerA, providerB},
+		Quotes:            []types.QuoteRequest{unsubmitted},
+	}
+	payload, _ = json.Marshal(finalize)
+	status, body = e.processAction(buildAction(config.OPCommandFinalizeRound, payload))
+	if status != 200 {
+		t.Fatalf("mismatched finalization returned HTTP %d", status)
+	}
+	finalizeStatus, _, finalizeLog := actionResult(t, body)
+	if finalizeStatus != 0 || !strings.Contains(finalizeLog, "do not match submitted") {
+		t.Fatalf("unsubmitted quote was accepted: status=%d log=%s", finalizeStatus, finalizeLog)
+	}
+
+	finalize.Quotes = nil
+	finalize.EligibleProviders = []string{providerA}
+	payload, _ = json.Marshal(finalize)
+	status, body = e.processAction(buildAction(config.OPCommandFinalizeRound, payload))
+	if status != 200 {
+		t.Fatalf("valid finalization returned HTTP %d", status)
+	}
+	finalizeStatus, data, finalizeLog := actionResult(t, body)
+	if finalizeStatus != 1 {
+		t.Fatalf("valid finalization failed: status=%d log=%s", finalizeStatus, finalizeLog)
+	}
+	var result types.FinalizeRoundResponse
+	if err := json.Unmarshal(data, &result); err != nil {
+		t.Fatal(err)
+	}
+	if len(result.SelectedProviders) != 1 || !strings.EqualFold(result.SelectedProviders[0], providerA) {
+		t.Fatalf("finalization did not use submitted quote: %+v", result)
+	}
+
+	status, body = e.processAction(buildAction(config.OPCommandFinalizeRound, payload))
+	if status != 200 {
+		t.Fatalf("replayed finalization returned HTTP %d", status)
+	}
+	finalizeStatus, _, finalizeLog = actionResult(t, body)
+	if finalizeStatus != 0 || !strings.Contains(finalizeLog, "already been finalized") {
+		t.Fatalf("finalization replay was accepted: status=%d log=%s", finalizeStatus, finalizeLog)
 	}
 }

@@ -28,13 +28,49 @@ contract DeployCoston2 {
         bytes32 extensionId
     );
 
+    event InstructionSenderDeployed(
+        address indexed instructionSender,
+        address indexed teeExtensionRegistry,
+        address indexed teeMachineRegistry
+    );
+
+    /// @notice Standard Foundry entry point for the facility phase.
     function run() external {
+        _deployFacility();
+    }
+
+    /// @notice Low-level sender deployment for a manual registration flow.
+    /// Register the emitted sender through the official FCC tooling before
+    /// deploying the facility with runFacility().
+    function runSender() external {
+        _deploySender();
+    }
+
+    /// @notice Deploy the economic contracts after the FCC extension id exists.
+    function runFacility() external {
+        _deployFacility();
+    }
+
+    function _deploySender() internal {
+        address owner = vm.envAddress("DEPLOYMENT_OWNER");
+        address teeExtensionRegistry = vm.envAddress("TEE_EXTENSION_REGISTRY");
+        address teeMachineRegistry = vm.envAddress("TEE_MACHINE_REGISTRY");
+
+        vm.startBroadcast(owner);
+        ConcordInstructionSender sender = new ConcordInstructionSender(
+            ITeeExtensionRegistry(teeExtensionRegistry),
+            ITeeMachineRegistry(teeMachineRegistry)
+        );
+        vm.stopBroadcast();
+
+        emit InstructionSenderDeployed(address(sender), teeExtensionRegistry, teeMachineRegistry);
+    }
+
+    function _deployFacility() internal {
         address owner = vm.envAddress("DEPLOYMENT_OWNER");
         address fxrp = vm.envAddress("FXRP_TOKEN");
         address usdt0 = vm.envAddress("USDT0_TOKEN");
         address verifier = vm.envAddress("ALLOCATION_VERIFIER");
-        address teeExtensionRegistry = vm.envAddress("TEE_EXTENSION_REGISTRY");
-        address teeMachineRegistry = vm.envAddress("TEE_MACHINE_REGISTRY");
         bytes32 extensionId = vm.envBytes32("CONCORD_EXTENSION_ID");
 
         vm.startBroadcast(owner);
@@ -47,19 +83,8 @@ contract DeployCoston2 {
             extensionId
         );
         registry.setFacility(address(facility));
-        ConcordInstructionSender sender = new ConcordInstructionSender(
-            ITeeExtensionRegistry(teeExtensionRegistry),
-            ITeeMachineRegistry(teeMachineRegistry)
-        );
         vm.stopBroadcast();
 
-        emit ConcordDeployed(
-            address(registry),
-            address(facility),
-            address(sender),
-            fxrp,
-            usdt0,
-            extensionId
-        );
+        emit ConcordDeployed(address(registry), address(facility), address(0), fxrp, usdt0, extensionId);
     }
 }

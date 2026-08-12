@@ -45,16 +45,43 @@ named entry in the checked-in Flare ContractRegistry package.
 
 ## Deployment inputs
 
-The deployment script requires a funded Coston2 broadcaster and an explicit
-allocation verifier:
+Concord deployment is intentionally two-phase: the FCC instruction sender is
+deployed and registered first, then the economic facility is deployed with
+the resulting extension id. Do not deploy the facility with a guessed id.
+
+The official scaffold lifecycle remains available through pre-build.sh.
+It deploys the Concord instruction sender with the configured scaffold
+registries, registers the extension, and writes the live values to
+config/extension.env:
+
+~~~bash
+export CHAIN=coston2
+export DEPLOYMENT_PRIVATE_KEY=0x...
+./scripts/pre-build.sh
+source ./config/extension.env
+~~~
+
+For a standalone Foundry sender deployment, use the explicit sender phase
+and complete FCC registration through the official scaffold tooling before
+running the facility phase:
 
 ~~~bash
 export DEPLOYMENT_OWNER=0x...
-export ALLOCATION_VERIFIER=0x...
-export CONCORD_EXTENSION_ID=0x...
+export DEPLOYMENT_PRIVATE_KEY=0x...
 export TEE_EXTENSION_REGISTRY=0x...
 export TEE_MACHINE_REGISTRY=0x...
-./scripts/deploy-coston2.sh
+DEPLOY_PHASE=sender ./scripts/deploy-coston2.sh
+~~~
+
+After registration, set CONCORD_EXTENSION_ID to the registered extension
+id and deploy the Accord/facility contracts:
+
+~~~bash
+export DEPLOYMENT_OWNER=0x...
+export DEPLOYMENT_PRIVATE_KEY=0x...
+export ALLOCATION_VERIFIER=0x...
+export CONCORD_EXTENSION_ID=0x...
+DEPLOY_PHASE=facility ./scripts/deploy-coston2.sh
 ~~~
 
 The TEE registry values are normally the Coston2 FlareTeeManager diamond
@@ -69,6 +96,21 @@ Registration and proxy setup follow the current Flare FCE scaffold sequence:
 ~~~text
 register extension → start official proxy/TEE scaffold → submit encrypted quotes
 → finalize encrypted round → verify result offchain → mark digest → materialize children
+~~~
+
+The runner writes the raw successful FCC allocation response with `-out`.
+The verifier then checks the response against the deployed facility allocation
+verifier boundary: extension id, open round, root binding, target capacity,
+fee limits, eligible providers, and the canonical result digest. It is
+read-only unless `-mark` is supplied:
+
+~~~bash
+cd tools
+go run ./cmd/verify-allocation -c https://coston2-api.flare.network/ext/C/rpc -facility 0x... -result ../evidence/allocation.json -extensionId 0x... -roundId 0x... -rootAccordId 0x... -out ../evidence/allocation-verification.json
+
+# Only after the local checks pass, with DEPLOYMENT_PRIVATE_KEY set to
+# the facility allocationVerifier address:
+go run ./cmd/verify-allocation -c https://coston2-api.flare.network/ext/C/rpc -facility 0x... -result ../evidence/allocation.json -extensionId 0x... -roundId 0x... -rootAccordId 0x... -mark -out ../evidence/allocation-verification.json
 ~~~
 
 No live FCC or facility deployment is claimed by local tests alone. See
