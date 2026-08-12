@@ -15,7 +15,11 @@ inputs, and [CONCORD_STATUS.md](CONCORD_STATUS.md) for the evidence boundary.
 ## Official scaffold reference
 
 The remaining scaffold documents describe the official FCC runtime and remain
-reference material for operating Concord:
+reference material for operating Concord. They are not Concord product
+instructions. In particular, do not follow their inherited Hello World,
+Orderbook, Python, or TypeScript rename examples, and do not expect files that
+are absent from this Concord repository. Use the Concord-specific documents
+above for product semantics, commands, and evidence boundaries:
 
 [deployment-steps.md](deployment-steps.md) ·
 [testing-against-coston2.md](testing-against-coston2.md) ·

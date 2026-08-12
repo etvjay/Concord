@@ -52,13 +52,15 @@ The canonical extension runtime is the current Flare FCE scaffold, with Go as
 the Concord implementation language. Install Foundry and Go 1.25.1+, then:
 
 ```bash
-PATH=/workspace/tooling/foundry:/workspace/tooling/go/bin:$PATH \
-FOUNDRY_SOLC=/workspace/tooling/solc-0.8.27 \
 forge test
 
 (cd go && GOTOOLCHAIN=local go test ./...)
 (cd tools && GOTOOLCHAIN=local go test ./...)
 ```
+
+Use an installed Foundry/Go toolchain, or set `PATH` and `FOUNDRY_SOLC` to
+your own toolchain locations. The repository does not depend on a
+workspace-specific tool path.
 
 Generate deployment bindings after changing the instruction sender:
 

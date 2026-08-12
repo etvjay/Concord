@@ -1,17 +1,14 @@
 # Getting started
 
-The durable source checkout is /workspace/Concord in this build environment.
 The runtime foundation is the official Flare FCE scaffold; the Concord
 implementation is the Go extension under go/.
 
 ## Local verification
 
-Use Foundry and Go from the installed toolchain or your own equivalent:
+Use an installed Foundry and Go toolchain, or configure your own toolchain
+locations before running these commands:
 
 ~~~bash
-export PATH=/workspace/tooling/foundry:/workspace/tooling/go/bin:$PATH
-export FOUNDRY_SOLC=/workspace/tooling/solc-0.8.27
-
 forge test
 (cd go && GOTOOLCHAIN=local go test ./...)
 (cd tools && GOTOOLCHAIN=local go test ./...)

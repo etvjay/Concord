@@ -6,10 +6,11 @@ behaviour.
 ## Solidity
 
 ~~~bash
-PATH=/workspace/tooling/foundry:/workspace/tooling/go/bin:$PATH \
-FOUNDRY_SOLC=/workspace/tooling/solc-0.8.27 \
 forge test -vv
 ~~~
+
+Use your installed Foundry toolchain, or set `PATH` and `FOUNDRY_SOLC` to
+toolchain locations appropriate to your environment.
 
 contracts/test/ConcordFlow.t.sol covers:
 
