@@ -112,3 +112,12 @@ go run ./cmd/verify-allocation -c https://coston2-api.flare.network/ext/C/rpc -f
 
 No live FCC or facility deployment is claimed by local tests alone. See
 CONCORD_STATUS.md for the current evidence boundary.
+
+## Confidentiality mode disclosure
+
+For the Coston2 development path, `SIMULATED_TEE=true` selects the documented
+simulated attestation mode. This is useful for development verification but
+must not be described as production hardware-backed confidential execution.
+Private provider inputs and allocation computation remain within the intended
+confidential boundary; FXRP and USDT0 transfers and required relationship state
+remain public where the facility requires them.
