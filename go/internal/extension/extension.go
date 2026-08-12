@@ -118,7 +118,7 @@ func (e *Extension) processSubmitQuote(action teetypes.Action, df *instruction.D
 	if err := decodeStrict(payload, &req); err != nil {
 		return marshalActionResult(action, df, nil, 0, fmt.Errorf("decoding quote: %w", err))
 	}
-	if err := validateQuote(req, uint64(time.Now().Unix()), 0, 0, nil); err != nil {
+	if err := validateQuote(req, uint64(time.Now().Unix()), 0, false, 0, false, nil); err != nil {
 		return marshalActionResult(action, df, nil, 0, err)
 	}
 
@@ -317,7 +317,15 @@ func sameQuoteSet(left, right map[string]string) bool {
 	return true
 }
 
-func validateQuote(q types.QuoteRequest, now uint64, maxFee uint32, roundExpiry uint64, eligible map[string]bool) error {
+func validateQuote(
+	q types.QuoteRequest,
+	now uint64,
+	maxFee uint32,
+	enforceMaxFee bool,
+	roundExpiry uint64,
+	enforceRoundExpiry bool,
+	eligible map[string]bool,
+) error {
 	if !validBytes32(q.RoundID) || !validBytes32(q.RootAccordID) {
 		return fmt.Errorf("roundId and rootAccordId must be non-zero bytes32 values")
 	}
@@ -335,10 +343,10 @@ func validateQuote(q types.QuoteRequest, now uint64, maxFee uint32, roundExpiry 
 	if q.ValidUntil <= now {
 		return fmt.Errorf("quote is expired")
 	}
-	if maxFee != 0 && q.FeeBps > maxFee {
+	if enforceMaxFee && q.FeeBps > maxFee {
 		return fmt.Errorf("quote fee exceeds maxFeeBps")
 	}
-	if roundExpiry != 0 && q.ValidUntil > roundExpiry {
+	if enforceRoundExpiry && q.ValidUntil > roundExpiry {
 		return fmt.Errorf("quote validity exceeds round expiry")
 	}
 	if eligible != nil && !eligible[strings.ToLower(common.HexToAddress(q.Provider).Hex())] {
@@ -453,7 +461,7 @@ func CoFill(req types.FinalizeRoundRequest) (types.FinalizeRoundResponse, error)
 	}
 	quotes := append([]types.QuoteRequest(nil), req.Quotes...)
 	for i := range quotes {
-		if err := validateQuote(quotes[i], req.EvaluationTime, req.MaxFeeBps, req.RoundExpiry, eligible); err != nil {
+		if err := validateQuote(quotes[i], req.EvaluationTime, req.MaxFeeBps, true, req.RoundExpiry, true, eligible); err != nil {
 			return types.FinalizeRoundResponse{}, fmt.Errorf("quote %d rejected: %w", i, err)
 		}
 		if !strings.EqualFold(quotes[i].RoundID, req.RoundID) || !strings.EqualFold(quotes[i].RootAccordID, req.RootAccordID) {

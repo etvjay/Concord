@@ -132,6 +132,26 @@ func TestCoFillRejectsInvalidSignatureAndInsufficientCapacity(t *testing.T) {
 	}
 }
 
+func TestCoFillEnforcesZeroFeeCap(t *testing.T) {
+	key, _ := crypto.GenerateKey()
+	provider := crypto.PubkeyToAddress(key.PublicKey).Hex()
+	quote := quoteFixture(t, key, provider, 1, "100")
+	req := types.FinalizeRoundRequest{
+		ExtensionID:       "0x0300000000000000000000000000000000000000000000000000000000000000",
+		RoundID:           quote.RoundID,
+		RootAccordID:      quote.RootAccordID,
+		TargetCapacity:    "100",
+		MaxFeeBps:         0,
+		RoundExpiry:       uint64(time.Now().Unix()) + 7200,
+		EvaluationTime:    uint64(time.Now().Unix()),
+		EligibleProviders: []string{provider},
+		Quotes:            []types.QuoteRequest{quote},
+	}
+	if _, err := CoFill(req); err == nil || !strings.Contains(err.Error(), "exceeds maxFeeBps") {
+		t.Fatalf("non-zero fee passed a zero-fee round: %v", err)
+	}
+}
+
 func TestActionRequiresTEEDecryption(t *testing.T) {
 	e := New(0, 1)
 	status, body := e.processAction(buildAction(config.OPCommandSubmitQuote, []byte("not-plaintext")))
