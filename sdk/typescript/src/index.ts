@@ -151,7 +151,32 @@ export interface Draw {
   legs: DrawLeg[];
 }
 
-export type EvidenceStatus = "verified" | "invalid" | "withheld" | "not_observed";\nexport type EvidenceDisclosure = "metadata_only" | "authorized_full" | "withheld";\nexport type EvidenceSource = "coston2_fcc" | "local_simulated_tee" | "not_observed";\n\nexport interface Evidence {\n  resultDigest: string;\n  status: EvidenceStatus;\n  disclosure: EvidenceDisclosure;\n  extensionId?: string;\n  roundId?: string;\n  rootAccordId?: string;\n  instructionId?: string;\n  source: EvidenceSource;\n  warning?: string;\n}\n\nexport interface Health {\n  service: "concord-api";\n  network: string;\n  chainId: number;\n  configured: boolean;\n  readModel: "chain" | "unavailable";\n  facilityAddress?: string;\n  registryAddress?: string;\n}\nexport type PreparedAction =
+export type EvidenceStatus = "verified" | "invalid" | "withheld" | "not_observed";
+export type EvidenceDisclosure = "metadata_only" | "authorized_full" | "withheld";
+export type EvidenceSource = "coston2_fcc" | "local_simulated_tee" | "not_observed";
+
+export interface Evidence {
+  resultDigest: string;
+  status: EvidenceStatus;
+  disclosure: EvidenceDisclosure;
+  extensionId?: string;
+  roundId?: string;
+  rootAccordId?: string;
+  instructionId?: string;
+  source: EvidenceSource;
+  warning?: string;
+}
+
+export interface Health {
+  service: "concord-api";
+  network: string;
+  chainId: number;
+  configured: boolean;
+  readModel: "chain" | "unavailable";
+  facilityAddress?: string;
+  registryAddress?: string;
+}
+export type PreparedAction =
   | "create_root"
   | "lock_collateral"
   | "approve_asset"
@@ -213,7 +238,14 @@ export class ConcordClient {
     this.headers = { Accept: "application/json", ...options.headers };
   }
 
-  getHealth(): Promise<Envelope<Health>> {\n    return this.get("/v1/health");\n  }\n\n  getEvidence(resultDigest: string): Promise<Envelope<Evidence>> {\n    return this.get(`/v1/evidence/${resultDigest}`);\n  }\n  getFacility(rootAccordId: string): Promise<Envelope<Facility>> {
+  getHealth(): Promise<Envelope<Health>> {
+    return this.get("/v1/health");
+  }
+
+  getEvidence(resultDigest: string): Promise<Envelope<Evidence>> {
+    return this.get(`/v1/evidence/${resultDigest}`);
+  }
+  getFacility(rootAccordId: string): Promise<Envelope<Facility>> {
     return this.get(`/v1/facilities/${rootAccordId}`);
   }
 
