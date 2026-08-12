@@ -71,3 +71,15 @@ allocation result digest:
 root / child / draw / repayment transaction hashes:
 Explorer links:
 ~~~
+
+## Durable CI evidence
+
+- Commit `039460c65b98eb02ccf577bcd92a02827ebb000e` passed the deterministic
+  [GitHub Actions verification run](https://github.com/etvjay/Concord/actions/runs/31633719358).
+- The passing jobs were Solidity/Foundry lifecycle tests, Go extension and
+  tooling tests, TypeScript SDK compilation, and repository/documentation gates.
+- The Coston2 asset resolver remains a separate manual live-RPC workflow and
+  has not been represented as deployment evidence.
+- Green CI confirms repository-level correctness checks only. It does not prove
+  deployed contracts, FCC registration, funded provider accounts, settlement,
+  repayment, or production hardware-backed confidential execution.
