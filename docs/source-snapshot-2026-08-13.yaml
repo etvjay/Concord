@@ -1,0 +1,41 @@
+snapshot:
+  captured_at_utc: 2026-08-12T23:08:10Z
+  freshness: FRESH
+  environment: Coston2
+  chain_id: 114
+  tee_mode: simulated
+  hardware_attestation_claim: false
+  official_skills:
+    repository: https://github.com/flare-foundation/flare-ai-skills
+    revision: 0bd60deb977df97455da720df1aaf765480b8141
+    consulted:
+      - flare-general
+      - flare-fassets
+      - flare-fcc
+      - flare-fdc (boundary only; not implemented in the MVP)
+  developer_hub:
+    - https://dev.flare.network/fcc/guides/getting-started
+    - https://dev.flare.network/network/overview
+    - https://dev.flare.network/support/faqs
+    - https://dev.flare.network/fxrp/token-interactions/fxrp-address
+  official_repositories:
+    - repository: https://github.com/flare-foundation/fce-extension-scaffold
+      revision: e3f587949069780084e2ced8a53c9419ed05c250
+      finding: current scaffold supports Go, Python, and TypeScript implementations; Concord intentionally uses Go.
+  verified_facts:
+    - Coston2 uses chain ID 114 and the configured public RPC.
+    - The official Coston2 FCC development walkthrough uses LOCAL_MODE=false and SIMULATED_TEE=true.
+    - The walkthrough requires a public HTTPS extension-proxy URL and Coston2 indexer database credentials for the local proxy.
+    - The current scaffold path includes pre-build, start-services, post-build, and test phases.
+    - Flare's FAQ identifies Coston2 as the primary dApp testnet and states that FCC is available there while in development.
+  contradictions: []
+  concord_decisions:
+    - No product-semantic contradiction was found.
+    - Simulated TEE evidence remains development-path evidence, not production hardware-backed confidentiality.
+    - FDC remains an evidence seam and is not added to the MVP.
+  live_gate_inputs_still_required:
+    - funded Coston2 deployment/proxy accounts
+    - indexer credentials or an approved current proxy setup
+    - public HTTPS EXT_PROXY_URL
+    - current extension registration and active TEE-machine evidence
+    - real provider funding, draw, repayment, and explorer receipts

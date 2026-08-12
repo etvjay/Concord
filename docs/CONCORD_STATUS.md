@@ -1,6 +1,8 @@
 # Concord status
 
-Updated 2026-08-12.
+Updated 2026-08-13.
+
+- The fresh source snapshot used for this checkpoint is [source-snapshot-2026-08-13.yaml](source-snapshot-2026-08-13.yaml). It records the current official Coston2 FCC development path, including simulated-TEE labeling, public HTTPS proxy exposure, and current indexer-credential requirements.
 
 ## Works in the durable checkpoint
 

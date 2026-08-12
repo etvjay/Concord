@@ -41,6 +41,7 @@ record before making a deployment or privacy claim.
   reconciliation of the handoff, addendum, whitepaper, and implementation.
 - [skills-foundry-pack-ingestion.md](skills-foundry-pack-ingestion.md) — durable
   record of the supplied Foundry skills pack and validator status.
+- [source-snapshot-2026-08-13.yaml](source-snapshot-2026-08-13.yaml) — dated official Flare/FCC source snapshot and live-gate inputs.
 
 ## Official Flare runtime references
 
