@@ -1,1 +1,13 @@
-name: Coston2 asset resolution\n\non: workflow_dispatch\n\njobs:\n  resolve:\n    name: Resolve official Coston2 asset bindings\n    runs-on: ubuntu-latest\n    steps:\n      - name: Check out repository\n        uses: actions/checkout@v4\n      - name: State manual gate\n        run: echo "Coston2 asset resolution is a manual live-RPC gate."\n
+name: Coston2 asset resolution
+
+on: workflow_dispatch
+
+jobs:
+  resolve:
+    name: Resolve official Coston2 asset bindings
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: State manual gate
+        run: echo "Coston2 asset resolution is a manual live-RPC gate."
