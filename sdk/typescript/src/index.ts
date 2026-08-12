@@ -179,19 +179,28 @@ export interface Health {
 export type PreparedAction =
   | "create_root"
   | "lock_collateral"
+  | "open_syndication"
   | "approve_asset"
   | "fund_child"
+  | "close_child"
+  | "expire_child"
   | "draw"
-  | "repay";
+  | "repay"
+  | "close_root"
+  | "expire_root";
 
 export interface PrepareTransactionRequest {
   action: PreparedAction;
   rootAccordId?: string;
   childAccordId?: string;
   drawId?: string;
+  roundId?: string;
   targetCapacity?: string;
   amount?: string;
   validUntilUnix?: string;
+  roundExpiryUnix?: string;
+  maxFeeBps?: string;
+  eligibleProviders?: string[];
   policyHash?: string;
   asset?: string;
   spender?: string;

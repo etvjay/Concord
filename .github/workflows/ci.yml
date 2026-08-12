@@ -74,3 +74,5 @@ jobs:
         run: bash scripts/check-docs.sh
       - name: Validate evidence template
         run: bash scripts/check-evidence-template.sh
+      - name: Validate read-only Coston2 preflight command
+        run: bash scripts/coston2-preflight.sh --offline

@@ -20,6 +20,12 @@ Updated 2026-08-12.
   no embedded private-key fallback.
 - Coston2 asset resolution is centralized in config/networks/coston2.json and
   validated by scripts/resolve-coston2-assets.sh.
+- REST/OpenAPI, the TypeScript SDK, MCP, and CLI share unsigned lifecycle intent
+  vocabulary for round opening and relationship close/expiry; allocation
+  materialization remains verifier-gated.
+- `scripts/coston2-preflight.sh` provides a read-only offline/live operator gate,
+  and the adversarial cases are recorded in
+  `docs/experiments/coston2-failure-matrix.md`.
 
 ## Not yet evidenced
 

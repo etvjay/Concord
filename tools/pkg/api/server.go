@@ -26,23 +26,32 @@ type Server struct {
 }
 
 type PrepareRequest struct {
-	Action         string `json:"action"`
-	RootAccordID   string `json:"rootAccordId,omitempty"`
-	ChildAccordID  string `json:"childAccordId,omitempty"`
-	DrawID         string `json:"drawId,omitempty"`
-	TargetCapacity string `json:"targetCapacity,omitempty"`
-	Amount         string `json:"amount,omitempty"`
-	ValidUntilUnix string `json:"validUntilUnix,omitempty"`
-	PolicyHash     string `json:"policyHash,omitempty"`
-	Asset          string `json:"asset,omitempty"`
-	Spender        string `json:"spender,omitempty"`
-	Actor          string `json:"actor,omitempty"`
+	Action            string   `json:"action"`
+	RootAccordID      string   `json:"rootAccordId,omitempty"`
+	ChildAccordID     string   `json:"childAccordId,omitempty"`
+	DrawID            string   `json:"drawId,omitempty"`
+	RoundID           string   `json:"roundId,omitempty"`
+	TargetCapacity    string   `json:"targetCapacity,omitempty"`
+	Amount            string   `json:"amount,omitempty"`
+	ValidUntilUnix    string   `json:"validUntilUnix,omitempty"`
+	RoundExpiryUnix   string   `json:"roundExpiryUnix,omitempty"`
+	MaxFeeBPS         string   `json:"maxFeeBps,omitempty"`
+	EligibleProviders []string `json:"eligibleProviders,omitempty"`
+	PolicyHash        string   `json:"policyHash,omitempty"`
+	Asset             string   `json:"asset,omitempty"`
+	Spender           string   `json:"spender,omitempty"`
+	Actor             string   `json:"actor,omitempty"`
 }
 
 const prepareABIJSON = `[
   {"inputs":[{"name":"rootId","type":"bytes32"},{"name":"targetCapacity","type":"uint256"},{"name":"validUntil","type":"uint64"},{"name":"policyHash","type":"bytes32"}],"name":"createRootAccord","outputs":[],"stateMutability":"nonpayable","type":"function"},
   {"inputs":[{"name":"rootId","type":"bytes32"},{"name":"amount","type":"uint256"}],"name":"lockCollateral","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"name":"rootId","type":"bytes32"},{"name":"roundId","type":"bytes32"},{"name":"maxFeeBps","type":"uint32"},{"name":"roundExpiry","type":"uint64"},{"name":"eligibleProviders","type":"address[]"}],"name":"openSyndication","outputs":[],"stateMutability":"nonpayable","type":"function"},
   {"inputs":[{"name":"childId","type":"bytes32"},{"name":"amount","type":"uint256"}],"name":"fundChild","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"name":"childId","type":"bytes32"}],"name":"closeChild","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"name":"childId","type":"bytes32"}],"name":"expireChild","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"name":"rootId","type":"bytes32"}],"name":"closeRoot","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"name":"rootId","type":"bytes32"}],"name":"expireRoot","outputs":[],"stateMutability":"nonpayable","type":"function"},
   {"inputs":[{"name":"drawId","type":"bytes32"},{"name":"rootId","type":"bytes32"},{"name":"amount","type":"uint256"}],"name":"draw","outputs":[],"stateMutability":"nonpayable","type":"function"},
   {"inputs":[{"name":"drawId","type":"bytes32"},{"name":"amount","type":"uint256"}],"name":"repay","outputs":[],"stateMutability":"nonpayable","type":"function"}
 ]`
@@ -194,9 +203,14 @@ func (s *Server) buildIntent(ctx context.Context, req PrepareRequest) (readmodel
 	var to common.Address
 	var summary string
 	preconditions := []string{"The connected wallet or institution signer must review and approve this unsigned intent."}
-	amountValue, err := parseBig(req.Amount, "amount")
-	if req.Action != "create_root" && err != nil {
-		return readmodel.TransactionIntent{}, err
+	var amountValue *big.Int
+	var err error
+	switch req.Action {
+	case "lock_collateral", "approve_asset", "fund_child", "draw", "repay":
+		amountValue, err = parseBig(req.Amount, "amount")
+		if err != nil {
+			return readmodel.TransactionIntent{}, err
+		}
 	}
 	switch req.Action {
 	case "create_root":
@@ -216,9 +230,57 @@ func (s *Server) buildIntent(ctx context.Context, req PrepareRequest) (readmodel
 		if err != nil {
 			return readmodel.TransactionIntent{}, err
 		}
+		if validUntil <= uint64(time.Now().Unix()) {
+			return readmodel.TransactionIntent{}, fmt.Errorf("validUntilUnix must be in the future")
+		}
 		data, err = s.FacilityABI.Pack("createRootAccord", rootID, target, validUntil, policyHash)
 		summary = "Create a new Root Accord with the supplied target, expiry, and policy commitment."
 		preconditions = append(preconditions, "The root Accord ID must not already exist.", "The expiry must be in the future.")
+	case "open_syndication":
+		rootID, err := parseBytes32(req.RootAccordID)
+		if err != nil {
+			return readmodel.TransactionIntent{}, err
+		}
+		roundID, err := parseBytes32(req.RoundID)
+		if err != nil {
+			return readmodel.TransactionIntent{}, err
+		}
+		if roundID == ([32]byte{}) {
+			return readmodel.TransactionIntent{}, fmt.Errorf("roundId must not be zero")
+		}
+		maxFeeBPS, err := parseUint32(req.MaxFeeBPS, "maxFeeBps")
+		if err != nil {
+			return readmodel.TransactionIntent{}, err
+		}
+		if maxFeeBPS > 10000 {
+			return readmodel.TransactionIntent{}, fmt.Errorf("maxFeeBps must not exceed 10000")
+		}
+		roundExpiry, err := parseUint64(req.RoundExpiryUnix, "roundExpiryUnix")
+		if err != nil {
+			return readmodel.TransactionIntent{}, err
+		}
+		if roundExpiry <= uint64(time.Now().Unix()) {
+			return readmodel.TransactionIntent{}, fmt.Errorf("roundExpiryUnix must be in the future")
+		}
+		if len(req.EligibleProviders) == 0 {
+			return readmodel.TransactionIntent{}, fmt.Errorf("eligibleProviders must contain at least one provider")
+		}
+		providers := make([]common.Address, len(req.EligibleProviders))
+		seenProviders := make(map[common.Address]struct{}, len(req.EligibleProviders))
+		for i, raw := range req.EligibleProviders {
+			provider, parseErr := parseAddress(raw, fmt.Sprintf("eligibleProviders[%d]", i))
+			if parseErr != nil {
+				return readmodel.TransactionIntent{}, parseErr
+			}
+			if _, exists := seenProviders[provider]; exists {
+				return readmodel.TransactionIntent{}, fmt.Errorf("eligibleProviders contains duplicate address %s", provider.Hex())
+			}
+			seenProviders[provider] = struct{}{}
+			providers[i] = provider
+		}
+		data, err = s.FacilityABI.Pack("openSyndication", rootID, roundID, maxFeeBPS, roundExpiry, providers)
+		summary = "Open a Makkari syndication round under the Root Accord."
+		preconditions = append(preconditions, "The signer must be the Root Accord borrower.", "The Root Accord must be PROPOSED with FXRP collateral locked.", "Private quote payloads remain withheld from this public transaction intent.")
 	case "lock_collateral":
 		rootID, err := parseBytes32(req.RootAccordID)
 		if err != nil {
@@ -290,6 +352,38 @@ func (s *Server) buildIntent(ctx context.Context, req PrepareRequest) (readmodel
 		data, err = s.FacilityABI.Pack("repay", drawID, amountValue)
 		summary = "Repay principal on the Root Accord draw."
 		preconditions = append(preconditions, "The signer must be the treasury borrower.", "The liquidity-token allowance and balance must cover the amount.", "Capacity returns only after the ERC-20 transfer succeeds.")
+	case "close_child":
+		childID, err := parseBytes32(req.ChildAccordID)
+		if err != nil {
+			return readmodel.TransactionIntent{}, err
+		}
+		data, err = s.FacilityABI.Pack("closeChild", childID)
+		summary = "Close a Child Accord after its exposure is cleared."
+		preconditions = append(preconditions, "The signer must be authorized by the Child Accord.", "The child must have no outstanding exposure.")
+	case "expire_child":
+		childID, err := parseBytes32(req.ChildAccordID)
+		if err != nil {
+			return readmodel.TransactionIntent{}, err
+		}
+		data, err = s.FacilityABI.Pack("expireChild", childID)
+		summary = "Expire an eligible Child Accord after its validity boundary."
+		preconditions = append(preconditions, "The child must be past its validity boundary and eligible under onchain expiry rules.")
+	case "close_root":
+		rootID, err := parseBytes32(req.RootAccordID)
+		if err != nil {
+			return readmodel.TransactionIntent{}, err
+		}
+		data, err = s.FacilityABI.Pack("closeRoot", rootID)
+		summary = "Close the Root Accord after the facility is fully settled."
+		preconditions = append(preconditions, "The signer must be the Root Accord borrower.", "The facility must have no outstanding exposure and no active child obligations.")
+	case "expire_root":
+		rootID, err := parseBytes32(req.RootAccordID)
+		if err != nil {
+			return readmodel.TransactionIntent{}, err
+		}
+		data, err = s.FacilityABI.Pack("expireRoot", rootID)
+		summary = "Expire the Root Accord after its validity boundary."
+		preconditions = append(preconditions, "The Root Accord must be past its validity boundary and eligible under onchain expiry rules.")
 	default:
 		return readmodel.TransactionIntent{}, fmt.Errorf("unsupported action %q", req.Action)
 	}
@@ -371,11 +465,19 @@ func parseBig(value, name string) (*big.Int, error) {
 }
 
 func parseUint64(value, name string) (uint64, error) {
-	parsed, err := new(big.Int).SetString(value, 10)
-	if !err || parsed.Sign() < 0 || !parsed.IsUint64() {
+	parsed, ok := new(big.Int).SetString(value, 10)
+	if !ok || parsed.Sign() < 0 || !parsed.IsUint64() {
 		return 0, fmt.Errorf("%s must be a non-negative uint64 in base-10 notation", name)
 	}
 	return parsed.Uint64(), nil
+}
+
+func parseUint32(value, name string) (uint32, error) {
+	parsed, err := parseUint64(value, name)
+	if err != nil || parsed > uint64(^uint32(0)) {
+		return 0, fmt.Errorf("%s must be a non-negative uint32 in base-10 notation", name)
+	}
+	return uint32(parsed), nil
 }
 
 func splitPath(path string) []string {

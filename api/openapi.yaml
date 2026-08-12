@@ -372,13 +372,19 @@ components:
       properties:
         action:
           type: string
-          enum: [create_root, lock_collateral, approve_asset, fund_child, draw, repay]
+          enum: [create_root, lock_collateral, open_syndication, approve_asset, fund_child, close_child, expire_child, draw, repay, close_root, expire_root]
         rootAccordId: { $ref: '#/components/schemas/Bytes32' }
         childAccordId: { $ref: '#/components/schemas/Bytes32' }
         drawId: { $ref: '#/components/schemas/Bytes32' }
+        roundId: { $ref: '#/components/schemas/Bytes32' }
         targetCapacity: { $ref: '#/components/schemas/DecimalString' }
         amount: { $ref: '#/components/schemas/DecimalString' }
         validUntilUnix: { $ref: '#/components/schemas/DecimalString' }
+        roundExpiryUnix: { $ref: '#/components/schemas/DecimalString' }
+        maxFeeBps: { $ref: '#/components/schemas/DecimalString' }
+        eligibleProviders:
+          type: array
+          items: { $ref: '#/components/schemas/Address' }
         policyHash: { $ref: '#/components/schemas/Bytes32' }
         asset: { $ref: '#/components/schemas/Address' }
         spender: { $ref: '#/components/schemas/Address' }

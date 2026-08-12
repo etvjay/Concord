@@ -36,13 +36,15 @@ remain distinct from confidential provider inputs and FCC evidence.
   baseline.
 - The Coston2 asset resolver is available as a manual workflow because it is a
   live RPC check, not a deterministic unit test.
+- `scripts/coston2-preflight.sh` validates the centralized Coston2 config offline
+  and can re-check RPC chain ID, public bytecode, and FCC proxy `/info` live.
 
 ### Contract and extension correctness
 
 - Solidity tests cover Root Accord creation, FXRP collateral, verified and
   replay-protected allocation materialization, selected versus funded child
-  capacity, multi-child draws, DrawLegs, repayment, exposure, closure, and
-  balance recovery.
+  capacity, multi-child draws, DrawLegs, repayment, exposure, closure, expiry,
+  active-child demotion, and balance recovery.
 - Go tests cover strict payload decoding, provider signature validation,
   expiry and policy rejection, deterministic ordering, partial allocation, and
   explicit insufficient-capacity failure.

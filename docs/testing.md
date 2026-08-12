@@ -51,3 +51,11 @@ scaffold, provider accounts, and an independently verified allocation result.
 Passing local tests do not equal a Coston2 deployment. Record contract
 addresses, instruction IDs, transaction hashes, result digests and explorer
 links in the status record before making a live-flow claim.
+
+## Failure and evidence matrix
+
+[Coston2 and lifecycle failure matrix](experiments/coston2-failure-matrix.md)
+covers adversarial signatures, expiry, replay, insufficient capacity, selected
+versus funded state, active-child expiry demotion, partial repayment, unsigned
+intent boundaries, and live-gated FCC/settlement evidence. The matrix is a
+release gate, not a claim that the live cases have already been observed.

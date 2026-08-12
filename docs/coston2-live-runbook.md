@@ -32,7 +32,32 @@ ignored environment files or the deployment system secret store.
 
 ## Execution order
 
-### 1. Resolve current Coston2 assets
+### 1. Run the read-only preflight
+
+Validate the local config before using any funded account. In offline mode the
+command makes no RPC request:
+
+~~~bash
+./scripts/coston2-preflight.sh --offline
+~~~
+
+After the public addresses and FCC proxy are available, repeat it with live
+bindings:
+
+~~~bash
+./scripts/coston2-preflight.sh \
+  --proxy "$EXT_PROXY_URL" \
+  --extension-id "$CONCORD_EXTENSION_ID" \
+  --facility "$CAPITAL_FACILITY" \
+  --registry "$ACCORD_REGISTRY" \
+  --sender "$CONCORD_INSTRUCTION_SENDER"
+~~~
+
+It confirms Coston2 chain ID 114, re-runs the current asset resolver, and
+optionally checks public bytecode and the proxy `/info` extension binding. It
+never signs or broadcasts. If `SIMULATED_TEE=true`, the output is development
+path evidence only.
+### 2. Resolve current Coston2 assets
 
 Run the resolver before deployment and stop on any mismatch. It obtains the FXRP
 manager through Flare's ContractRegistry, resolves `fAsset()`, and validates the
@@ -46,7 +71,7 @@ The GitHub workflow named `Coston2 asset resolution` is the same read-only gate.
 A successful run may be cited for asset resolution, but it is not deployment or
 FCC evidence.
 
-### 2. Configure the official FCE scaffold
+### 3. Configure the official FCE scaffold
 
 Use the current official scaffold sequence and set the Coston2 values explicitly:
 
@@ -69,7 +94,7 @@ curl -s "$EXT_PROXY_URL/info" | jq '{extensionId, codeHash, platform}'
 If `platform` is the simulated development value or the code hash is documented
 as simulated, preserve that limitation in every demo and release note.
 
-### 3. Deploy and register in two phases
+### 4. Deploy and register in two phases
 
 Deploy the instruction sender first. Register the extension through the official
 scaffold, call the one-shot `setExtensionId()`, and record the resulting live
@@ -91,7 +116,7 @@ DEPLOY_PHASE=facility ./scripts/deploy-coston2.sh
 Do not fill registry addresses or extension ids from memory. Resolve them from
 the current official scaffold/configuration and record the source used.
 
-### 4. Run the relationship lifecycle
+### 5. Run the relationship lifecycle
 
 1. Treasury creates the FXRP-backed root Accord and locks FXRP.
 2. Treasury opens the Makkari syndication round with target, fee, expiry, and
@@ -113,7 +138,7 @@ the current official scaffold/configuration and record the source used.
 11. Repay through the actual USDT0 transfer, then verify child and root exposure
     decrease and available capacity returns.
 
-### 5. Verify and record evidence
+### 6. Verify and record evidence
 
 Use the committed template as the shape of the final evidence packet:
 

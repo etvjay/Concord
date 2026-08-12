@@ -6,6 +6,10 @@ import {CapitalFacility} from "../CapitalFacility.sol";
 import {ConcordTypes} from "../ConcordTypes.sol";
 import {MockERC20} from "./MockERC20.sol";
 
+interface Vm {
+    function warp(uint256 timestamp) external;
+}
+
 contract ConcordActor {
     function approve(MockERC20 token, address spender, uint256 amount) external {
         require(token.approve(spender, amount), "approve failed");
@@ -52,6 +56,10 @@ contract ConcordActor {
         facility.closeChild(childId);
     }
 
+    function expireChild(CapitalFacility facility, bytes32 childId) external {
+        facility.expireChild(childId);
+    }
+
     function closeRoot(CapitalFacility facility, bytes32 rootId) external {
         facility.closeRoot(rootId);
     }
@@ -71,6 +79,7 @@ contract ConcordFlowTest {
     bytes32 private constant ROUND_ID = keccak256("ROUND-01");
     bytes32 private constant ALLOCATION_ID = keccak256("ALLOCATION-01");
     bytes32 private constant DRAW_ID = keccak256("DRAW-01");
+    Vm private constant VM = Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
 
     MockERC20 private fxrp;
     MockERC20 private usdt0;
@@ -179,8 +188,15 @@ contract ConcordFlowTest {
 
         usdt0.mint(address(treasury), 750);
         treasury.approve(usdt0, address(facility), type(uint256).max);
-        treasury.repay(facility, DRAW_ID, 750);
+        treasury.repay(facility, DRAW_ID, 100);
+        require(facility.getRoot(ROOT_ID).drawnPrincipal == 650, "partial root repayment mismatch");
+        require(facility.getChild(childA).drawnPrincipal == 500, "partial A repayment mismatch");
+        require(facility.getChild(childB).drawnPrincipal == 150, "partial B repayment mismatch");
+
+        treasury.repay(facility, DRAW_ID, 650);
         require(facility.getRoot(ROOT_ID).drawnPrincipal == 0, "root exposure not repaid");
+        require(facility.getChild(childA).drawnPrincipal == 0, "A exposure not repaid");
+        require(facility.getChild(childB).drawnPrincipal == 0, "B exposure not repaid");
         require(facility.availableCapacity(ROOT_ID) == 1_000, "capacity not restored");
 
         providerA.closeChild(facility, childA);
@@ -307,6 +323,63 @@ contract ConcordFlowTest {
             abi.encodeWithSelector(ConcordActor.fund.selector, facility, childA, 1)
         );
         require(!overfundOk, "overfunding succeeded");
+    }
+
+
+    function testExpiredActiveChildDemotesRootToFunding() public {
+        uint64 rootExpiry = uint64(block.timestamp + 30 days);
+        uint64 roundExpiry = uint64(block.timestamp + 1 days);
+        treasury.createRoot(facility, ROOT_ID, 1_000, rootExpiry, keccak256("POLICY"));
+        treasury.lock(facility, ROOT_ID, 100);
+
+        address[] memory providers = new address[](2);
+        providers[0] = address(providerA);
+        providers[1] = address(providerB);
+        treasury.open(facility, ROOT_ID, ROUND_ID, 700, roundExpiry, providers);
+
+        address[] memory selected = new address[](2);
+        selected[0] = address(providerA);
+        selected[1] = address(providerB);
+        uint256[] memory allocations = new uint256[](2);
+        allocations[0] = 600;
+        allocations[1] = 400;
+        uint32[] memory fees = new uint32[](2);
+        fees[0] = 610;
+        fees[1] = 640;
+        bytes32[] memory terms = new bytes32[](2);
+        terms[0] = keccak256("A-TERMS");
+        terms[1] = keccak256("B-TERMS");
+
+        ConcordTypes.AllocationResult memory result = ConcordTypes.AllocationResult({
+            extensionId: EXTENSION_ID,
+            roundId: ROUND_ID,
+            rootAccordId: ROOT_ID,
+            success: true,
+            selectedProviders: selected,
+            allocatedCapacity: allocations,
+            acceptedFeeBps: fees,
+            termsCommitments: terms,
+            roundExpiry: roundExpiry,
+            resultDigest: bytes32(0)
+        });
+        result.resultDigest = allocationDigest(result);
+
+        providerC.mark(facility, result.resultDigest);
+        treasury.materialize(facility, result);
+        bytes32 childA = keccak256(abi.encode(ROOT_ID, result.resultDigest, address(providerA)));
+        bytes32 childB = keccak256(abi.encode(ROOT_ID, result.resultDigest, address(providerB)));
+
+        providerA.fund(facility, childA, 600);
+        providerB.fund(facility, childB, 400);
+        require(facility.getRoot(ROOT_ID).state == ConcordTypes.RootState.ACTIVE, "root not active");
+
+        VM.warp(uint256(roundExpiry) + 1);
+        providerA.expireChild(facility, childA);
+
+        require(facility.getChild(childA).state == ConcordTypes.ChildState.EXPIRED, "child not expired");
+        require(facility.getChild(childA).committedCapacity == 0, "expired child commitment remains");
+        require(facility.getRoot(ROOT_ID).committedCapacity == 400, "root commitment not reduced");
+        require(facility.getRoot(ROOT_ID).state == ConcordTypes.RootState.FUNDING, "active root was not demoted");
     }
 
     function allocationDigest(ConcordTypes.AllocationResult memory result) internal pure returns (bytes32) {

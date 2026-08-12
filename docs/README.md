@@ -29,6 +29,8 @@ record before making a deployment or privacy claim.
 - [cli.md](cli.md) — unified CLI, API, and MCP entry points.
 - [pre-deployment-hardening.md](pre-deployment-hardening.md) — immediate CI,
   correctness, and productization gates before live proof.
+- [experiments/coston2-failure-matrix.md](experiments/coston2-failure-matrix.md)
+  — adversarial contract, FCC, control-plane, and live-evidence cases.
 
 ## Evidence and truth
 

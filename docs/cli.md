@@ -31,3 +31,19 @@ existing bounded FCC/deployment commands, does not hold a signer, and does not
 claim that Concord contracts or an FCC extension are deployed on Coston2. The
 live operator path still requires deployed addresses, funded accounts, a
 configured FCC proxy/TEE flow, provider offers, and recorded receipts.
+
+## Coston2 preflight
+
+Run the read-only preflight before any credentialed operator session:
+
+~~~bash
+./scripts/coston2-preflight.sh --offline
+./scripts/coston2-preflight.sh --proxy "$EXT_PROXY_URL" --extension-id "$CONCORD_EXTENSION_ID"
+~~~
+
+The live form confirms chain ID 114, re-runs the centralized FXRP/USDT0 asset
+resolver, and can check public bytecode and the official FCC proxy `/info`
+binding when addresses are supplied. It never signs, broadcasts, or stores
+credentials. The transaction-intent vocabulary shared by the API, SDK, MCP,
+and CLI includes round opening plus child/root close and expiry actions; FCC
+allocation materialization remains verifier-gated.

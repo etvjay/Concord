@@ -169,9 +169,10 @@ func tools() []map[string]any {
 		{"name": "get_round", "description": "Read one public Makkari round summary without private quote data.", "inputSchema": objectSchema("roundId")},
 		{"name": "get_draw", "description": "Read one draw and its explicit child DrawLegs.", "inputSchema": objectSchema("drawId")},
 		{"name": "prepare_transaction", "description": "Prepare unsigned calldata for a reviewed action. This tool never signs or broadcasts.", "inputSchema": map[string]any{"type": "object", "required": []string{"action"}, "properties": map[string]any{
-			"action":       map[string]any{"type": "string", "enum": []string{"create_root", "lock_collateral", "approve_asset", "fund_child", "draw", "repay"}},
-			"rootAccordId": map[string]string{"type": "string"}, "childAccordId": map[string]string{"type": "string"}, "drawId": map[string]string{"type": "string"},
-			"targetCapacity": map[string]string{"type": "string"}, "amount": map[string]string{"type": "string"}, "validUntilUnix": map[string]string{"type": "string"},
+			"action":       map[string]any{"type": "string", "enum": []string{"create_root", "lock_collateral", "open_syndication", "approve_asset", "fund_child", "close_child", "expire_child", "draw", "repay", "close_root", "expire_root"}},
+			"rootAccordId": map[string]string{"type": "string"}, "childAccordId": map[string]string{"type": "string"}, "drawId": map[string]string{"type": "string"}, "roundId": map[string]string{"type": "string"},
+			"targetCapacity": map[string]string{"type": "string"}, "amount": map[string]string{"type": "string"}, "validUntilUnix": map[string]string{"type": "string"}, "roundExpiryUnix": map[string]string{"type": "string"}, "maxFeeBps": map[string]string{"type": "string"},
+			"eligibleProviders": map[string]any{"type": "array", "items": map[string]string{"type": "string"}},
 			"policyHash": map[string]string{"type": "string"}, "asset": map[string]string{"type": "string"}, "spender": map[string]string{"type": "string"},
 			"actor": map[string]any{"type": "string", "enum": []string{"treasury", "provider", "institution", "agent"}},
 		}}},

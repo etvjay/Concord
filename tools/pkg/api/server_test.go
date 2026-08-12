@@ -121,3 +121,55 @@ func TestPrepareDrawReturnsUnsignedIntent(t *testing.T) {
 		t.Fatalf("unexpected intent: %+v", bodyResponse.Data)
 	}
 }
+
+
+func TestPrepareOpenSyndicationReturnsUnsignedIntent(t *testing.T) {
+	server := testServer(t)
+	defer server.Close()
+	body := `{"action":"open_syndication","rootAccordId":"0x` + strings.Repeat("1", 64) + `","roundId":"0x` + strings.Repeat("2", 64) + `","maxFeeBps":"700","roundExpiryUnix":"4102444800","eligibleProviders":["0x` + strings.Repeat("7", 40) + `","0x` + strings.Repeat("8", 40) + `"],"actor":"treasury"}`
+	response, err := http.Post(server.URL+"/v1/transactions/prepare", "application/json", strings.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusOK {
+		data, _ := io.ReadAll(response.Body)
+		t.Fatalf("status = %d body = %s", response.StatusCode, data)
+	}
+	var bodyResponse struct {
+		Data readmodel.TransactionIntent `json:"data"`
+	}
+	if err := json.NewDecoder(response.Body).Decode(&bodyResponse); err != nil {
+		t.Fatal(err)
+	}
+	if bodyResponse.Data.Action != "open_syndication" || !bodyResponse.Data.RequiresExplicitApproval || !strings.HasPrefix(bodyResponse.Data.Data, "0x") {
+		t.Fatalf("unexpected intent: %+v", bodyResponse.Data)
+	}
+	if !strings.Contains(strings.Join(bodyResponse.Data.Preconditions, " "), "Private quote payloads remain withheld") {
+		t.Fatalf("missing privacy boundary: %+v", bodyResponse.Data.Preconditions)
+	}
+}
+
+func TestPrepareCloseRootDoesNotRequireAmount(t *testing.T) {
+	server := testServer(t)
+	defer server.Close()
+	body := `{"action":"close_root","rootAccordId":"0x` + strings.Repeat("1", 64) + `","actor":"treasury"}`
+	response, err := http.Post(server.URL+"/v1/transactions/prepare", "application/json", strings.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusOK {
+		data, _ := io.ReadAll(response.Body)
+		t.Fatalf("status = %d body = %s", response.StatusCode, data)
+	}
+	var bodyResponse struct {
+		Data readmodel.TransactionIntent `json:"data"`
+	}
+	if err := json.NewDecoder(response.Body).Decode(&bodyResponse); err != nil {
+		t.Fatal(err)
+	}
+	if bodyResponse.Data.Action != "close_root" || !bodyResponse.Data.RequiresExplicitApproval {
+		t.Fatalf("unexpected intent: %+v", bodyResponse.Data)
+	}
+}

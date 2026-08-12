@@ -498,6 +498,15 @@ contract CapitalFacility {
             _safeTransfer(liquidityAsset, child.provider, returned);
         }
         child.state = ConcordTypes.ChildState.EXPIRED;
+        // An expired child can reduce an already active root below target.
+        // Preserve the root state invariant so no draw can proceed against
+        // a facility that is no longer fully funded.
+        if (
+            root.state == ConcordTypes.RootState.ACTIVE &&
+            root.committedCapacity < root.targetCapacity
+        ) {
+            root.state = ConcordTypes.RootState.FUNDING;
+        }
         emit ChildExpired(childId, returned);
     }
 
