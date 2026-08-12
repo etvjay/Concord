@@ -5,6 +5,7 @@ import {AccordRegistry} from "../AccordRegistry.sol";
 import {CapitalFacility} from "../CapitalFacility.sol";
 import {ConcordTypes} from "../ConcordTypes.sol";
 import {MockERC20} from "./MockERC20.sol";
+import {ReentrantERC20} from "./ReentrantERC20.sol";
 
 interface Vm {
     function warp(uint256 timestamp) external;
@@ -382,6 +383,63 @@ contract ConcordFlowTest {
         require(facility.getRoot(ROOT_ID).state == ConcordTypes.RootState.FUNDING, "active root was not demoted");
     }
 
+    function testMaliciousERC20ReentryIsBlocked() public {
+        ReentrantERC20 malicious = new ReentrantERC20();
+        AccordRegistry guardedRegistry = new AccordRegistry(address(this));
+        CapitalFacility guardedFacility = new CapitalFacility(
+            guardedRegistry,
+            address(fxrp),
+            address(malicious),
+            address(providerC),
+            EXTENSION_ID
+        );
+        guardedRegistry.setFacility(address(guardedFacility));
+
+        treasury.approve(fxrp, address(guardedFacility), type(uint256).max);
+        uint64 rootExpiry = uint64(block.timestamp + 30 days);
+        uint64 roundExpiry = uint64(block.timestamp + 1 days);
+        treasury.createRoot(guardedFacility, ROOT_ID, 100, rootExpiry, keccak256("POLICY"));
+        treasury.lock(guardedFacility, ROOT_ID, 100);
+
+        address[] memory providers = new address[](1);
+        providers[0] = address(malicious);
+        treasury.open(guardedFacility, ROOT_ID, ROUND_ID, 700, roundExpiry, providers);
+
+        address[] memory selected = new address[](1);
+        selected[0] = address(malicious);
+        uint256[] memory allocations = new uint256[](1);
+        allocations[0] = 100;
+        uint32[] memory fees = new uint32[](1);
+        fees[0] = 700;
+        bytes32[] memory terms = new bytes32[](1);
+        terms[0] = keccak256("MALICIOUS-TERMS");
+        ConcordTypes.AllocationResult memory result = ConcordTypes.AllocationResult({
+            extensionId: EXTENSION_ID,
+            roundId: ROUND_ID,
+            rootAccordId: ROOT_ID,
+            success: true,
+            selectedProviders: selected,
+            allocatedCapacity: allocations,
+            acceptedFeeBps: fees,
+            termsCommitments: terms,
+            roundExpiry: roundExpiry,
+            resultDigest: bytes32(0)
+        });
+        result.resultDigest = allocationDigest(result);
+
+        providerC.mark(guardedFacility, result.resultDigest);
+        treasury.materialize(guardedFacility, result);
+        bytes32 childId = keccak256(abi.encode(ROOT_ID, result.resultDigest, address(malicious)));
+
+        malicious.mintSelf(100);
+        malicious.approveSelf(address(guardedFacility), 100);
+        malicious.configureReentry(address(guardedFacility), childId);
+        malicious.attackFund(address(guardedFacility), childId, 100);
+
+        require(malicious.reentryBlocked(), "reentrant callback was not blocked");
+        require(guardedFacility.getRoot(ROOT_ID).committedCapacity == 100, "funding was not recorded");
+        require(guardedFacility.getRoot(ROOT_ID).state == ConcordTypes.RootState.ACTIVE, "root did not activate");
+    }
     function allocationDigest(ConcordTypes.AllocationResult memory result) internal pure returns (bytes32) {
         bytes memory encoded = abi.encodePacked(
             result.extensionId,
