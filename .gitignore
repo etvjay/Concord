@@ -21,6 +21,7 @@ cache/
 
 # Uploaded artifacts and local evidence must never enter the source tree.
 upload/
+evidence/
 *.log
 
 # go.work is generated on demand by start-services.sh for USE_LOCAL_SIBLINGS=1
