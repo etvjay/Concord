@@ -1,0 +1,20 @@
+{
+  "network": "coston2",
+  "chainId": 114,
+  "rpcUrl": "https://coston2-api.flare.network/ext/C/rpc",
+  "explorerUrl": "https://coston2-explorer.flare.network",
+  "contractRegistry": "0xaD67FE66660Fb8dFE9d6b1b4240d8650e30F6019",
+  "fxrp": {
+    "assetManagerRegistryName": "AssetManagerFXRP",
+    "assetManager": "0xc1Ca88b937d0b528842F95d5731ffB586f4fbDFA",
+    "token": "0x0b6A3645c240605887a5532109323A3E12273dc7",
+    "decimals": 6,
+    "resolution": "Resolve AssetManagerFXRP from ContractRegistry, then call fAsset()."
+  },
+  "usdt0": {
+    "symbol": "USDT0",
+    "token": "0x479854495cefBc8D12B971A3Ec4d18E6dbcE81a3",
+    "decimals": 18,
+    "resolution": "Current Coston2 token snapshot; validate symbol, decimals, and bytecode with the resolver."
+  }
+}
