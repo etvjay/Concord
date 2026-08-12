@@ -1,67 +1,68 @@
 #!/usr/bin/env bash
-# check-docs.sh — validate the shared docs standard (see docs/README.md).
-#
-# Checks presence, that the platform-wide traps are actually covered, and that
-# nothing has grown too long to be read by a tester. Content checks match on
-# keywords rather than headings so rewording does not break them.
-#
-# Keep this file identical across extensions; the only per-repo difference is
-# ONE_SHOT_SETTER below.
-#
-# Exit 1 on a missing/incomplete required doc; long docs only warn.
+# check-docs.sh — validate Concord-specific documentation and truth boundaries.
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 DOCS="$(cd "$SCRIPT_DIR/.." && pwd)/docs"
 
-RED='\033[0;31m'; YELLOW='\033[0;33m'; GREEN='\033[0;32m'; NC='\033[0m'
+RED="\033[0;31m"; YELLOW="\033[0;33m"; GREEN="\033[0;32m"; NC="\033[0m"
 fail=0
 err()  { echo -e "${RED}FAIL${NC}  $*"; fail=1; }
 warn() { echo -e "${YELLOW}WARN${NC}  $*"; }
 ok()   { echo -e "${GREEN}ok${NC}    $*"; }
 
-# The one-shot binding differs per extension: shielded-transfer binds the vault's
-# teeAuthority, orderbook binds the InstructionSender's teeAddress.
-ONE_SHOT_SETTER="setExtensionId"
-
-REQUIRED="getting-started.md deployment-steps.md testing.md testing-against-coston2.md architecture.md cloudflared.md"
-SCAFFOLD="extension-guide.md instruction-sender.md manual-setup.md types-server.md"
-MAX_LINES=400   # past this a tester stops reading; split or cut
+# These are the Concord documents that must exist in a clean checkout.
+REQUIRED="architecture.md getting-started.md testing.md testing-against-coston2.md cloudflared.md CONCORD_STATUS.md shared-product-contract.md frontend-map.md cli.md"
+MAX_LINES=500
 
 echo "docs: $DOCS"
 echo
 
 for f in $REQUIRED; do
     p="$DOCS/$f"
-    if [[ ! -f "$p" ]]; then err "$f missing (required)"; continue; fi
+    if [[ ! -f "$p" ]]; then
+        err "$f missing (required)"
+        continue
+    fi
     n=$(wc -l <"$p")
-    # 20 lines is about the floor for a real doc; below that it is a stub.
-    if (( n < 20 )); then err "$f is only $n lines — stub?"; continue; fi
+    if (( n < 20 )); then
+        err "$f is only $n lines — stub?"
+        continue
+    fi
     (( n > MAX_LINES )) && warn "$f is $n lines (>$MAX_LINES) — trim or split"
     ok "$f ($n lines)"
 done
 
-echo
-for f in $SCAFFOLD; do
-    [[ -f "$DOCS/$f" ]] && ok "$f (scaffold)" || warn "$f missing — scaffold doc, expected"
-done
+check() {
+    local file="$1" label="$2" needle="$3"
+    if [[ ! -f "$DOCS/$file" ]]; then
+        err "$file missing while checking $label"
+    elif grep -qiF -- "$needle" "$DOCS/$file"; then
+        ok "$file: $label"
+    else
+        err "$file: missing $label (looked for \"$needle\")"
+    fi
+}
 
-# Platform traps every extension hits. Absent = the doc will not save anyone.
 echo
-D="$DOCS/deployment-steps.md"
-if [[ -f "$D" ]]; then
-    check() { grep -qiF "$2" "$D" && ok "deployment-steps: $1" || err "deployment-steps: missing $1 (looked for '$2')"; }
-    check "stale-machine pausing"        "pause("
-    check "active-machine listing"       "getActiveTeeMachines"
-    check "one-shot binding warning"     "$ONE_SHOT_SETTER"
-    check "launch-policy env override"   "allow_env_override"
-    check "digest-pinned deploy"         "digest"
-    check "attestation mode"             "SIMULATED_TEE"
+check "getting-started.md" "two-phase deployment" "DEPLOY_PHASE"
+check "getting-started.md" "simulated TEE disclosure" "SIMULATED_TEE"
+check "getting-started.md" "verified-result gate" "-mark"
+check "CONCORD_STATUS.md" "live-evidence boundary" "Not yet evidenced"
+check "CONCORD_STATUS.md" "privacy boundary" "private FXRP"
+check "shared-product-contract.md" "selected versus funded" "selected"
+check "shared-product-contract.md" "unsigned intent boundary" "requiresExplicitApproval"
+check "frontend-map.md" "not-observed state" "not-observed"
+
+if [[ -f "$DOCS/README.md" ]]; then
+    ok "docs/README.md index present"
+else
+    err "docs/README.md index missing"
 fi
 
-echo
-if [[ -f "$DOCS/README.md" ]]; then ok "docs/README.md index present"; else err "docs/README.md index missing"; fi
-
-echo
-if (( fail )); then echo -e "${RED}docs standard: FAILED${NC}"; else echo -e "${GREEN}docs standard: OK${NC}"; fi
-exit $fail
+if (( fail )); then
+    echo -e "${RED}Concord documentation gate: FAILED${NC}"
+else
+    echo -e "${GREEN}Concord documentation gate: OK${NC}"
+fi
+exit "$fail"

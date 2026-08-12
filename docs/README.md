@@ -1,29 +1,49 @@
 # Concord documentation
 
-Start with [architecture.md](architecture.md) for the relationship model,
-[getting-started.md](getting-started.md) for the durable build and Coston2
-inputs, and [CONCORD_STATUS.md](CONCORD_STATUS.md) for the evidence boundary.
+Concord documentation is split between product semantics, implementation
+guidance, interface contracts, and evidence boundaries. Start with the status
+record before making a deployment or privacy claim.
 
-## Product-specific
+## Product and protocol
 
-- [architecture.md](architecture.md) — Accord, Makkari, CoFill and lifecycle.
+- [architecture.md](architecture.md) — Accord, Makkari, CoFill, and lifecycle.
 - [lineage.md](lineage.md) — queryable parent-child causal graph.
-- [getting-started.md](getting-started.md) — local checks, asset resolution and deployment inputs.
-- [testing.md](testing.md) — contract, extension and tooling tests.
+- [shared-product-contract.md](shared-product-contract.md) — shared semantics
+  for the web interface, REST, SDK, MCP, CLI, and agent integrations.
+- [frontend-map.md](frontend-map.md) — routes, role surfaces, and state-to-action
+  behavior for the eventual webapp.
+- [frontend-design-system.md](frontend-design-system.md) — visual system and
+  component direction.
+- [frontend-art-direction.md](frontend-art-direction.md) — visual narrative
+  and motion direction.
+
+## Build, test, and deployment
+
+- [getting-started.md](getting-started.md) — local checks, asset resolution,
+  deployment inputs, and the FCC sequence.
+- [testing.md](testing.md) — contract, extension, and tooling tests.
+- [testing-against-coston2.md](testing-against-coston2.md) — Coston2 test path.
+- [cloudflared.md](cloudflared.md) — proxy exposure guidance.
+- [cli.md](cli.md) — unified CLI, API, and MCP entry points.
+- [pre-deployment-hardening.md](pre-deployment-hardening.md) — immediate CI,
+  correctness, and productization gates before live proof.
+
+## Evidence and truth
+
 - [CONCORD_STATUS.md](CONCORD_STATUS.md) — what is and is not evidenced.
+- [canonical-reconciliation-audit.md](canonical-reconciliation-audit.md) —
+  reconciliation of the handoff, addendum, whitepaper, and implementation.
+- [skills-foundry-pack-ingestion.md](skills-foundry-pack-ingestion.md) — durable
+  record of the supplied Foundry skills pack and validator status.
 
-## Official scaffold reference
+## Official Flare runtime references
 
-The remaining scaffold documents describe the official FCC runtime and remain
-reference material for operating Concord. They are not Concord product
-instructions. In particular, do not follow their inherited Hello World,
-Orderbook, Python, or TypeScript rename examples, and do not expect files that
-are absent from this Concord repository. Use the Concord-specific documents
-above for product semantics, commands, and evidence boundaries:
+The official Flare FCE scaffold, Flare AI skills, and Developer Hub remain the
+technical authority for changing FCC, Coston2, FAssets, and network behavior.
+Concord-specific documents preserve product semantics but do not replace those
+current Flare sources.
 
-[deployment-steps.md](deployment-steps.md) ·
-[testing-against-coston2.md](testing-against-coston2.md) ·
-[cloudflared.md](cloudflared.md) ·
-[extension-guide.md](extension-guide.md) ·
-[instruction-sender.md](instruction-sender.md) ·
-[manual-setup.md](manual-setup.md)
+- [Build Your First FCC Extension](https://dev.flare.network/fcc/guides/getting-started)
+- [Coston2 network configuration](https://dev.flare.network/network/overview)
+- [FXRP address guidance](https://dev.flare.network/fxrp/token-interactions/fxrp-address)
+- [Official FCE scaffold](https://github.com/flare-foundation/fce-extension-scaffold)
