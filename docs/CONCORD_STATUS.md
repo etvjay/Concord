@@ -6,8 +6,8 @@ Updated 2026-08-12.
 
 - AccordRegistry, CapitalFacility, ConcordInstructionSender and shared Concord
   types compile with Solidity 0.8.27.
-- Foundry flow tests pass locally, including the two-child draw and repayment
-  lifecycle.
+- Foundry flow tests pass locally, including the two-child draw, repayment,
+  expiry-demotion, and malicious ERC-20 callback lifecycle.
 - The Go Concord extension compiles and tests signed quotes and deterministic
   CoFill inside the official FCE scaffold structure, including exact zero-fee
   round bounds.

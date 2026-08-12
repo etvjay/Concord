@@ -33,6 +33,7 @@ claim.
 | Contract | repeated allocation result | replay rejected |
 | Contract | selected child before provider transfer | root committed capacity remains unchanged |
 | Contract | provider overfunds selected allocation | transfer rejected |
+| Contract | malicious ERC-20 callback during funding | reentrant action rejected; outer transfer and commitment remain correct |
 | Contract | draw over available capacity | draw rejected; exposure unchanged |
 | Contract | draw across two children | explicit DrawLegs sum to draw principal |
 | Contract | partial repayment | draw-leg, child, and root exposure decrease together |

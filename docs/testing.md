@@ -22,7 +22,8 @@ contracts/test/ConcordFlow.t.sol covers:
 - deterministic draw allocation across at least two children;
 - explicit DrawLeg and settlement lineage;
 - exposure reduction after repayment and restored availability;
-- provider capital return and collateral return after exposure is clear.
+- provider capital return and collateral return after exposure is clear;
+- malicious ERC-20 callback attempts are blocked by the facility reentrancy guard while the outer transfer remains correct.
 
 ## FCC extension
 

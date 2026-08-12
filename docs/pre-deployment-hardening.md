@@ -44,7 +44,7 @@ remain distinct from confidential provider inputs and FCC evidence.
 - Solidity tests cover Root Accord creation, FXRP collateral, verified and
   replay-protected allocation materialization, selected versus funded child
   capacity, multi-child draws, DrawLegs, repayment, exposure, closure, expiry,
-  active-child demotion, and balance recovery.
+  active-child demotion, malicious ERC-20 callbacks, and balance recovery.
 - Go tests cover strict payload decoding, provider signature validation,
   expiry and policy rejection, deterministic ordering, partial allocation, and
   explicit insufficient-capacity failure.
