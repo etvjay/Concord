@@ -9,7 +9,13 @@ Updated 2026-08-12.
 - Foundry flow tests pass locally, including the two-child draw and repayment
   lifecycle.
 - The Go Concord extension compiles and tests signed quotes and deterministic
-  CoFill inside the official FCE scaffold structure.
+  CoFill inside the official FCE scaffold structure, including exact zero-fee
+  round bounds.
+- `tools/cmd/run-test` preserves the complete signed FCC action response and
+  signed TEE-info envelope instead of reducing the result to unverified JSON.
+- `tools/cmd/verify-allocation` independently checks the action signature,
+  proxy-signed TEE identity, chain/extension binding, facility round/digest,
+  and—before `-mark`—the active TEE machine for the extension.
 - Deployment tooling generates a binding for ConcordInstructionSender and has
   no embedded private-key fallback.
 - Coston2 asset resolution is centralized in config/networks/coston2.json and
@@ -21,7 +27,10 @@ Updated 2026-08-12.
 - No funded Coston2 treasury/provider accounts, FCC registration, instruction
   IDs, settlement receipts or end-to-end explorer evidence are recorded yet.
 - The configured allocationVerifier is an explicit offchain integration
-  boundary. A local test actor is not a live FCC proof.
+  boundary. A local test actor is not a live FCC proof. The `-mark` path is
+  deliberately restricted to signed action evidence plus an active machine
+  lookup; it has not been run against a deployed Concord facility in this
+  checkpoint.
 
 ## Privacy truth
 
@@ -46,7 +55,8 @@ affected configuration and record the contradiction before continuing.
 
 ## Deployment evidence template
 
-When the live slice is run, append:
+When the live slice is run, append the evidence below. Until then, leave the
+deployment fields empty rather than inferring them from local tests:
 
 ~~~text
 Network:
