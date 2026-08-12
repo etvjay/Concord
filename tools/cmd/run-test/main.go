@@ -22,6 +22,15 @@ import (
 	"github.com/pkg/errors"
 )
 
+type actionEvidence struct {
+	InstructionID string                          `json:"instructionId"`
+	Response      *teeTypes.ActionResponse        `json:"response"`
+	TeeInfo       *teeTypes.SignedTeeInfoResponse `json:"teeInfo"`
+	TeeID         string                          `json:"teeId"`
+	ProxyID       string                          `json:"proxyId"`
+	VerifiedAt    string                          `json:"verifiedAt"`
+}
+
 func main() {
 	addressesFile := flag.String("a", configs.AddressesFile, "file with deployed addresses")
 	chainURL := flag.String("c", configs.ChainNodeURL, "chain RPC URL")
@@ -60,7 +69,7 @@ func main() {
 			fccutils.FatalWithCause(err)
 		}
 		logger.Infof("SUBMIT_QUOTE sent: instruction=%s tx=%s", instructionID.Hex(), txHash.Hex())
-		if _, err := verifyAction(*proxyURL, instructionID); err != nil {
+		if _, _, _, _, err := verifyAction(*proxyURL, instructionID, s.ChainID.Uint64()); err != nil {
 			fccutils.FatalWithCause(err)
 		}
 	}
@@ -78,36 +87,56 @@ func main() {
 		fccutils.FatalWithCause(err)
 	}
 	logger.Infof("FINALIZE_ROUND sent: instruction=%s tx=%s", instructionID.Hex(), txHash.Hex())
-	response, err := verifyAction(*proxyURL, instructionID)
+	response, teeInfo, teeID, proxyID, err := verifyAction(*proxyURL, instructionID, s.ChainID.Uint64())
 	if err != nil {
 		fccutils.FatalWithCause(err)
 	}
 	if *outFile != "" {
-		if err := os.WriteFile(*outFile, response.Result.Data, 0600); err != nil {
+		evidence, err := json.MarshalIndent(actionEvidence{
+			InstructionID: instructionID.Hex(),
+			Response:      response,
+			TeeInfo:       teeInfo,
+			TeeID:         teeID.Hex(),
+			ProxyID:       proxyID.Hex(),
+			VerifiedAt:    time.Now().UTC().Format(time.RFC3339),
+		}, "", "  ")
+		if err != nil {
+			fccutils.FatalWithCause(errors.Errorf("encode action evidence: %s", err))
+		}
+		evidence = append(evidence, '\n')
+		if err := os.WriteFile(*outFile, evidence, 0600); err != nil {
 			fccutils.FatalWithCause(err)
 		}
-		logger.Infof("verified FCC allocation response written to %s", *outFile)
+		logger.Infof("signed FCC allocation evidence written to %s", *outFile)
 	}
 }
 
-func verifyAction(proxyURL string, instructionID common.Hash) (*teeTypes.ActionResponse, error) {
+func verifyAction(proxyURL string, instructionID common.Hash, expectedChainID uint64) (*teeTypes.ActionResponse, *teeTypes.SignedTeeInfoResponse, common.Address, common.Address, error) {
 	response, err := fccutils.ActionResult(proxyURL, instructionID)
 	if err != nil {
-		return nil, err
+		return nil, nil, common.Address{}, common.Address{}, err
 	}
 	if response.Result.Status == 2 {
-		return nil, errors.New("FCC action remained pending after polling")
+		return nil, nil, common.Address{}, common.Address{}, errors.New("FCC action remained pending after polling")
 	}
 	if response.Result.Status == 0 {
-		return nil, errors.Errorf("FCC action failed: %s", response.Result.Log)
+		return nil, nil, common.Address{}, common.Address{}, errors.Errorf("FCC action failed: %s", response.Result.Log)
 	}
 	if len(response.Result.Data) == 0 {
-		return nil, errors.New("FCC action returned no data")
+		return nil, nil, common.Address{}, common.Address{}, errors.New("FCC action returned no data")
+	}
+	teeInfo, err := fccutils.TeeInfo(proxyURL)
+	if err != nil {
+		return nil, nil, common.Address{}, common.Address{}, errors.Errorf("fetch signed TEE info: %s", err)
+	}
+	teeID, proxyID, err := fccutils.VerifyActionResponse(response, teeInfo, expectedChainID)
+	if err != nil {
+		return nil, nil, common.Address{}, common.Address{}, err
 	}
 	var probe map[string]any
 	if err := json.Unmarshal(response.Result.Data, &probe); err != nil {
-		return nil, errors.Errorf("FCC result data is not JSON: %s", err)
+		return nil, nil, common.Address{}, common.Address{}, errors.Errorf("FCC result data is not JSON: %s", err)
 	}
 	logger.Infof("FCC action verified at %s: %d fields", time.Now().UTC().Format(time.RFC3339), len(probe))
-	return response, nil
+	return response, teeInfo, teeID, proxyID, nil
 }

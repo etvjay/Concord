@@ -98,19 +98,19 @@ register extension → start official proxy/TEE scaffold → submit encrypted qu
 → finalize encrypted round → verify result offchain → mark digest → materialize children
 ~~~
 
-The runner writes the raw successful FCC allocation response with `-out`.
-The verifier then checks the response against the deployed facility allocation
-verifier boundary: extension id, open round, root binding, target capacity,
-fee limits, eligible providers, and the canonical result digest. It is
-read-only unless `-mark` is supplied:
+The runner writes a signed FCC action-evidence envelope with `-out`.
+The verifier rechecks the TEE action signature, proxy-signed TEE identity,
+active machine binding, facility extension id, open round, root binding,
+target capacity, fee limits, eligible providers, and canonical result digest.
+It is read-only unless `-mark` is supplied:
 
 ~~~bash
 cd tools
-go run ./cmd/verify-allocation -c https://coston2-api.flare.network/ext/C/rpc -facility 0x... -result ../evidence/allocation.json -extensionId 0x... -roundId 0x... -rootAccordId 0x... -out ../evidence/allocation-verification.json
+go run ./cmd/verify-allocation -c https://coston2-api.flare.network/ext/C/rpc -facility 0x... -teeRegistry 0x... -result ../evidence/allocation.json -extensionId 0x... -roundId 0x... -rootAccordId 0x... -out ../evidence/allocation-verification.json
 
 # Only after the local checks pass, with DEPLOYMENT_PRIVATE_KEY set to
 # the facility allocationVerifier address:
-go run ./cmd/verify-allocation -c https://coston2-api.flare.network/ext/C/rpc -facility 0x... -result ../evidence/allocation.json -extensionId 0x... -roundId 0x... -rootAccordId 0x... -mark -out ../evidence/allocation-verification.json
+go run ./cmd/verify-allocation -c https://coston2-api.flare.network/ext/C/rpc -facility 0x... -teeRegistry 0x... -result ../evidence/allocation.json -extensionId 0x... -roundId 0x... -rootAccordId 0x... -mark -out ../evidence/allocation-verification.json
 ~~~
 
 No live FCC or facility deployment is claimed by local tests alone. See

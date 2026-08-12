@@ -20,8 +20,10 @@ import (
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
+	teeTypes "github.com/flare-foundation/tee-node/pkg/types"
 
 	"concord/tools/pkg/configs"
+	"concord/tools/pkg/fccutils"
 	"concord/tools/pkg/support"
 )
 
@@ -36,6 +38,15 @@ type allocationResult struct {
 	TermsCommitments  []string `json:"termsCommitments"`
 	RoundExpiry       uint64   `json:"roundExpiry"`
 	ResultDigest      string   `json:"resultDigest"`
+}
+
+type actionEvidence struct {
+	InstructionID string                          `json:"instructionId"`
+	Response      *teeTypes.ActionResponse        `json:"response"`
+	TeeInfo       *teeTypes.SignedTeeInfoResponse `json:"teeInfo"`
+	TeeID         string                          `json:"teeId"`
+	ProxyID       string                          `json:"proxyId"`
+	VerifiedAt    string                          `json:"verifiedAt"`
 }
 
 const facilityABIJSON = `[
@@ -86,6 +97,19 @@ const facilityABIJSON = `[
   }
 ]`
 
+const teeRegistryABIJSON = `[
+  {
+    "inputs": [{"internalType": "uint256", "name": "_extensionId", "type": "uint256"}],
+    "name": "getActiveTeeMachines",
+    "outputs": [
+      {"internalType": "address[]", "name": "_teeIds", "type": "address[]"},
+      {"internalType": "string[]", "name": "_urls", "type": "string[]"}
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]`
+
 func main() {
 	if err := run(); err != nil {
 		fmt.Fprintf(os.Stderr, "verify-allocation: %v\n", err)
@@ -100,6 +124,7 @@ func run() error {
 	extensionFlag := flag.String("extensionId", "", "expected FCC extension id")
 	roundFlag := flag.String("roundId", "", "expected Makkari round id")
 	rootFlag := flag.String("rootAccordId", "", "expected root Accord id")
+	teeRegistryFlag := flag.String("teeRegistry", "", "FlareTeeManager diamond address for active-machine verification")
 	mark := flag.Bool("mark", false, "broadcast markAllocationVerified after local verification")
 	evidenceFile := flag.String("out", "", "optional JSON evidence output path")
 	flag.Parse()
@@ -128,9 +153,9 @@ func run() error {
 	if err != nil {
 		return fmt.Errorf("read result: %w", err)
 	}
-	var result allocationResult
-	if err := json.Unmarshal(payload, &result); err != nil {
-		return fmt.Errorf("decode allocation result: %w", err)
+	result, signedEvidence, err := decodeEvidence(payload)
+	if err != nil {
+		return err
 	}
 
 	facilityABI, err := abi.JSON(strings.NewReader(facilityABIJSON))
@@ -145,6 +170,24 @@ func run() error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
+	chainID, err := client.ChainID(ctx)
+	if err != nil {
+		return fmt.Errorf("read chain id: %w", err)
+	}
+	var evidenceTeeID, evidenceProxyID common.Address
+	if signedEvidence != nil {
+		evidenceTeeID, evidenceProxyID, err = fccutils.VerifyActionResponse(
+			signedEvidence.Response, signedEvidence.TeeInfo, chainID.Uint64(),
+		)
+		if err != nil {
+			return err
+		}
+		if signedEvidence.TeeInfo.MachineData.ExtensionID != expectedExtension {
+			return fmt.Errorf("TEE machine evidence is bound to extension %s, not %s", signedEvidence.TeeInfo.MachineData.ExtensionID.Hex(), expectedExtension.Hex())
+		}
+	} else if *mark {
+		return fmt.Errorf("-mark requires signed action evidence from run-test; raw allocation JSON cannot authorize materialization")
+	}
 	digest, verifier, err := verifyResult(
 		ctx,
 		client,
@@ -170,6 +213,13 @@ func run() error {
 		"verifier":     verifier.Hex(),
 		"verifiedAt":   time.Now().UTC().Format(time.RFC3339),
 	}
+	if signedEvidence != nil {
+		evidence["signedAction"] = true
+		evidence["teeId"] = evidenceTeeID.Hex()
+		evidence["proxyId"] = evidenceProxyID.Hex()
+	} else {
+		evidence["signedAction"] = false
+	}
 	if !*mark {
 		if *evidenceFile != "" {
 			if err := writeEvidence(*evidenceFile, evidence); err != nil {
@@ -179,6 +229,15 @@ func run() error {
 		fmt.Println("not broadcast: rerun with -mark to call markAllocationVerified")
 		return nil
 	}
+	if *teeRegistryFlag == "" || !common.IsHexAddress(*teeRegistryFlag) || common.HexToAddress(*teeRegistryFlag) == (common.Address{}) {
+		return fmt.Errorf("-mark requires a non-zero -teeRegistry address for active-machine verification")
+	}
+	if signedEvidence == nil {
+		return fmt.Errorf("-mark requires signed action evidence from run-test")
+	}
+	if err := verifyActiveMachine(ctx, client, common.HexToAddress(*teeRegistryFlag), expectedExtension, evidenceTeeID); err != nil {
+		return err
+	}
 
 	privateKey, err := support.DefaultPrivateKey()
 	if err != nil {
@@ -187,10 +246,6 @@ func run() error {
 	signer := crypto.PubkeyToAddress(privateKey.PublicKey)
 	if signer != verifier {
 		return fmt.Errorf("DEPLOYMENT_PRIVATE_KEY resolves to %s, but facility allocationVerifier is %s", signer.Hex(), verifier.Hex())
-	}
-	chainID, err := client.ChainID(ctx)
-	if err != nil {
-		return fmt.Errorf("read chain id: %w", err)
 	}
 	opts, err := bind.NewKeyedTransactorWithChainID(privateKey, chainID)
 	if err != nil {
@@ -221,6 +276,66 @@ func run() error {
 	}
 	fmt.Printf("allocation digest marked verified: tx=%s\n", tx.Hash().Hex())
 	return nil
+}
+
+func decodeEvidence(payload []byte) (allocationResult, *actionEvidence, error) {
+	var envelope actionEvidence
+	if err := json.Unmarshal(payload, &envelope); err == nil && envelope.Response != nil {
+		if envelope.TeeInfo == nil {
+			return allocationResult{}, nil, fmt.Errorf("signed action evidence is missing teeInfo")
+		}
+		if envelope.Response.Result.Status != 1 {
+			return allocationResult{}, nil, fmt.Errorf("signed FCC action status is %d", envelope.Response.Result.Status)
+		}
+		var result allocationResult
+		if err := json.Unmarshal(envelope.Response.Result.Data, &result); err != nil {
+			return allocationResult{}, nil, fmt.Errorf("decode allocation data from signed action evidence: %w", err)
+		}
+		return result, &envelope, nil
+	}
+
+	var result allocationResult
+	if err := json.Unmarshal(payload, &result); err != nil {
+		return allocationResult{}, nil, fmt.Errorf("decode allocation result: %w", err)
+	}
+	return result, nil, nil
+}
+
+func verifyActiveMachine(
+	ctx context.Context,
+	client *ethclient.Client,
+	registry common.Address,
+	extensionID common.Hash,
+	teeID common.Address,
+) error {
+	registryABI, err := abi.JSON(strings.NewReader(teeRegistryABIJSON))
+	if err != nil {
+		return fmt.Errorf("parse TEE registry ABI: %w", err)
+	}
+	values, err := callMethod(
+		ctx,
+		client,
+		registry,
+		registryABI,
+		"getActiveTeeMachines",
+		new(big.Int).SetBytes(extensionID.Bytes()),
+	)
+	if err != nil {
+		return err
+	}
+	if len(values) != 2 {
+		return fmt.Errorf("getActiveTeeMachines returned %d values, expected 2", len(values))
+	}
+	teeIDs, ok := values[0].([]common.Address)
+	if !ok {
+		return fmt.Errorf("getActiveTeeMachines returned unexpected tee id type %T", values[0])
+	}
+	for _, activeID := range teeIDs {
+		if activeID == teeID {
+			return nil
+		}
+	}
+	return fmt.Errorf("TEE %s is not active for extension %s", teeID.Hex(), extensionID.Hex())
 }
 
 func verifyResult(

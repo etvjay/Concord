@@ -10,12 +10,12 @@ import (
 	"github.com/flare-foundation/go-flare-common/pkg/logger"
 	csigning "github.com/flare-foundation/go-flare-common/pkg/signing"
 
-	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/flare-foundation/go-flare-common/pkg/tee/attestation/googlecloud"
 	"github.com/flare-foundation/tee-node/pkg/attestation"
 	"github.com/flare-foundation/tee-node/pkg/types"
+	teeutils "github.com/flare-foundation/tee-node/pkg/utils"
 	"github.com/pkg/errors"
 )
 
@@ -77,11 +77,10 @@ func TeeProxyId(teeInfo *types.SignedTeeInfoResponse) (common.Address, common.Ad
 	if err != nil {
 		return common.Address{}, common.Address{}, errors.Errorf("%s", err)
 	}
-	proxyPubKey, err := crypto.SigToPub(accounts.TextHash(infoSignHash[:]), teeInfo.ProxySignature)
+	proxyID, err := teeutils.SignatureToSignersAddress(infoSignHash[:], teeInfo.ProxySignature)
 	if err != nil {
 		return common.Address{}, common.Address{}, errors.Errorf("%s", err)
 	}
-	proxyID := crypto.PubkeyToAddress(*proxyPubKey)
 
 	return teeID, proxyID, nil
 }
@@ -112,6 +111,41 @@ func ActionResult(nodeURL string, actionID common.Hash) (*types.ActionResponse, 
 	}
 
 	return &response, nil
+}
+
+// VerifyActionResponse checks the official TEE action-result signature and
+// the proxy-signed TEE identity against the expected chain id. The returned
+// tee and proxy ids are evidence that can be checked against Flare registries.
+func VerifyActionResponse(
+	response *types.ActionResponse,
+	teeInfo *types.SignedTeeInfoResponse,
+	expectedChainID uint64,
+) (common.Address, common.Address, error) {
+	if response == nil || teeInfo == nil {
+		return common.Address{}, common.Address{}, errors.New("action response and TEE info are required")
+	}
+	if teeInfo.TeeInfo.ChainID != expectedChainID {
+		return common.Address{}, common.Address{}, errors.Errorf(
+			"TEE info chain id %d does not match expected chain id %d",
+			teeInfo.TeeInfo.ChainID, expectedChainID,
+		)
+	}
+	teeID, proxyID, err := TeeProxyId(teeInfo)
+	if err != nil {
+		return common.Address{}, common.Address{}, errors.Errorf("TEE identity verification failed: %s", err)
+	}
+	signHash, err := csigning.NewPayload(
+		csigning.TEEActionResult,
+		expectedChainID,
+		common.BytesToHash(response.Result.Hash()),
+	).Hash()
+	if err != nil {
+		return common.Address{}, common.Address{}, errors.Errorf("action-result signing hash failed: %s", err)
+	}
+	if err := teeutils.VerifySignature(signHash[:], response.Signature, teeID); err != nil {
+		return common.Address{}, common.Address{}, errors.Errorf("TEE action-result signature verification failed: %s", err)
+	}
+	return teeID, proxyID, nil
 }
 
 func SetProxyUrl(configurationPort int, proxyPort int) error {
