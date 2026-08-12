@@ -1,1 +1,76 @@
-name: Concord verification\n\non: [push, pull_request, workflow_dispatch]\n\njobs:\n  smoke:\n    name: Repository smoke gate\n    runs-on: ubuntu-latest\n    steps:\n      - name: Check out repository\n        uses: actions/checkout@v4\n      - name: Validate Concord documentation contract\n        run: bash scripts/check-docs.sh\n      - name: Parse shell scripts\n        run: find scripts -type f -name "*.sh" -print0 | xargs -0 -n1 bash -n\n
+name: Concord verification
+
+on: [push, pull_request, workflow_dispatch]
+
+permissions:
+  contents: read
+
+jobs:
+  solidity:
+    name: Solidity / Foundry
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+      - name: Show toolchain
+        run: forge --version
+      - name: Check Solidity formatting
+        run: forge fmt --check
+      - name: Run Solidity lifecycle tests
+        run: forge test -vvv
+
+  go:
+    name: Go extension and tooling
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Install Go 1.25.1
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.1"
+          cache: false
+      - name: Test Concord FCC extension
+        working-directory: go
+        env:
+          GOTOOLCHAIN: local
+        run: go test ./...
+      - name: Test deployment, verifier, API and MCP tooling
+        working-directory: tools
+        env:
+          GOTOOLCHAIN: local
+        run: go test ./...
+      - name: Check Flare dependency pin consistency
+        run: bash scripts/check-versions.sh
+
+  sdk:
+    name: TypeScript SDK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Install Node.js 22.10.0
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.10.0"
+      - name: Install SDK dependencies
+        working-directory: sdk/typescript
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Build SDK declarations
+        working-directory: sdk/typescript
+        run: npm run build
+
+  repository:
+    name: Repository and documentation gates
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Parse shell scripts
+        run: find scripts -type f -name "*.sh" -print0 | xargs -0 -n1 bash -n
+      - name: Validate Concord documentation contract
+        run: bash scripts/check-docs.sh
