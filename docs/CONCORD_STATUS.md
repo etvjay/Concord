@@ -96,3 +96,11 @@ Explorer links:
 - Green CI confirms repository-level correctness checks only. It does not prove
   deployed contracts, FCC registration, funded provider accounts, settlement,
   repayment, or production hardware-backed confidential execution.
+
+- The hardening commit `35b756b38a6b97b7f63dc08074dd1c4ff8a52ccc` passed the full
+  [push verification run](https://github.com/etvjay/Concord/actions/runs/31646160590)
+  and the equivalent [PR verification run](https://github.com/etvjay/Concord/actions/runs/31646164208),
+  including lifecycle expiry demotion, partial repayment, API/SDK/MCP intent
+  parity, and the read-only preflight gate.
+- The same commit passed the read-only
+  [Coston2 asset-resolution run](https://github.com/etvjay/Concord/actions/runs/31646160617).
