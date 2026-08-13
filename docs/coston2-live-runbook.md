@@ -13,7 +13,10 @@ belongs in the repository.
 
 The current development path may use `SIMULATED_TEE=true`. That proves the
 documented development integration path only; it is not production
-hardware-backed TEE evidence.
+hardware-backed TEE evidence. The Coston2 machine must still reach status `2`
+(`PRODUCTION`) with a fresh availability check, a registered `teeId`, and one
+stable public HTTPS URL. The extension proxy receives provider delivery on its
+external port `6664` (the scaffold's Docker host mapping is `6674`).
 
 ## Required inputs
 
@@ -22,7 +25,7 @@ hardware-backed TEE evidence.
 | Funded Coston2 deployment key | Pays gas for sender, facility, root, collateral, and lifecycle transactions |
 | Treasury and provider accounts | Demonstrate actual USDT0 funding from at least two selected providers |
 | Current Flare scaffold registry configuration | Registers the Concord extension against the live Coston2 FCC path |
-| Public HTTPS `EXT_PROXY_URL` | Lets the official proxy route instructions to the Go extension |
+| Stable named-tunnel `EXT_PROXY_URL` | Lets the official proxy route instructions to the Go extension; rotating quick tunnels are not valid for registration |
 | Indexer/proxy configuration | Required by the official scaffold runtime; credentials stay outside Git |
 | Three signed Concord quote payloads | Demonstrate the private multi-provider input path |
 | One signed finalize payload | Binds the round, root Accord, policy bounds, and eligible providers |
@@ -158,6 +161,7 @@ Record only observed values:
 
 - Asset resolver output differs from the centralized config.
 - The public proxy `/info` response is unreachable or bound to the wrong extension.
+- The machine is not status `2` (`PRODUCTION`) or its availability check is stale.
 - More than one active machine is registered for the extension.
 - Any quote signature, expiry, fee bound, root binding, or provider eligibility check fails.
 - A result is replayed, bound to another round/root/extension, or has no verified digest.

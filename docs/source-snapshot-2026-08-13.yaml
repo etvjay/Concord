@@ -1,5 +1,5 @@
 snapshot:
-  captured_at_utc: 2026-08-12T23:08:10Z
+  captured_at_utc: 2026-08-13T13:02:02Z
   freshness: FRESH
   environment: Coston2
   chain_id: 114
@@ -28,6 +28,10 @@ snapshot:
     - The walkthrough requires a public HTTPS extension-proxy URL and Coston2 indexer database credentials for the local proxy.
     - The current scaffold path includes pre-build, start-services, post-build, and test phases.
     - Flare's FAQ identifies Coston2 as the primary dApp testnet and states that FCC is available there while in development.
+    - FCC development registration requires one active machine in status 2 (PRODUCTION), a fresh availability check, a registered teeId, and a reachable stable public HTTPS extension URL.
+    - The extension receives provider delivery at the scaffold external proxy port 6664; the Docker host mapping used by this repository is 6674.
+    - Rotating quick-tunnel URLs are not valid for a registered Coston2 machine; the named tunnel token form is `run --token <token>`.
+    - The official Coston2 FTDC proxy endpoints are `https://tee-proxy-coston2-1.flare.rocks` and `https://tee-proxy-coston2-2.flare.rocks`; they are normal infrastructure proxies, not Concord's extension endpoint.
   contradictions: []
   concord_decisions:
     - No product-semantic contradiction was found.
@@ -36,6 +40,6 @@ snapshot:
   live_gate_inputs_still_required:
     - funded Coston2 deployment/proxy accounts
     - indexer credentials or an approved current proxy setup
-    - public HTTPS EXT_PROXY_URL
+    - stable named-tunnel HTTPS EXT_PROXY_URL (not a rotating quick tunnel)
     - current extension registration and active TEE-machine evidence
     - real provider funding, draw, repayment, and explorer receipts

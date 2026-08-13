@@ -1,7 +1,9 @@
 # Cloudflare Tunnel (ngrok replacement)
 
-Exposes the extension proxy's external port (host `6674`) over a public HTTPS URL, so
-Flare's TEE infrastructure can reach it. Use instead of ngrok. Compose file:
+Exposes the extension proxy's external port (host `6674`, container `6664`) over a public
+HTTPS URL, so Flare's TEE infrastructure can reach it. A registered Coston2 machine must
+use a stable named-tunnel hostname; rotating quick tunnels are only for local smoke tests
+before registration. Compose file:
 `docker-compose.cloudflared.yaml`.
 
 Only testnets need this. On `--chain local` nothing is started — a local devnet reaches
@@ -20,7 +22,7 @@ into `.env` as `EXT_PROXY_URL`. `full-setup.sh` calls it in Phase 2, and `post-b
 | Situation | What `start-services.sh` does |
 |---|---|
 | Tunnel already running | Reuses it and adopts its URL — no flag needed |
-| No tunnel, `--tunnel` passed | Starts it, waits for the URL, writes `EXT_PROXY_URL` |
+| No tunnel, `--tunnel` passed | Starts a quick tunnel for local smoke only; do not register its URL |
 | No tunnel, no `--tunnel` | Warns; `EXT_PROXY_URL` must already be valid in `.env` |
 | `TUNNEL_ARGS` set (named tunnel) | Starts it and leaves your `EXT_PROXY_URL` alone |
 
@@ -53,7 +55,7 @@ Two cases that legitimately need their own tunnel, and get their own project:
 | `--local` (host Go proxy) | `tunnel-local` | Proxy listens on 6664, a different origin — the script handles this |
 | `prediction_market` | give it its own | Publishes on 6676, cannot share |
 
-## Manual
+## Quick tunnel (local smoke only — never register this URL)
 
 From the repo root, in Git Bash:
 
@@ -66,11 +68,14 @@ docker compose -f docker-compose.cloudflared.yaml logs cloudflared \
   | grep -o 'https://[a-z0-9-]*\.trycloudflare\.com' | tail -1
 ```
 
-Put that URL in `.env` as `EXT_PROXY_URL=<url>`, **then** start the containers.
+Put that URL in `.env` as `EXT_PROXY_URL=<url>` only for an unregistered local smoke
+test, **then** start the containers. Never use a `trycloudflare.com` or other rotating
+quick-tunnel URL in `post-build.sh` for a Coston2 machine; Flare stores the URL onchain.
 `start-services.sh` blocks on `$EXT_PROXY_URL/info`, so a stale value there is what makes
 it fail. Stop with `docker compose -f docker-compose.cloudflared.yaml down`.
 
-Skipping the copy-paste — does step 2 and writes the result straight into `.env`:
+Skipping the copy-paste — does step 2 and writes the result straight into `.env` for a
+local smoke test:
 
 ```bash
 URL=$(docker compose -f docker-compose.cloudflared.yaml logs cloudflared \
