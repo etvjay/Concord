@@ -30,6 +30,11 @@ on:
         required: false
         default: false
         type: boolean
+      fund_provider_gas:
+        description: 'Send 5 C2FLR to each provider for approval and funding gas'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -401,3 +406,42 @@ jobs:
           echo "Root ID: $ROOT_ID" >> "$GITHUB_STEP_SUMMARY"
           echo "Round ID: $ROUND_ID" >> "$GITHUB_STEP_SUMMARY"
           echo 'Root Accord is PROPOSED/SYNDICATING with 1 FXRP locked and a 9 USDT0 target (6 decimals).' >> "$GITHUB_STEP_SUMMARY"
+
+
+  live_provider_gas:
+    name: Coston2 provider gas funding (manual only)
+    if: github.event_name == 'workflow_dispatch' && inputs.fund_provider_gas == true
+    concurrency:
+      group: concord-coston2-provider-gas
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    env:
+      CHAIN_URL: https://coston2-api.flare.network/ext/C/rpc
+      DEPLOYMENT_PRIVATE_KEY: ${{ secrets.CONCORD_E2E_DEPLOYER_PRIVATE_KEY }}
+      PROVIDER_A: "0x8d9340278094DF3F032c674C912D8eA08c17437C"
+      PROVIDER_B: "0xF2E25459108A0454a85d03848AD6059C271cc9a5"
+      PROVIDER_C: "0x9537eA25C28e8c1663e8B57C52A0761a244183A1"
+      GAS_AMOUNT: "5ether"
+    steps:
+      - name: Check out requested ref
+        uses: actions/checkout@v4
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - name: Fund provider gas balances
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$DEPLOYMENT_PRIVATE_KEY"
+          sender="$(cast wallet address --private-key "$DEPLOYMENT_PRIVATE_KEY")"
+          echo "Funding providers from $sender with $GAS_AMOUNT each."
+          for provider in "$PROVIDER_A" "$PROVIDER_B" "$PROVIDER_C"; do
+            output="$(cast send "$provider" --value "$GAS_AMOUNT" --rpc-url "$CHAIN_URL" --private-key "$DEPLOYMENT_PRIVATE_KEY" --json)"
+            tx="$(jq -r '.transactionHash // .hash // empty' <<<"$output")"
+            test -n "$tx"
+            echo "$provider: $tx"
+            echo "$provider gas funding: $tx" >> "$GITHUB_STEP_SUMMARY"
+          done
