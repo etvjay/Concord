@@ -220,6 +220,10 @@ func run() error {
 	for _, address := range eligible {
 		eligibleSet[address] = true
 	}
+	eligibleProviderStrings := make([]string, len(eligible))
+	for index, address := range eligible {
+		eligibleProviderStrings[index] = address.Hex()
+	}
 	capacityTotal := new(big.Int)
 	quotes := make([]types.QuoteRequest, 0, len(providers))
 	for _, provider := range providers {
@@ -265,7 +269,7 @@ func run() error {
 		MaxFeeBps:         maxFee,
 		RoundExpiry:       roundExpiry,
 		EvaluationTime:    evaluationTime,
-		EligibleProviders: eligible,
+		EligibleProviders: eligibleProviderStrings,
 		Quotes:            quotes,
 	}
 	if err := os.MkdirAll(*outDir, 0700); err != nil {
