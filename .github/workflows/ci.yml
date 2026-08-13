@@ -155,5 +155,5 @@ jobs:
             --instructionSender "$INSTRUCTION_SENDER" \
             2>"$RUNNER_TEMP/concord-register-extension.log" | tail -1)"
           cat "$RUNNER_TEMP/concord-register-extension.log" >&2
-          test "$extension_id" =~ ^0x[0-9a-fA-F]{64}$
+          [[ "$extension_id" =~ ^0x[0-9a-fA-F]{64}$ ]]
           echo "Registered FCC extension ID: $extension_id" >> "$GITHUB_STEP_SUMMARY"
