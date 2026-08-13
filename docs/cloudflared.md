@@ -125,6 +125,30 @@ on it. This is required for the Coston2 FCC registration path:
 `EXT_PROXY_URL` and the on-chain machine record then survive every restart, and
 `restart: unless-stopped` becomes safe to add to the service.
 
+## Hackathon fallback when Workers VPC is unavailable
+
+If the Cloudflare account cannot grant the current user Connectivity Directory
+Admin, do not guess at a VPC service or modify an unrelated tunnel. The
+development fallback is a separately deployed Worker at the account's
+workers.dev hostname, forwarding the narrow FCC proxy paths to a public HTTPS
+GitHub Codespaces port. The implementation is in
+infra/cloudflare/fcc-ingress/.
+
+This preserves the official FCE runtime and Concord semantics, but changes the
+network ingress boundary. It is suitable only for a controlled hackathon run:
+
+1. Start the Concord Coston2 proxy in the persistent Codespace.
+2. Make only host port 6674 public.
+3. Set the Worker's CONCORD_UPSTREAM_URL secret to the Codespaces HTTPS URL.
+4. Verify /info, /instruction, and /action/status through the Worker.
+5. Use the Worker URL only with an explicit development-path privacy and
+   availability label.
+
+Codespaces public ports are anonymous internet endpoints and revert to private
+after a Codespace restart. Reapply the port visibility and re-run the health
+checks before every FCC session. This fallback must not be presented as a
+production hardware-backed FCC or permanent institutional ingress.
+
 ## Know this
 
 | | |

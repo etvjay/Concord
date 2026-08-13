@@ -30,6 +30,11 @@ external port `6664` (the scaffold's Docker host mapping is `6674`).
 | Three signed Concord quote payloads | Demonstrate the private multi-provider input path |
 | One signed finalize payload | Binds the round, root Accord, policy bounds, and eligible providers |
 
+For the immediate hackathon fallback, the stable Worker development relay may
+replace the named tunnel URL only after both the Worker and its Codespaces
+upstream return the same proxy /info binding. This is an ingress substitution,
+not a change to the FCE runtime or Concord product semantics.
+
 Never paste credentials into issues, logs, fixtures, or committed config. Use
 ignored environment files or the deployment system secret store.
 
