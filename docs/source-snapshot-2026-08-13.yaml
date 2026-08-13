@@ -1,5 +1,5 @@
 snapshot:
-  captured_at_utc: 2026-08-13T13:02:02Z
+  captured_at_utc: 2026-08-13T15:46:54Z
   freshness: FRESH
   environment: Coston2
   chain_id: 114
@@ -32,14 +32,19 @@ snapshot:
     - The extension receives provider delivery at the scaffold external proxy port 6664; the Docker host mapping used by this repository is 6674.
     - Rotating quick-tunnel URLs are not valid for a registered Coston2 machine; the named tunnel token form is `run --token <token>`.
     - The official Coston2 FTDC proxy endpoints are `https://tee-proxy-coston2-1.flare.rocks` and `https://tee-proxy-coston2-2.flare.rocks`; they are normal infrastructure proxies, not Concord's extension endpoint.
-  contradictions: []
+    - The current DevHub walkthrough specifies the Coston2 indexer endpoint as host `34.38.42.208`, port `3306`, database `indexer`; credentials remain secret inputs.
+  contradictions:
+    - id: FCC-QUICK-TUNNEL-SCOPE
+      statement: The DevHub getting-started walkthrough still documents quick tunnels for development and says to update EXT_PROXY_URL when a quick-tunnel URL changes.
+      current_operational_constraint: A registered Coston2 machine must use one stable public HTTPS URL; restarting a rotating tunnel strands the onchain machine record and can create a new simulated TEE identity.
+      resolution: Concord permits quick tunnels only for unregistered smoke tests and requires a stable named-tunnel URL/token for the guarded registration workflow.
   concord_decisions:
     - No product-semantic contradiction was found.
     - Simulated TEE evidence remains development-path evidence, not production hardware-backed confidentiality.
     - FDC remains an evidence seam and is not added to the MVP.
   live_gate_inputs_still_required:
     - funded Coston2 deployment/proxy accounts
-    - indexer credentials or an approved current proxy setup
     - stable named-tunnel HTTPS EXT_PROXY_URL (not a rotating quick tunnel)
+    - stable named-tunnel token in CONCORD_FCC_TUNNEL_ARGS
     - current extension registration and active TEE-machine evidence
     - real provider funding, draw, repayment, and explorer receipts

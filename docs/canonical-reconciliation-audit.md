@@ -1,6 +1,6 @@
 # Concord canonical reconciliation audit
 
-Status: completed for the durable `agent/concord-rebuild` checkpoint on 2026-08-12.
+Status: refreshed for the durable `agent/concord-rebuild` checkpoint on 2026-08-13.
 
 This audit compares the implementation with the following authority order:
 
@@ -9,11 +9,12 @@ This audit compares the implementation with the following authority order:
 3. Concord Whitepaper — architectural thesis and future direction.
 4. Current official Flare sources — changing implementation facts.
 
-The whitepaper and Product Definition Addendum were read in full. The
-Foundry Skills Pack named in the handoff was not present in the available
-filesystem during this audit, so no claim is made that its package-specific
-instructions were loaded. The repository's durable source and current
-official Flare-controlled sources were used instead.
+The whitepaper and Product Definition Addendum were read in full. The supplied
+Foundry Skills Pack is now durably installed and its Product Foundry 0.4.3,
+Research Foundry 0.2.0, Experiment Foundry 0.1.0, Interface Foundry 0.3.0,
+Demo Foundry 0.5.3, and Concord FCC 0.1.0 instructions are loaded as applicable.
+The repository's durable source and current official Flare-controlled sources
+remain the implementation truth for changing Flare facts.
 
 ## Verdict
 
@@ -25,8 +26,8 @@ lending pool, matching engine, or isolated transaction system.
 The MVP is not complete. The outstanding blockers are evidence and execution
 gates, not a product reinterpretation:
 
-- no live Concord deployment, FCC registration, funded Coston2 accounts,
-  instruction IDs, settlement receipts, or explorer evidence are recorded;
+- no live FCC machine, instruction IDs, settlement receipts, or complete
+  explorer evidence are recorded;
 - the current runner does not contain `forge` or Go, so this audit could not
   re-run the Solidity and Go suites;
 - the full frontend remains intentionally unimplemented until the economic and
@@ -47,7 +48,7 @@ gates, not a product reinterpretation:
 | API / SDK / MCP / CLI | PASS | Read surfaces share one read model; write surfaces prepare unsigned intents and do not custody, sign, broadcast, or become the verifier. | Preserve. |
 | Frontend design | PASS / DESIGN ONLY | The design is relationship-first, progressive-disclosure, role-aware, and explicit about observed versus unavailable state. | Implement only after the live economic path. |
 | Future authority | GAP / INTENTIONAL | General parent-delegated authority and external evidence fields are not yet modeled. | Roadmap seam; do not add to this MVP. |
-| Live Coston2 proof | BLOCKER | No deployment or end-to-end evidence is recorded. | Required before completion claims. |
+| Live Coston2 proof | BLOCKER | Facility/root/provider funding evidence exists, but no active FCC machine, instruction IDs, or settlement receipts are recorded. | Required before completion claims. |
 | Local validation | BLOCKER | `forge` and the recorded Go toolchain are absent from this runner. | Restore toolchain, then rerun the suites. |
 
 ## Implementation evidence
@@ -148,6 +149,15 @@ These items are real follow-up work, but none authorizes broadening the MVP:
 - No Solidity or product primitive was renamed or broadened as part of this
   audit.
 
+## Current FCC credential gate
+
+The current DevHub guide was refreshed on 2026-08-13. Its Coston2 indexer
+configuration is host `34.38.42.208`, port `3306`, database `indexer`; the
+username and password are stored only as encrypted GitHub Actions secrets.
+The repository does not record their values. The stable public extension URL
+and named-tunnel token are still absent, so the guarded FCC setup workflow has
+not been dispatched.
+
 ## Validation record
 
 Completed during this audit:
@@ -204,4 +214,3 @@ restore toolchain
   → record signed evidence and transaction hashes
   → then implement and QA the frontend
 ```
-

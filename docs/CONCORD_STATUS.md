@@ -79,9 +79,10 @@ bound to the current token, and its current root round is recorded below.
   superseded 18-decimal liquidity token.
 - No FCC quote/finalize instruction, allocation verification, child Accord, draw,
   settlement, repayment, or restored-capacity receipt has been observed.
-- The current FCC path still needs a reachable extension proxy and the
-  scaffold's current Coston2 indexer database credentials before the machine
-  registration and instruction flow can run.
+- The current Coston2 indexer configuration is now stored as encrypted GitHub
+  Actions secrets using the current DevHub values. FCC setup still needs a
+  stable public extension URL and named-tunnel token; no machine registration
+  or instruction flow has been dispatched.
 
 ## Privacy truth
 
