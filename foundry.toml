@@ -6,3 +6,7 @@ libs = ["lib"]
 # and restore the remapping:
 #   remappings = ["flare-smart-contracts-v2=lib/flare-smart-contracts-v2"]
 via-ir = true
+optimizer = true
+optimizer_runs = 200
+solc_version = "0.8.27"
+evm_version = "paris"
