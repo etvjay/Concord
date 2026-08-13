@@ -9,7 +9,9 @@ function isAllowedPath(pathname) {
   return (
     pathname in ALLOWED_METHODS ||
     pathname === "/action/status" ||
-    pathname.startsWith("/action/status/")
+    pathname.startsWith("/action/status/") ||
+    pathname === "/action/result" ||
+    pathname.startsWith("/action/result/")
   );
 }
 

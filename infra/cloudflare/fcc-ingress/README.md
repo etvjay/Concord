@@ -14,6 +14,7 @@ semantics. It only forwards the proxy endpoints that the FCC setup needs:
 - POST /instruction
 - GET /metrics
 - GET /action/status...
+- GET /action/result...
 
 The upstream URL is intentionally a secret so it is not committed. For this
 hackathon fallback it points at the public HTTPS URL for the persistent
