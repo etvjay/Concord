@@ -41,26 +41,37 @@ The following values were read from the live Coston2 RPC and explorer on
   registration and allowlist/key-type transactions succeeded. The primary
   registration receipt is
   [0x20e1bf…16ca](https://coston2-explorer.flare.network/tx/0x20e1bf7f6e14d93fd5c06bd35b2d3eda93e711b46dff0ecf2433da121dac16ca).
-- The later successful facility deployment is the canonical pair for the
-  next test flow: `AccordRegistry 0x9A5663519C3D4B36ef155A4AE0e2d8Be2E7a89cF` and
-  `CapitalFacility 0x0AcBb062BE75491b5992dddD59aEf64a4f4Cc8b8`.
-- A second manual dispatch also deployed a valid pair before the first result
-  was observed. It is explicitly marked superseded in the evidence file and
-  will not be used for the canonical flow.
+- The earlier facility pair was deployed successfully, but it is bound
+  immutably to a different 18-decimal ERC-20 deployment and is now retained
+  only as historical evidence. It must not be used for the current faucet
+  balance or the canonical flow.
+- A replacement facility pair must be deployed with the current Coston2
+  `USDT0 test` token before a new root Accord is opened. The evidence file
+  leaves the replacement slot empty until those receipts exist.
+
+## Asset binding correction
+
+The earlier checkpoint used `0x479854495cefBc8D12B971A3Ec4d18E6dbcE81a3` and
+18 decimals. Live Coston2 RPC verification confirms that the current faucet
+asset is `USDT0 test` at
+`0xC1A5B41512496B80903D1f32d6dEa3a73212E71F`, with on-chain symbol `USD₮0`
+and 6 decimals. The [official Coston2 explorer token list](https://coston2-explorer.flare.network/tokens)
+is the recorded address source. Because `CapitalFacility.liquidityAsset` is immutable, this
+is a deployment contradiction, not a config-only change; the old facility and
+its 18-decimal root round are superseded and a new facility/root round are
+required.
 
 ## Not yet evidenced
 
 - No active TEE machine is registered for extension `66188` (the live registry
   query returned zero active machines), so the OPEN round has not yet produced a
   live FCC instruction result.
-- The three disposable provider wallets are currently unfunded; the treasury
-  has 86.338238475 C2FLR and 10 FXRP but 0 USDT0. No provider commitment has
-  therefore occurred. The exact public addresses and observed balances are in
-  the deployment evidence file.
-- The canonical facility now has a live SYNDICATING root Accord and OPEN Makkari
-  round: 1 FXRP locked, 9 USDT0 target, 700 bps maximum fee, and three eligible
-  provider addresses. The four transaction hashes and read-back state are in the
-  deployment evidence file.
+- The three disposable provider wallets and the treasury now each hold 10
+  units of the current six-decimal `USDT0 test` token. They still need gas
+  funding before provider transfers or a replacement root can be broadcast.
+- The old facility has a live SYNDICATING root Accord and OPEN Makkari round,
+  but that round uses the superseded 18-decimal liquidity token and cannot be
+  used for the current funding proof.
 - No FCC quote/finalize instruction, allocation verification, child Accord, draw,
   settlement, repayment, or restored-capacity receipt has been observed.
 - The current FCC path still needs a reachable extension proxy and the
@@ -81,8 +92,9 @@ the facility requires them.
 - Coston2 chain ID: 114.
 - FXRP manager is resolved from ContractRegistry under AssetManagerFXRP.
 - FXRP token is resolved from that manager's fAsset().
-- USDT0 is the current validated Coston2 liquidity-token snapshot in the
-  network config; the resolver checks symbol USDT0, decimals 18, and code.
+- USDT0 is centralized in the network config as the current Coston2 `USDT0
+  test` deployment; the resolver checks bytecode, on-chain symbol `USD₮0`, and
+  6 decimals. The product-facing alias remains USDT0.
 
 The authoritative implementation/docs links are kept in the root README. If
 the official Flare registry, scaffold or FCC behaviour changes, update the

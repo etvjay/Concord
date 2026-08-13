@@ -14,10 +14,27 @@
   "assets": {
     "fxrp": "0x0b6A3645c240605887a5532109323A3E12273dc7",
     "fxrpDecimals": 6,
-    "usdt0": "0x479854495cefBc8D12B971A3Ec4d18E6dbcE81a3",
-    "usdt0Decimals": 18
+    "usdt0": "0xC1A5B41512496B80903D1f32d6dEa3a73212E71F",
+    "usdt0OnchainSymbol": "USD₮0",
+    "usdt0Decimals": 6,
+    "usdt0Source": "https://coston2-explorer.flare.network/tokens"
   },
-  "canonicalFacility": {
+  "assetCorrection": {
+    "verifiedAt": "2026-08-13",
+    "current": {
+      "token": "0xC1A5B41512496B80903D1f32d6dEa3a73212E71F",
+      "name": "USDT0 test",
+      "onchainSymbol": "USD₮0",
+      "decimals": 6
+    },
+    "superseded": {
+      "token": "0x479854495cefBc8D12B971A3Ec4d18E6dbcE81a3",
+      "decimals": 18
+    },
+    "reason": "CapitalFacility.liquidityAsset is immutable; the previously deployed facility and root round cannot consume balances of the current faucet token."
+  },
+  "canonicalFacility": null,
+  "supersededAssetFacility": {
     "accordRegistry": "0x9A5663519C3D4B36ef155A4AE0e2d8Be2E7a89cF",
     "capitalFacility": "0x0AcBb062BE75491b5992dddD59aEf64a4f4Cc8b8",
     "owner": "0x1aF42c70837f08c6C89a6FA274EB9eeF040820B3",
@@ -47,11 +64,15 @@
   },
   "status": {
     "facilityContractsDeployed": true,
+    "canonicalFacilityDeployed": false,
+    "assetBindingCurrent": true,
     "extensionRegistered": true,
     "activeTeeMachine": false,
     "providerWalletsFunded": false,
-    "usdt0AvailableToTreasury": false,
+    "providerUSDT0BalancesObserved": true,
+    "usdt0AvailableToTreasury": true,
     "rootAccordCreated": true,
+    "rootRoundAssetBindingCurrent": false,
     "fccRoundExecuted": false,
     "childrenMaterialized": false,
     "facilityFunded": false,
@@ -59,6 +80,8 @@
     "repaid": false
   },
   "warnings": [
+    "The previously deployed facility and root round use a separate 18-decimal token at 0x479854495cefBc8D12B971A3Ec4d18E6dbcE81a3; they are superseded for the current Coston2 USDT0 test flow.",
+    "The current faucet token is 0xC1A5B41512496B80903D1f32d6dEa3a73212E71F (USD₮0, 6 decimals). A replacement facility and root round are required before funding.",
     "The current Flare/Foundry toolchain still reports chain 114 as unsupported for EIP-3855; deployment succeeded after targeting solc 0.8.27, optimizer=true, optimizer_runs=200, and evm_version=paris. Keep this warning in the deployment record.",
     "The Coston2 FCC development path is not hardware-TEE evidence; the intended path uses the documented simulated development TEE.",
     "No private key is stored in this file."
@@ -66,8 +89,8 @@
   "explorerLinks": {
     "instructionSenderDeploy": "https://coston2-explorer.flare.network/tx/0x85e6056f410be261830f5e4e8e35b172886b915ea977ad0fba46953c19577612",
     "extensionRegister": "https://coston2-explorer.flare.network/tx/0x20e1bf7f6e14d93fd5c06bd35b2d3eda93e711b46dff0ecf2433da121dac16ca",
-    "canonicalFacilityDeploy": "https://coston2-explorer.flare.network/tx/0x0b0c5acb99a20025e6b6a029474bcad882bbdd9589de39604d06cf41d6f9b3c7",
-    "canonicalRegistryDeploy": "https://coston2-explorer.flare.network/tx/0x1058604bb6650650feee1b980973e55fddf1db52d24f8215bf07b52aa67efd9e",
+    "supersededAssetFacilityDeploy": "https://coston2-explorer.flare.network/tx/0x0b0c5acb99a20025e6b6a029474bcad882bbdd9589de39604d06cf41d6f9b3c7",
+    "supersededAssetRegistryDeploy": "https://coston2-explorer.flare.network/tx/0x1058604bb6650650feee1b980973e55fddf1db52d24f8215bf07b52aa67efd9e",
     "rootApprove": "https://coston2-explorer.flare.network/tx/0xddba5e78d15ea4c1b38c2aabcc8bc6eb340e2e70b0864f42f7ee21ad22532b3",
     "rootCreate": "https://coston2-explorer.flare.network/tx/0x0f66d8b7c96929dcb18e7e39492ee94e9c758a50811b2533156efc6a33edc675",
     "rootLockCollateral": "https://coston2-explorer.flare.network/tx/0xd8f0644744a5b9b2e724e9f637f4b4fbbeda0ed885cbf67c2616fbea828698e6",
@@ -79,7 +102,7 @@
       "address": "0x1aF42c70837f08c6C89a6FA274EB9eeF040820B3",
       "c2flr": "86.338238475",
       "fxrp": "10",
-      "usdt0": "0"
+      "usdt0": "10"
     },
     "providers": [
       {
@@ -87,21 +110,21 @@
         "address": "0x8d9340278094DF3F032c674C912D8eA08c17437C",
         "c2flr": "0",
         "fxrp": "0",
-        "usdt0": "0"
+        "usdt0": "10"
       },
       {
         "role": "provider_b",
         "address": "0xF2E25459108A0454a85d03848AD6059C271cc9a5",
         "c2flr": "0",
         "fxrp": "0",
-        "usdt0": "0"
+        "usdt0": "10"
       },
       {
         "role": "provider_c",
         "address": "0x9537eA25C28e8c1663e8B57C52A0761a244183A1",
         "c2flr": "0",
         "fxrp": "0",
-        "usdt0": "0"
+        "usdt0": "10"
       }
     ],
     "note": "Provider private keys are stored only as encrypted Actions secrets; no private key is recorded here."
@@ -116,6 +139,8 @@
     ]
   },
   "rootRound": {
+    "status": "SUPERSEDED_ASSET_BINDING",
+    "facility": "0x0AcBb062BE75491b5992dddD59aEf64a4f4Cc8b8",
     "rootAccordId": "0xee94755eb101d1604d83a4d77eb4c20cd0b4a2ee8fd596c8c63b04109f954042",
     "roundId": "0xb281fe0fe8def27b3cb557a13ef1ef03a7e6823e8fadacb83f1dc599b529c93b",
     "rootState": "SYNDICATING",

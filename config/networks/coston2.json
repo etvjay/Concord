@@ -13,8 +13,10 @@
   },
   "usdt0": {
     "symbol": "USDT0",
-    "token": "0x479854495cefBc8D12B971A3Ec4d18E6dbcE81a3",
-    "decimals": 18,
-    "resolution": "Current Coston2 token snapshot; validate symbol, decimals, and bytecode with the resolver."
+    "onchainSymbol": "USD₮0",
+    "token": "0xC1A5B41512496B80903D1f32d6dEa3a73212E71F",
+    "decimals": 6,
+    "resolution": "Current Coston2 USDT0 test token; validate on-chain symbol USD₮0, decimals, and bytecode with the resolver.",
+    "source": "https://coston2-explorer.flare.network/tokens"
   }
 }

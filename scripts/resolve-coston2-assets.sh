@@ -4,7 +4,8 @@
 # FXRP is resolved through Flare's ContractRegistry and AssetManagerFXRP.
 # USDT0 is not currently exposed by the checked-in Coston2 ContractRegistry
 # names, so its centralized network snapshot is validated against live RPC
-# metadata before it is used.
+# metadata before it is used. The product alias is USDT0; the current token's
+# on-chain metadata is USD₮0 with six decimals.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -21,6 +22,8 @@ REGISTRY="$(jq -r '.contractRegistry' "$CONFIG_FILE")"
 EXPECTED_MANAGER="$(jq -r '.fxrp.assetManager' "$CONFIG_FILE")"
 EXPECTED_FXRP="$(jq -r '.fxrp.token' "$CONFIG_FILE")"
 USDT0="$(jq -r '.usdt0.token' "$CONFIG_FILE")"
+EXPECTED_USDT0_SYMBOL="$(jq -r '.usdt0.onchainSymbol' "$CONFIG_FILE")"
+EXPECTED_USDT0_DECIMALS="$(jq -r '.usdt0.decimals' "$CONFIG_FILE")"
 
 [[ "$RPC_URL" != "null" && "$REGISTRY" != "null" ]] || die "incomplete network config"
 
@@ -40,8 +43,10 @@ USDT0_CODE="$(cast code "$USDT0" --rpc-url "$RPC_URL")"
 
 USDT0_SYMBOL="$(cast call "$USDT0" 'symbol()(string)' --rpc-url "$RPC_URL" | tr -d '\"')"
 USDT0_DECIMALS="$(cast call "$USDT0" 'decimals()(uint8)' --rpc-url "$RPC_URL")"
-[[ "$USDT0_SYMBOL" == "USDT0" ]] || die "configured liquidity token returned symbol $USDT0_SYMBOL"
-[[ "$USDT0_DECIMALS" == "18" ]] || die "configured USDT0 token returned decimals $USDT0_DECIMALS"
+[[ "$USDT0_SYMBOL" == "$EXPECTED_USDT0_SYMBOL" ]] || \
+    die "configured liquidity token returned on-chain symbol $USDT0_SYMBOL, expected $EXPECTED_USDT0_SYMBOL"
+[[ "$USDT0_DECIMALS" == "$EXPECTED_USDT0_DECIMALS" ]] || \
+    die "configured USDT0 token returned decimals $USDT0_DECIMALS, expected $EXPECTED_USDT0_DECIMALS"
 
 jq -n \
   --arg network "$(jq -r '.network' "$CONFIG_FILE")" \
@@ -52,6 +57,7 @@ jq -n \
   --arg assetManager "$ASSET_MANAGER" \
   --arg fxrpToken "$FXRP_TOKEN" \
   --arg usdt0Token "$USDT0" \
+  --arg usdt0DisplaySymbol "$(jq -r '.usdt0.symbol' "$CONFIG_FILE")" \
   --arg usdt0Symbol "$USDT0_SYMBOL" \
   --argjson usdt0Decimals "$USDT0_DECIMALS" \
-  '{network:$network,chainId:$chainId,rpcUrl:$rpcUrl,explorerUrl:$explorerUrl,contractRegistry:$contractRegistry,fxrp:{assetManager:$assetManager,token:$fxrpToken,decimals:6},usdt0:{token:$usdt0Token,symbol:$usdt0Symbol,decimals:$usdt0Decimals}}'
+  '{network:$network,chainId:$chainId,rpcUrl:$rpcUrl,explorerUrl:$explorerUrl,contractRegistry:$contractRegistry,fxrp:{assetManager:$assetManager,token:$fxrpToken,decimals:6},usdt0:{token:$usdt0Token,symbol:$usdt0DisplaySymbol,onchainSymbol:$usdt0Symbol,decimals:$usdt0Decimals}}'

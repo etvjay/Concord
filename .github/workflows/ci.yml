@@ -340,15 +340,15 @@ jobs:
     env:
       CHAIN_URL: https://coston2-api.flare.network/ext/C/rpc
       DEPLOYMENT_PRIVATE_KEY: ${{ secrets.CONCORD_E2E_DEPLOYER_PRIVATE_KEY }}
-      CAPITAL_FACILITY: "0x0AcBb062BE75491b5992dddD59aEf64a4f4Cc8b8"
-      FXRP_TOKEN: "0x0b6A3645c240605887a5532109323A3E12273dc7"
-      ROOT_ID: "0xee94755eb101d1604d83a4d77eb4c20cd0b4a2ee8fd596c8c63b04109f954042"
-      ROUND_ID: "0xb281fe0fe8def27b3cb557a13ef1ef03a7e6823e8fadacb83f1dc599b529c93b"
-      POLICY_HASH: "0x4caea14ad8c3178d0a225d7e238fe71e060a5e62a8bae0020e0701c15d1e4aeb"
-      TARGET_CAPACITY: "9000000000000000000"
+      CAPITAL_FACILITY: ""
+      FXRP_TOKEN: ""
+      ROOT_ID: ""
+      ROUND_ID: ""
+      POLICY_HASH: ""
+      TARGET_CAPACITY: "9000000"
       COLLATERAL_AMOUNT: "1000000"
-      ROOT_VALID_UNTIL: "1787202715"
-      ROUND_EXPIRY: "1786857115"
+      ROOT_VALID_UNTIL: ""
+      ROUND_EXPIRY: ""
       MAX_FEE_BPS: "700"
       PROVIDER_A: "0x8d9340278094DF3F032c674C912D8eA08c17437C"
       PROVIDER_B: "0xF2E25459108A0454a85d03848AD6059C271cc9a5"
@@ -367,7 +367,16 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$DEPLOYMENT_PRIVATE_KEY"
+          CAPITAL_FACILITY="$(jq -r '.canonicalFacility.capitalFacility // empty' config/coston2/concord-deployment.json)"
+          FXRP_TOKEN="$(jq -r '.assets.fxrp' config/coston2/concord-deployment.json)"
+          test -n "$CAPITAL_FACILITY"
+          test -n "$FXRP_TOKEN"
           test "$(cast code "$CAPITAL_FACILITY" --rpc-url "$CHAIN_URL")" != "0x"
+          ROOT_ID="$(cast keccak "concord-coston2-root-${GITHUB_RUN_ID}")"
+          ROUND_ID="$(cast keccak "concord-coston2-round-${GITHUB_RUN_ID}")"
+          POLICY_HASH="$(cast keccak 'concord-coston2-policy-v2')"
+          ROOT_VALID_UNTIL="$(date -u -d '+7 days' +%s)"
+          ROUND_EXPIRY="$(date -u -d '+3 days' +%s)"
           send() {
             local label="$1"
             shift
@@ -389,4 +398,6 @@ jobs:
             "$CAPITAL_FACILITY" 'openSyndication(bytes32,bytes32,uint32,uint64,address[])' \
             "$ROOT_ID" "$ROUND_ID" "$MAX_FEE_BPS" "$ROUND_EXPIRY" \
             "[$PROVIDER_A,$PROVIDER_B,$PROVIDER_C]"
-          echo 'Root Accord is PROPOSED/SYNDICATING with 1 FXRP locked and a 9 USDT0 target.' >> "$GITHUB_STEP_SUMMARY"
+          echo "Root ID: $ROOT_ID" >> "$GITHUB_STEP_SUMMARY"
+          echo "Round ID: $ROUND_ID" >> "$GITHUB_STEP_SUMMARY"
+          echo 'Root Accord is PROPOSED/SYNDICATING with 1 FXRP locked and a 9 USDT0 target (6 decimals).' >> "$GITHUB_STEP_SUMMARY"
