@@ -110,7 +110,7 @@ go run ./cmd/verify-allocation -c https://coston2-api.flare.network/ext/C/rpc -f
 go run ./cmd/verify-allocation -c https://coston2-api.flare.network/ext/C/rpc -facility 0x... -teeRegistry 0x... -result ../evidence/allocation.json -extensionId 0x... -roundId 0x... -rootAccordId 0x... -mark -out ../evidence/allocation-verification.json
 ~~~
 
-No live FCC or facility deployment is claimed by local tests alone. See
+The sender, FCC extension registration, and facility deployment observations are recorded in `docs/CONCORD_STATUS.md`; local tests still do not prove the live lifecycle. See
 CONCORD_STATUS.md for the current evidence boundary.
 
 ## Confidentiality mode disclosure
