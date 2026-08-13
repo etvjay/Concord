@@ -166,6 +166,9 @@ jobs:
 
   live_facility_deploy:
     name: Coston2 Concord facility deployment (manual only)
+    concurrency:
+      group: concord-coston2-facility-deployment
+      cancel-in-progress: false
     if: github.event_name == 'workflow_dispatch' && inputs.deploy_facility == true
     runs-on: ubuntu-latest
     env:
@@ -191,4 +194,9 @@ jobs:
           test "$DEPLOYMENT_OWNER" != ""
           test "$ALLOCATION_VERIFIER" != ""
           test "$CONCORD_EXTENSION_ID" != ""
+          existing_facility="$(jq -r '.canonicalFacility.capitalFacility // empty' config/coston2/concord-deployment.json 2>/dev/null || true)"
+          if [[ -n "$existing_facility" ]] && [[ "$(cast code "$existing_facility" --rpc-url "$CHAIN_URL")" != "0x" ]]; then
+            echo "canonical CapitalFacility already has code at $existing_facility; refusing a duplicate deployment" >&2
+            exit 1
+          fi
           DEPLOY_PHASE=facility bash scripts/deploy-coston2.sh
