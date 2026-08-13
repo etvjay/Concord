@@ -194,9 +194,10 @@ Explorer links:
   the official scaffold remained running, the Codespace proxy port was made
   public, the Worker relay was verified, the simulated TEE availability proof
   was obtained, and the machine was promoted to status `2`.
-- This run proves registration and live FCC ingress only. It does not prove
-  quote submission, CoFill finalization, provider funding, draw settlement,
-  repayment, or restored capacity.
+- That setup run proves registration and live FCC ingress. The later FCC
+  recovery and facility lifecycle runs below extend the evidence to quote
+  submission, CoFill finalization, provider funding, draw settlement,
+  repayment, and restored capacity.
 - The live FCC round, signed-result verification, Child Accord materialization,
   provider funding, two-leg draw, real USDT0 repayment, and restored-capacity
   assertions passed in the [FCC recovery run](https://github.com/etvjay/Concord/actions/runs/31733740564)

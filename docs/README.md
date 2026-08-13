@@ -35,6 +35,8 @@ record before making a deployment or privacy claim.
 ## Evidence and truth
 
 - [CONCORD_STATUS.md](CONCORD_STATUS.md) — what is and is not evidenced.
+- [JUDGES.md](JUDGES.md) — five-minute evaluation path, public evidence, and
+  live-verification boundaries.
 - [templates/coston2-evidence.template.json](templates/coston2-evidence.template.json)
   — blank evidence shape with `not_observed` defaults.
 - [canonical-reconciliation-audit.md](canonical-reconciliation-audit.md) —

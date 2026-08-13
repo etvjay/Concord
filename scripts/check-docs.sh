@@ -12,7 +12,7 @@ warn() { echo -e "${YELLOW}WARN${NC}  $*"; }
 ok()   { echo -e "${GREEN}ok${NC}    $*"; }
 
 # These are the Concord documents that must exist in a clean checkout.
-REQUIRED="architecture.md getting-started.md testing.md testing-against-coston2.md cloudflared.md CONCORD_STATUS.md shared-product-contract.md frontend-map.md cli.md coston2-live-runbook.md experiments/coston2-failure-matrix.md"
+REQUIRED="architecture.md getting-started.md testing.md testing-against-coston2.md cloudflared.md CONCORD_STATUS.md JUDGES.md shared-product-contract.md frontend-map.md cli.md coston2-live-runbook.md experiments/coston2-failure-matrix.md"
 MAX_LINES=500
 
 echo "docs: $DOCS"
