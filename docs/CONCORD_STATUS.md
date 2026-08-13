@@ -64,9 +64,13 @@ bound to the current token, and its current root round is recorded below.
 
 ## Not yet evidenced
 
-- No active TEE machine is registered for extension `66188` (the live registry
-  query returned zero active machines), so the OPEN round has not yet produced a
-  live FCC instruction result.
+- One simulated development TEE machine is active for extension `66188` at
+  status `2` (`PRODUCTION`): tee id
+  `0xeE39d5e7d1C5043232282e3CC884B41a9Db22c85`. Its registered stable HTTPS
+  URL is `https://concord-fcc-ingress.microcosm.workers.dev`, a narrow
+  Cloudflare Workers.dev relay to the disposable Codespace proxy. The setup
+  workflow obtained the availability proof and verified the on-chain machine
+  record.
 - The three disposable provider wallets and the treasury now each hold 10
   units of the current six-decimal `USDT0 test` token. Each provider also has
   105 C2FLR after the guarded gas-funding step, so approval and funding
@@ -79,10 +83,10 @@ bound to the current token, and its current root round is recorded below.
   superseded 18-decimal liquidity token.
 - No FCC quote/finalize instruction, allocation verification, child Accord, draw,
   settlement, repayment, or restored-capacity receipt has been observed.
-- The current Coston2 indexer configuration is now stored as encrypted GitHub
-  Actions secrets using the current DevHub values. FCC setup still needs a
-  stable public extension URL and named-tunnel token; no machine registration
-  or instruction flow has been dispatched.
+- The current Coston2 indexer configuration is stored as encrypted GitHub
+  Actions secrets using the current DevHub values. FCC registration is now
+  evidenced through the stable Workers.dev relay. This is a development ingress
+  fallback, not a named Cloudflare Tunnel or production hardware-TEE claim.
 
 ## Privacy truth
 
@@ -151,3 +155,11 @@ Explorer links:
   parity, and the read-only preflight gate.
 - The same commit passed the read-only
   [Coston2 asset-resolution run](https://github.com/etvjay/Concord/actions/runs/31646160617).
+- Commit `e36cea5bde63bde58bbcbb19ede7f43b82e558eb` passed the guarded
+  [Coston2 FCC setup run](https://github.com/etvjay/Concord/actions/runs/31731326000):
+  the official scaffold remained running, the Codespace proxy port was made
+  public, the Worker relay was verified, the simulated TEE availability proof
+  was obtained, and the machine was promoted to status `2`.
+- This run proves registration and live FCC ingress only. It does not prove
+  quote submission, CoFill finalization, provider funding, draw settlement,
+  repayment, or restored capacity.

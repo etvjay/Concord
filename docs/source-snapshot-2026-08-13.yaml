@@ -38,13 +38,16 @@ snapshot:
       statement: The DevHub getting-started walkthrough still documents quick tunnels for development and says to update EXT_PROXY_URL when a quick-tunnel URL changes.
       current_operational_constraint: A registered Coston2 machine must use one stable public HTTPS URL; restarting a rotating tunnel strands the onchain machine record and can create a new simulated TEE identity.
       resolution: Concord permits quick tunnels only for unregistered smoke tests and requires a stable named-tunnel URL/token for the guarded registration workflow.
+    - id: FCC-WORKERS-DEV-INGRESS-FALLBACK
+      statement: The official path requires a stable public HTTPS extension-proxy URL; a named Cloudflare Tunnel is one supported way to provide it.
+      current_operational_constraint: This account cannot self-assign the Cloudflare Connectivity Directory Admin role required for the VPC/tunnel path, and no custom domain is available.
+      resolution: Concord uses the stable Workers.dev URL `https://concord-fcc-ingress.microcosm.workers.dev` as a narrow development relay to the disposable Codespace public port. It forwards `/instruction`, `/info`, `/health`, `/metrics`, `/action/status...`, and `/action/result...`; it is not represented as a named tunnel or production ingress.
   concord_decisions:
     - No product-semantic contradiction was found.
     - Simulated TEE evidence remains development-path evidence, not production hardware-backed confidentiality.
     - FDC remains an evidence seam and is not added to the MVP.
   live_gate_inputs_still_required:
     - funded Coston2 deployment/proxy accounts
-    - stable named-tunnel HTTPS EXT_PROXY_URL (not a rotating quick tunnel)
-    - stable named-tunnel token in CONCORD_FCC_TUNNEL_ARGS
-    - current extension registration and active TEE-machine evidence
+    - a stable public HTTPS EXT_PROXY_URL (the current guarded branch uses the Workers.dev relay fallback)
+    - current extension registration and active TEE-machine evidence (now observed for extension 66188)
     - real provider funding, draw, repayment, and explorer receipts

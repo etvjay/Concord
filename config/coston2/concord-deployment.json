@@ -1,7 +1,7 @@
 {
   "network": "Coston2",
   "chainId": 114,
-  "observedAt": "2026-08-13T05:00:30Z",
+  "observedAt": "2026-08-13T18:35:30Z",
   "rpcUrl": "https://coston2-api.flare.network/ext/C/rpc",
   "explorerUrl": "https://coston2-explorer.flare.network",
   "teeRegistry": "0x1a9C4A0f9D76c0b1D91d22E24E573a9b377618aE",
@@ -9,7 +9,14 @@
     "id": "0x000000000000000000000000000000000000000000000000000000000001028c",
     "decimalId": 66188,
     "instructionSender": "0x574b523eA944EFe9143AF9d6c46bfA925beE2968",
-    "activeTeeMachines": 0
+    "activeTeeMachines": 1,
+    "activeTeeIds": [
+      "0xeE39d5e7d1C5043232282e3CC884B41a9Db22c85"
+    ],
+    "activeTeeUrls": [
+      "https://concord-fcc-ingress.microcosm.workers.dev"
+    ],
+    "teeMode": "simulated_development"
   },
   "assets": {
     "fxrp": "0x0b6A3645c240605887a5532109323A3E12273dc7",
@@ -83,7 +90,7 @@
     "canonicalFacilityDeployed": true,
     "assetBindingCurrent": true,
     "extensionRegistered": true,
-    "activeTeeMachine": false,
+    "activeTeeMachine": true,
     "providerWalletsFunded": true,
     "providerUSDT0BalancesObserved": true,
     "usdt0AvailableToTreasury": true,
@@ -100,6 +107,7 @@
     "The current faucet token is 0xC1A5B41512496B80903D1f32d6dEa3a73212E71F (USD₮0, 6 decimals). The replacement facility and root round are deployed, and provider gas is funded; FCC execution and quote/funding steps remain.",
     "The current Flare/Foundry toolchain still reports chain 114 as unsupported for EIP-3855; deployment succeeded after targeting solc 0.8.27, optimizer=true, optimizer_runs=200, and evm_version=paris. Keep this warning in the deployment record.",
     "The Coston2 FCC development path is not hardware-TEE evidence; the intended path uses the documented simulated development TEE.",
+    "The Concord extension is registered through a stable Cloudflare Workers.dev ingress relay backed by the disposable Codespace public port; this is not a named Cloudflare Tunnel or a production ingress claim.",
     "No private key is stored in this file."
   ],
   "explorerLinks": {
