@@ -86,6 +86,6 @@ gh codespace list --json name,state \
     printf '%s\n' 'PROXY_TOML'
     printf '%s\n' 'cd "$PROJECT"'
     printf '%s\n' './scripts/start-services.sh --chain coston2'
-    printf '%s\n' 'gh codespace ports visibility 6674:public -c "$CODESPACE_NAME"'
+    printf '%s\n' "gh codespace ports visibility 6674:public -c $(shell_quote "$CODESPACE_NAME")"
     printf '%s\n' 'curl --fail --silent --show-error http://localhost:6674/info'
 } | gh codespace ssh -c "$CODESPACE_NAME" -- bash -s
