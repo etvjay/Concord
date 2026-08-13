@@ -418,6 +418,7 @@ jobs:
   live_facility_flow:
     name: Coston2 funding, multi-child draw, and repayment
     if: github.event_name == 'workflow_dispatch' && inputs.execute_facility_flow == true && github.ref == 'refs/heads/agent/concord-rebuild'
+    needs: go
     permissions:
       contents: read
     concurrency:

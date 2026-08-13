@@ -472,7 +472,7 @@ func keyForProvider(keys []providerKey, address common.Address) (providerKey, bo
 	return providerKey{}, false
 }
 
-func readRoot(ctx context.Context, client *ethclient.Client, contractABI abi.ABI, facility, rootID common.Hash) (rootView, error) {
+func readRoot(ctx context.Context, client *ethclient.Client, contractABI abi.ABI, facility common.Address, rootID common.Hash) (rootView, error) {
 	values, err := call(ctx, client, contractABI, facility, "rootAccords", rootID)
 	if err != nil {
 		return rootView{}, err
@@ -507,7 +507,7 @@ func readRoot(ctx context.Context, client *ethclient.Client, contractABI abi.ABI
 	return rootView{ID: id, Borrower: borrower, Target: target, Committed: committed, Drawn: drawn, State: state}, nil
 }
 
-func readChild(ctx context.Context, client *ethclient.Client, contractABI abi.ABI, facility, childID common.Hash) (childView, error) {
+func readChild(ctx context.Context, client *ethclient.Client, contractABI abi.ABI, facility common.Address, childID common.Hash) (childView, error) {
 	values, err := call(ctx, client, contractABI, facility, "childAccords", childID)
 	if err != nil {
 		return childView{}, err
@@ -554,7 +554,7 @@ func readChildren(ctx context.Context, client *ethclient.Client, contractABI abi
 	return children, nil
 }
 
-func readDraw(ctx context.Context, client *ethclient.Client, contractABI abi.ABI, facility, drawID common.Hash) (drawView, error) {
+func readDraw(ctx context.Context, client *ethclient.Client, contractABI abi.ABI, facility common.Address, drawID common.Hash) (drawView, error) {
 	values, err := call(ctx, client, contractABI, facility, "draws", drawID)
 	if err != nil {
 		return drawView{}, err
