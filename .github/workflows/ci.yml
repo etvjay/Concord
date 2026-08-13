@@ -112,6 +112,26 @@ jobs:
         run: bash scripts/coston2-preflight.sh --offline
 
 
+  codespace_fcc_runtime:
+    name: Coston2 FCC runtime in disposable Codespace
+    if: github.event_name == 'workflow_dispatch' && inputs.setup_fcc == true && github.ref == 'refs/heads/agent/concord-rebuild'
+    runs-on: ubuntu-latest
+    env:
+      CODESPACE_NAME: friendly-engine-r7r5qrwvvrj5c5777
+      GH_TOKEN: ${{ secrets.CONCORD_CODESPACE_PAT }}
+      PROXY_PRIVATE_KEY: ${{ secrets.CONCORD_FCC_PROXY_PRIVATE_KEY }}
+      INDEXER_DB_HOST: ${{ secrets.CONCORD_FCC_INDEXER_DB_HOST }}
+      INDEXER_DB_NAME: ${{ secrets.CONCORD_FCC_INDEXER_DB_NAME }}
+      INDEXER_DB_USER: ${{ secrets.CONCORD_FCC_INDEXER_DB_USER }}
+      INDEXER_DB_PASSWORD: ${{ secrets.CONCORD_FCC_INDEXER_DB_PASSWORD }}
+    steps:
+      - name: Check out requested ref
+        uses: actions/checkout@v4
+      - name: Prepare and start official scaffold
+        shell: bash
+        run: bash scripts/prepare-coston2-codespace.sh
+
+
   live_sender_deploy:
     name: Coston2 sender deployment (manual only)
     if: github.event_name == 'workflow_dispatch' && inputs.deploy_sender == true
@@ -219,7 +239,7 @@ jobs:
 
   live_fcc_setup:
     name: Coston2 FCC scaffold setup (manual only)
-    if: github.event_name == 'workflow_dispatch' && inputs.setup_fcc == true
+    if: github.event_name == 'workflow_dispatch' && inputs.setup_fcc == true && github.ref != 'refs/heads/agent/concord-rebuild'
     concurrency:
       group: concord-coston2-fcc-setup
       cancel-in-progress: false
