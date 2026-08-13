@@ -85,6 +85,11 @@ gh codespace list --json name,state \
     printf '%s\n' 'max_pending_request = 10000'
     printf '%s\n' 'PROXY_TOML'
     printf '%s\n' 'cd "$PROJECT"'
-    printf '%s\n' './scripts/start-services.sh --chain coston2'
+    printf '%s\n' 'running_services="$(docker compose -f docker-compose.yaml -f docker-compose.coston2.yaml ps --status running --services)"'
+    printf '%s\n' 'if grep -qx "ext-proxy" <<<"$running_services" && grep -qx "extension-tee" <<<"$running_services" && curl --fail --silent --show-error http://localhost:6674/info >/dev/null; then'
+    printf '%s\n' '  echo "official scaffold already running; preserving current TEE identity"'
+    printf '%s\n' 'else'
+    printf '%s\n' '  ./scripts/start-services.sh --chain coston2'
+    printf '%s\n' 'fi'
     printf '%s\n' 'curl --fail --silent --show-error http://localhost:6674/info'
 } | gh codespace ssh -c "$CODESPACE_NAME" -- bash -s
