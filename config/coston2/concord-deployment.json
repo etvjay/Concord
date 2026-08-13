@@ -1,0 +1,72 @@
+{
+  "network": "Coston2",
+  "chainId": 114,
+  "observedAt": "2026-08-13T05:00:30Z",
+  "rpcUrl": "https://coston2-api.flare.network/ext/C/rpc",
+  "explorerUrl": "https://coston2-explorer.flare.network",
+  "teeRegistry": "0x1a9C4A0f9D76c0b1D91d22E24E573a9b377618aE",
+  "extension": {
+    "id": "0x000000000000000000000000000000000000000000000000000000000001028c",
+    "decimalId": 66188,
+    "instructionSender": "0x574b523eA944EFe9143AF9d6c46bfA925beE2968",
+    "activeTeeMachines": 0
+  },
+  "assets": {
+    "fxrp": "0x0b6A3645c240605887a5532109323A3E12273dc7",
+    "fxrpDecimals": 6,
+    "usdt0": "0x479854495cefBc8D12B971A3Ec4d18E6dbcE81a3",
+    "usdt0Decimals": 18
+  },
+  "canonicalFacility": {
+    "accordRegistry": "0x9A5663519C3D4B36ef155A4AE0e2d8Be2E7a89cF",
+    "capitalFacility": "0x0AcBb062BE75491b5992dddD59aEf64a4f4Cc8b8",
+    "owner": "0x1aF42c70837f08c6C89a6FA274EB9eeF040820B3",
+    "allocationVerifier": "0x1aF42c70837f08c6C89a6FA274EB9eeF040820B3",
+    "registrySetFacility": "0xa0b7a26bf42231dd8e0c2ea59f29339418f31717f129eadd57a842b78c7ad0c4",
+    "registryDeploy": "0x1058604bb6650650feee1b980973e55fddf1db52d24f8215bf07b52aa67efd9e",
+    "facilityDeploy": "0x0b0c5acb99a20025e6b6a029474bcad882bbdd9589de39604d06cf41d6f9b3c7",
+    "blocks": {
+      "registryDeploy": 33993407,
+      "facilityDeploy": 33993408
+    }
+  },
+  "transactions": {
+    "instructionSenderDeploy": "0x85e6056f410be261830f5e4e8e35b172886b915ea977ad0fba46953c19577612",
+    "extensionRegister": "0x20e1bf7f6e14d93fd5c06bd35b2d3eda93e711b46dff0ecf2433da121dac16ca",
+    "extensionAllowMachineOwners": "0xa4fb47c35c0c42bf7681bed2f48b206486730806c34fe1e04331fc8fcb91c7be",
+    "extensionAllowProjectOwners": "0x38f3f152d1d4d5578961e55ae595e1422552a363d073690f6fbf05d35b9a8ed3",
+    "extensionAllowKeyType": "0x33f25969e199780b0962b868a92a4871d0ef6845827e6a92274e6f0128216140"
+  },
+  "supersededFacility": {
+    "reason": "A second manual facility dispatch completed before the first result was observed; this pair is retained as observed but not used for the canonical flow.",
+    "accordRegistry": "0xb7f23e078eebc57e624ad06af5caef4526998eee",
+    "capitalFacility": "0x8d70adbd1b36fb05bae2056013f8bfb9b8e14848",
+    "registrySetFacility": "0x8b8ee8baefe7bb574dc6001df2caa8da078900c76c6e71b7b7b66f5d02f90f97",
+    "registryDeploy": "0xdeda1310493445b2966014aab334fd78b741c8b33dbd188bc1ad7e61f9a11a38",
+    "facilityDeploy": "0xe66c23ed9ac4543196fc9cfa58372f7e9764ab6dc52950a22ed3dd57da73d8d0"
+  },
+  "status": {
+    "facilityContractsDeployed": true,
+    "extensionRegistered": true,
+    "activeTeeMachine": false,
+    "providerWalletsFunded": false,
+    "usdt0AvailableToTreasury": false,
+    "rootAccordCreated": false,
+    "fccRoundExecuted": false,
+    "childrenMaterialized": false,
+    "facilityFunded": false,
+    "drawSettled": false,
+    "repaid": false
+  },
+  "warnings": [
+    "The current Flare/Foundry toolchain still reports chain 114 as unsupported for EIP-3855; deployment succeeded after targeting solc 0.8.27, optimizer=true, optimizer_runs=200, and evm_version=paris. Keep this warning in the deployment record.",
+    "The Coston2 FCC development path is not hardware-TEE evidence; the intended path uses the documented simulated development TEE.",
+    "No private key is stored in this file."
+  ],
+  "explorerLinks": {
+    "instructionSenderDeploy": "https://coston2-explorer.flare.network/tx/0x85e6056f410be261830f5e4e8e35b172886b915ea977ad0fba46953c19577612",
+    "extensionRegister": "https://coston2-explorer.flare.network/tx/0x20e1bf7f6e14d93fd5c06bd35b2d3eda93e711b46dff0ecf2433da121dac16ca",
+    "canonicalFacilityDeploy": "https://coston2-explorer.flare.network/tx/0x0b0c5acb99a20025e6b6a029474bcad882bbdd9589de39604d06cf41d6f9b3c7",
+    "canonicalRegistryDeploy": "https://coston2-explorer.flare.network/tx/0x1058604bb6650650feee1b980973e55fddf1db52d24f8215bf07b52aa67efd9e"
+  }
+}
