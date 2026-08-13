@@ -25,6 +25,11 @@ on:
         required: false
         default: false
         type: boolean
+      open_round:
+        description: 'Create the deterministic FXRP root Accord and open its Makkari round'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -323,3 +328,65 @@ jobs:
         run: |
           docker compose -f docker-compose.yaml -f docker-compose.coston2.yaml down --remove-orphans || true
           docker compose -f docker-compose.cloudflared.yaml down --remove-orphans || true
+
+
+  live_open_round:
+    name: Coston2 root Accord and Makkari round (manual only)
+    if: github.event_name == 'workflow_dispatch' && inputs.open_round == true
+    concurrency:
+      group: concord-coston2-open-round
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    env:
+      CHAIN_URL: https://coston2-api.flare.network/ext/C/rpc
+      DEPLOYMENT_PRIVATE_KEY: ${{ secrets.CONCORD_E2E_DEPLOYER_PRIVATE_KEY }}
+      CAPITAL_FACILITY: "0x0AcBb062BE75491b5992dddD59aEf64a4f4Cc8b8"
+      FXRP_TOKEN: "0x0b6A3645c240605887a5532109323A3E12273dc7"
+      ROOT_ID: "0xee94755eb101d1604d83a4d77eb4c20cd0b4a2ee8fd596c8c63b04109f954042"
+      ROUND_ID: "0xb281fe0fe8def27b3cb557a13ef1ef03a7e6823e8fadacb83f1dc599b529c93b"
+      POLICY_HASH: "0x4caea14ad8c3178d0a225d7e238fe71e060a5e62a8bae0020e0701c15d1e4aeb"
+      TARGET_CAPACITY: "9000000000000000000"
+      COLLATERAL_AMOUNT: "1000000"
+      ROOT_VALID_UNTIL: "1787202715"
+      ROUND_EXPIRY: "1786857115"
+      MAX_FEE_BPS: "700"
+      PROVIDER_A: "0x8d9340278094DF3F032c674C912D8eA08c17437C"
+      PROVIDER_B: "0xF2E25459108A0454a85d03848AD6059C271cc9a5"
+      PROVIDER_C: "0x9537eA25C28e8c1663e8B57C52A0761a244183A1"
+    steps:
+      - name: Check out requested ref
+        uses: actions/checkout@v4
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - name: Create root Accord and open Makkari round
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$DEPLOYMENT_PRIVATE_KEY"
+          test "$(cast code "$CAPITAL_FACILITY" --rpc-url "$CHAIN_URL")" != "0x"
+          send() {
+            local label="$1"
+            shift
+            local output tx
+            output="$(cast send "$@" --rpc-url "$CHAIN_URL" --private-key "$DEPLOYMENT_PRIVATE_KEY" --json)"
+            tx="$(jq -r '.transactionHash // .hash // empty' <<<"$output")"
+            test "$tx" != ""
+            echo "$label: $tx"
+            echo "$label: $tx" >> "$GITHUB_STEP_SUMMARY"
+          }
+          send approve_fxrp \
+            "$FXRP_TOKEN" 'approve(address,uint256)' "$CAPITAL_FACILITY" "$COLLATERAL_AMOUNT"
+          send create_root \
+            "$CAPITAL_FACILITY" 'createRootAccord(bytes32,uint256,uint64,bytes32)' \
+            "$ROOT_ID" "$TARGET_CAPACITY" "$ROOT_VALID_UNTIL" "$POLICY_HASH"
+          send lock_collateral \
+            "$CAPITAL_FACILITY" 'lockCollateral(bytes32,uint256)' "$ROOT_ID" "$COLLATERAL_AMOUNT"
+          send open_syndication \
+            "$CAPITAL_FACILITY" 'openSyndication(bytes32,bytes32,uint32,uint64,address[])' \
+            "$ROOT_ID" "$ROUND_ID" "$MAX_FEE_BPS" "$ROUND_EXPIRY" \
+            "[$PROVIDER_A,$PROVIDER_B,$PROVIDER_C]"
+          echo 'Root Accord is PROPOSED/SYNDICATING with 1 FXRP locked and a 9 USDT0 target.' >> "$GITHUB_STEP_SUMMARY"
