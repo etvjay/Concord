@@ -90,10 +90,10 @@ affected configuration and record the contradiction before continuing.
 
 ## Deployment evidence template
 
-When the live slice is run, copy
-`docs/templates/coston2-evidence.template.json` to an ignored local evidence
-file and fill only observed values. Until then, leave deployment fields empty
-rather than inferring them from local tests:
+The observed deployment and root/round values are recorded in
+`config/coston2/concord-deployment.json`. Use the template below only for
+lifecycle fields that have not yet produced live receipts; do not infer them
+from local tests:
 
 ~~~text
 Network:
