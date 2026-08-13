@@ -131,7 +131,7 @@ jobs:
     env:
       CHAIN_URL: https://coston2-api.flare.network/ext/C/rpc
       DEPLOYMENT_PRIVATE_KEY: ${{ secrets.CONCORD_E2E_DEPLOYER_PRIVATE_KEY }}
-      INSTRUCTION_SENDER: 0x574b523eA944EFe9143AF9d6c46bfA925beE2968
+      INSTRUCTION_SENDER: "0x574b523eA944EFe9143AF9d6c46bfA925beE2968"
     steps:
       - name: Check out requested ref
         uses: actions/checkout@v4
