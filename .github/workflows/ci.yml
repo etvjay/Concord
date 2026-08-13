@@ -15,6 +15,11 @@ on:
         required: false
         default: false
         type: boolean
+      deploy_facility:
+        description: 'Deploy the Concord AccordRegistry and CapitalFacility on Coston2'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -157,3 +162,33 @@ jobs:
           cat "$RUNNER_TEMP/concord-register-extension.log" >&2
           [[ "$extension_id" =~ ^0x[0-9a-fA-F]{64}$ ]]
           echo "Registered FCC extension ID: $extension_id" >> "$GITHUB_STEP_SUMMARY"
+
+
+  live_facility_deploy:
+    name: Coston2 Concord facility deployment (manual only)
+    if: github.event_name == 'workflow_dispatch' && inputs.deploy_facility == true
+    runs-on: ubuntu-latest
+    env:
+      CHAIN_URL: https://coston2-api.flare.network/ext/C/rpc
+      DEPLOYMENT_PRIVATE_KEY: ${{ secrets.CONCORD_E2E_DEPLOYER_PRIVATE_KEY }}
+      DEPLOYMENT_OWNER: "0x1aF42c70837f08c6C89a6FA274EB9eeF040820B3"
+      ALLOCATION_VERIFIER: "0x1aF42c70837f08c6C89a6FA274EB9eeF040820B3"
+      CONCORD_EXTENSION_ID: "0x000000000000000000000000000000000000000000000000000000000001028c"
+    steps:
+      - name: Check out requested ref
+        uses: actions/checkout@v4
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - name: Deploy Concord facility
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$DEPLOYMENT_PRIVATE_KEY"
+          test "$DEPLOYMENT_OWNER" != ""
+          test "$ALLOCATION_VERIFIER" != ""
+          test "$CONCORD_EXTENSION_ID" != ""
+          DEPLOY_PHASE=facility bash scripts/deploy-coston2.sh
