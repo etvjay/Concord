@@ -1,0 +1,46 @@
+name: Concord Coston2 sender deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Branch or commit to deploy
+        required: true
+        default: agent/concord-rebuild
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-sender:
+    name: Deploy ConcordInstructionSender
+    runs-on: ubuntu-latest
+    env:
+      CHAIN_URL: https://coston2-api.flare.network/ext/C/rpc
+      DEPLOYMENT_PRIVATE_KEY: ${{ secrets.CONCORD_E2E_DEPLOYER_PRIVATE_KEY }}
+    steps:
+      - name: Check out requested ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - name: Deploy instruction sender
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$DEPLOYMENT_PRIVATE_KEY"
+          owner="$(cast wallet address --private-key "$DEPLOYMENT_PRIVATE_KEY")"
+          tee_registry="$(jq -r '.[] | select(.name == "FlareTeeManager") | .address' config/coston2/deployed-addresses.json)"
+          test "$owner" != ""
+          test "$tee_registry" != "null"
+          test "$tee_registry" != ""
+          export DEPLOYMENT_OWNER="$owner"
+          export TEE_EXTENSION_REGISTRY="$tee_registry"
+          export TEE_MACHINE_REGISTRY="$tee_registry"
+          DEPLOY_PHASE=sender bash scripts/deploy-coston2.sh
