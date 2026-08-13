@@ -51,7 +51,7 @@
     "activeTeeMachine": false,
     "providerWalletsFunded": false,
     "usdt0AvailableToTreasury": false,
-    "rootAccordCreated": false,
+    "rootAccordCreated": true,
     "fccRoundExecuted": false,
     "childrenMaterialized": false,
     "facilityFunded": false,
@@ -67,7 +67,11 @@
     "instructionSenderDeploy": "https://coston2-explorer.flare.network/tx/0x85e6056f410be261830f5e4e8e35b172886b915ea977ad0fba46953c19577612",
     "extensionRegister": "https://coston2-explorer.flare.network/tx/0x20e1bf7f6e14d93fd5c06bd35b2d3eda93e711b46dff0ecf2433da121dac16ca",
     "canonicalFacilityDeploy": "https://coston2-explorer.flare.network/tx/0x0b0c5acb99a20025e6b6a029474bcad882bbdd9589de39604d06cf41d6f9b3c7",
-    "canonicalRegistryDeploy": "https://coston2-explorer.flare.network/tx/0x1058604bb6650650feee1b980973e55fddf1db52d24f8215bf07b52aa67efd9e"
+    "canonicalRegistryDeploy": "https://coston2-explorer.flare.network/tx/0x1058604bb6650650feee1b980973e55fddf1db52d24f8215bf07b52aa67efd9e",
+    "rootApprove": "https://coston2-explorer.flare.network/tx/0xddba5e78d15ea4c1b38c2aabcc8bc6eb340e2e70b0864f42f7ee21ad22532b3",
+    "rootCreate": "https://coston2-explorer.flare.network/tx/0x0f66d8b7c96929dcb18e7e39492ee94e9c758a50811b2533156efc6a33edc675",
+    "rootLockCollateral": "https://coston2-explorer.flare.network/tx/0xd8f0644744a5b9b2e724e9f637f4b4fbbeda0ed885cbf67c2616fbea828698e6",
+    "openSyndication": "https://coston2-explorer.flare.network/tx/0x8d32a236da024a63d57302df74dd5e7493d52048b4048f9dd43fcd4a108e68fb"
   },
   "accounts": {
     "observedAt": "2026-08-13T05:06:00Z",
@@ -110,5 +114,39 @@
       "provider_b: 100 C2FLR + 10 USDT0",
       "provider_c: 100 C2FLR + 10 USDT0"
     ]
+  },
+  "rootRound": {
+    "rootAccordId": "0xee94755eb101d1604d83a4d77eb4c20cd0b4a2ee8fd596c8c63b04109f954042",
+    "roundId": "0xb281fe0fe8def27b3cb557a13ef1ef03a7e6823e8fadacb83f1dc599b529c93b",
+    "rootState": "SYNDICATING",
+    "roundStatus": "OPEN",
+    "borrower": "0x1aF42c70837f08c6C89a6FA274EB9eeF040820B3",
+    "targetCapacity": "9000000000000000000",
+    "targetDisplay": "9 USDT0",
+    "maxFeeBps": 700,
+    "collateralLocked": "1000000",
+    "collateralDisplay": "1 FXRP",
+    "eligibleProviders": [
+      "0x8d9340278094DF3F032c674C912D8eA08c17437C",
+      "0xF2E25459108A0454a85d03848AD6059C271cc9a5",
+      "0x9537eA25C28e8c1663e8B57C52A0761a244183A1"
+    ],
+    "transactions": {
+      "approveFxrp": "0xddba5e78d15ea4c1b38c2aabcc8bc6eb340e2e70b0864f42f7ee21ad22532b3b",
+      "createRoot": "0x0f66d8b7c96929dcb18e7e39492ee94e9c758a50811b2533156efc6a33edc675",
+      "lockCollateral": "0xd8f0644744a5b9b2e724e9f637f4b4fbbeda0ed885cbf67c2616fbea828698e6",
+      "openSyndication": "0x8d32a236da024a63d57302df74dd5e7493d52048b4048f9dd43fcd4a108e68fb"
+    },
+    "verifiedAt": "2026-08-13T05:15:00Z",
+    "verifiedOnchain": {
+      "facilityFxrpBalance": "1",
+      "committedCapacity": "0",
+      "drawnPrincipal": "0",
+      "eligibleProviderCount": 3,
+      "registryHasRoot": true,
+      "rootChildIds": [
+        "0xb281fe0fe8def27b3cb557a13ef1ef03a7e6823e8fadacb83f1dc599b529c93b"
+      ]
+    }
   }
 }
