@@ -20,6 +20,11 @@ on:
         required: false
         default: false
         type: boolean
+      setup_fcc:
+        description: 'Start the official Coston2 FCC scaffold and register one TEE machine'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -200,3 +205,121 @@ jobs:
             exit 1
           fi
           DEPLOY_PHASE=facility bash scripts/deploy-coston2.sh
+
+
+  live_fcc_setup:
+    name: Coston2 FCC scaffold setup (manual only)
+    if: github.event_name == 'workflow_dispatch' && inputs.setup_fcc == true
+    concurrency:
+      group: concord-coston2-fcc-setup
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    env:
+      CHAIN: coston2
+      CHAIN_URL: https://coston2-api.flare.network/ext/C/rpc
+      NORMAL_PROXY_URL: https://tee-proxy-coston2-1.flare.rocks
+      LOCAL_MODE: "false"
+      SIMULATED_TEE: "true"
+      DEPLOYMENT_PRIVATE_KEY: ${{ secrets.CONCORD_E2E_DEPLOYER_PRIVATE_KEY }}
+      DEPLOYMENT_OWNER: "0x1aF42c70837f08c6C89a6FA274EB9eeF040820B3"
+      INITIAL_OWNER: "0x1aF42c70837f08c6C89a6FA274EB9eeF040820B3"
+      GOVERNANCE_SIGNERS: "0x1aF42c70837f08c6C89a6FA274EB9eeF040820B3"
+      GOVERNANCE_THRESHOLD: "1"
+      EXTENSION_ID: "0x000000000000000000000000000000000000000000000000000000000001028c"
+      INSTRUCTION_SENDER: "0x574b523eA944EFe9143AF9d6c46bfA925beE2968"
+      PROXY_PRIVATE_KEY: ${{ secrets.CONCORD_FCC_PROXY_PRIVATE_KEY }}
+      INDEXER_DB_HOST: ${{ secrets.CONCORD_FCC_INDEXER_DB_HOST }}
+      INDEXER_DB_NAME: ${{ secrets.CONCORD_FCC_INDEXER_DB_NAME }}
+      INDEXER_DB_USER: ${{ secrets.CONCORD_FCC_INDEXER_DB_USER }}
+      INDEXER_DB_PASSWORD: ${{ secrets.CONCORD_FCC_INDEXER_DB_PASSWORD }}
+    steps:
+      - name: Check out requested ref
+        uses: actions/checkout@v4
+
+      - name: Install Go 1.25.1
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.1"
+          cache: false
+
+      - name: Prepare ignored live scaffold configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$DEPLOYMENT_PRIVATE_KEY"
+          test -n "$PROXY_PRIVATE_KEY"
+          test -n "$INDEXER_DB_HOST"
+          test -n "$INDEXER_DB_NAME"
+          test -n "$INDEXER_DB_USER"
+          test -n "$INDEXER_DB_PASSWORD"
+          umask 077
+          printf '%s\n' \
+            "CHAIN=$CHAIN" \
+            "CHAIN_URL=$CHAIN_URL" \
+            "NORMAL_PROXY_URL=$NORMAL_PROXY_URL" \
+            "LOCAL_MODE=$LOCAL_MODE" \
+            "SIMULATED_TEE=$SIMULATED_TEE" \
+            "PROXY_PRIVATE_KEY=$PROXY_PRIVATE_KEY" \
+            "DEPLOYMENT_PRIVATE_KEY=$DEPLOYMENT_PRIVATE_KEY" \
+            "INITIAL_OWNER=$INITIAL_OWNER" \
+            "GOVERNANCE_SIGNERS=$GOVERNANCE_SIGNERS" \
+            "GOVERNANCE_THRESHOLD=$GOVERNANCE_THRESHOLD" \
+            "ADDRESSES_FILE=./config/coston2/deployed-addresses.json" \
+            > .env
+          printf 'EXTENSION_ID=%s\nINSTRUCTION_SENDER=%s\n' "$EXTENSION_ID" "$INSTRUCTION_SENDER" > config/extension.env
+          printf '%s\n' \
+            'redis_port = "redis:6379"' \
+            'private_key_variable = "PROXY_PRIVATE_KEY"' \
+            'initial_signing_policy_offset = 2' \
+            'signing_policy_fetch_interval = "20s"' \
+            '' \
+            'chain_id = 114' \
+            '' \
+            '[db]' \
+            "host = \"$INDEXER_DB_HOST\"" \
+            'port = 3306' \
+            "database = \"$INDEXER_DB_NAME\"" \
+            "username = \"$INDEXER_DB_USER\"" \
+            "password = \"$INDEXER_DB_PASSWORD\"" \
+            'log_queries = false' \
+            '' \
+            '[addresses]' \
+            'flare_systems_manager = "0xA90Db6D10F856799b10ef2A77EBCbF460aC71e52"' \
+            'relay = "0xa10B672D1c62e5457b17af63d4302add6A99d7dE"' \
+            'voter_registry = "0x6a0AF07b7972177B176d3D422555cbc98DfDe914"' \
+            '' \
+            '[ports]' \
+            'internal = "6663"' \
+            'external = "6664"' \
+            '' \
+            '[info_timing]' \
+            'cycle_internal = "10s"' \
+            'cycle_queue_response_wait = "2s"' \
+            '' \
+            '[voting]' \
+            'proposal_expiration = "12s"' \
+            'max_pending_request = 10000' \
+            > config/proxy/extension_proxy.coston2.docker.toml
+
+      - name: Start official Coston2 FCC scaffold with HTTPS tunnel
+        shell: bash
+        run: ./scripts/start-services.sh --chain coston2 --tunnel
+
+      - name: Register simulated development TEE machine
+        shell: bash
+        run: |
+          set -euo pipefail
+          REGISTER_TEE_COMMAND=rRap ./scripts/post-build.sh
+          (cd tools && go run ./cmd/query-tee \
+            -rpc "$CHAIN_URL" \
+            -reg 0x1a9C4A0f9D76c0b1D91d22E24E573a9b377618aE \
+            -ext 66188) | tee "$RUNNER_TEMP/concord-tee-query.txt"
+          grep -q 'Active TEEs for extensionId=66188' "$RUNNER_TEMP/concord-tee-query.txt"
+          echo 'Coston2 FCC scaffold registered one development TEE machine.' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Tear down ephemeral FCC services
+        if: always()
+        shell: bash
+        run: |
+          docker compose -f docker-compose.yaml -f docker-compose.coston2.yaml down --remove-orphans || true
+          docker compose -f docker-compose.cloudflared.yaml down --remove-orphans || true
