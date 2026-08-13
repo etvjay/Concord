@@ -98,13 +98,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -n "\$DEPLOYMENT_PRIVATE_KEY"
-          owner="\$(cast wallet address --private-key "\$DEPLOYMENT_PRIVATE_KEY")"
-          tee_registry="\$(jq -r '.[] | select(.name == "FlareTeeManager") | .address' config/coston2/deployed-addresses.json)"
-          test "\$owner" != ""
-          test "\$tee_registry" != "null"
-          test "\$tee_registry" != ""
-          export DEPLOYMENT_OWNER="\$owner"
-          export TEE_EXTENSION_REGISTRY="\$tee_registry"
-          export TEE_MACHINE_REGISTRY="\$tee_registry"
+          test -n "$DEPLOYMENT_PRIVATE_KEY"
+          owner="$(cast wallet address --private-key "$DEPLOYMENT_PRIVATE_KEY")"
+          tee_registry="$(jq -r '.[] | select(.name == "FlareTeeManager") | .address' config/coston2/deployed-addresses.json)"
+          test "$owner" != ""
+          test "$tee_registry" != "null"
+          test "$tee_registry" != ""
+          export DEPLOYMENT_OWNER="$owner"
+          export TEE_EXTENSION_REGISTRY="$tee_registry"
+          export TEE_MACHINE_REGISTRY="$tee_registry"
           DEPLOY_PHASE=sender bash scripts/deploy-coston2.sh
