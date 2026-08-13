@@ -293,7 +293,6 @@ jobs:
             "NORMAL_PROXY_URL=$NORMAL_PROXY_URL" \
             "EXT_PROXY_URL=$EXT_PROXY_URL" \
             "EXT_PROXY_HOST_URL=$EXT_PROXY_HOST_URL" \
-            "TUNNEL_ARGS=$TUNNEL_ARGS" \
             "LOCAL_MODE=$LOCAL_MODE" \
             "SIMULATED_TEE=$SIMULATED_TEE" \
             "PROXY_PRIVATE_KEY=$PROXY_PRIVATE_KEY" \
@@ -303,6 +302,7 @@ jobs:
             "GOVERNANCE_THRESHOLD=$GOVERNANCE_THRESHOLD" \
             "ADDRESSES_FILE=./config/coston2/deployed-addresses.json" \
             > .env
+          printf 'TUNNEL_ARGS=%q\n' "$TUNNEL_ARGS" >> .env
           printf 'EXTENSION_ID=%s\nINSTRUCTION_SENDER=%s\n' "$EXTENSION_ID" "$INSTRUCTION_SENDER" > config/extension.env
           printf '%s\n' \
             'redis_port = "redis:6379"' \
