@@ -53,8 +53,10 @@ The following values were read from the live Coston2 RPC and explorer on
 - No active TEE machine is registered for extension `66188` (the live
   registry query returned zero active machines), so no live FCC instruction
   round can be claimed yet.
-- The three disposable provider wallets are currently unfunded, and the
-  deployer has 0 USDT0. No provider commitment has therefore occurred.
+- The three disposable provider wallets are currently unfunded; the treasury
+  has 86.338238475 C2FLR and 10 FXRP but 0 USDT0. No provider commitment has
+  therefore occurred. The exact public addresses and observed balances are in
+  the deployment evidence file.
 - No root Accord, Makkari round, FCC quote/finalize instruction, allocation
   verification, child Accord, draw, settlement, repayment, or restored-capacity
   receipt has been observed.
