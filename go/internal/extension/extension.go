@@ -2,6 +2,7 @@ package extension
 
 import (
 	"bytes"
+	"crypto/ecdsa"
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
@@ -406,6 +407,21 @@ func quoteDigest(q types.QuoteRequest) (common.Hash, error) {
 		return common.Hash{}, fmt.Errorf("invalid provider signature: %w", err)
 	}
 	return crypto.Keccak256Hash(append(packed, sig...)), nil
+}
+
+// SignQuote creates the provider signature for the canonical QuoteRequest
+// encoding. It is exposed for the operator-side fixture builder; the runtime
+// extension never receives provider private keys.
+func SignQuote(q types.QuoteRequest, key *ecdsa.PrivateKey) (string, error) {
+	packed, err := quotePacked(q)
+	if err != nil {
+		return "", err
+	}
+	signature, err := crypto.Sign(accounts.TextHash(crypto.Keccak256(packed)), key)
+	if err != nil {
+		return "", err
+	}
+	return hexutil.Encode(signature), nil
 }
 
 func verifyQuoteSignature(q types.QuoteRequest) (common.Address, error) {

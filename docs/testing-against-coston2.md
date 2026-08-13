@@ -56,6 +56,27 @@ The runner submits each quote through encrypted `SUBMIT_QUOTE` instructions,
 then submits `FINALIZE_ROUND` and writes the complete signed FCC evidence
 envelope to `CONCORD_EVIDENCE_OUT`.
 
+For the disposable live operator path, build those files from the current
+onchain round without placing them in the repository:
+
+```bash
+mkdir -p "$RUNNER_TEMP/concord-quotes"
+(cd go && go run ./cmd/build-quotes \
+  -rpc "$CHAIN_URL" \
+  -facility "$CAPITAL_FACILITY" \
+  -extension-id "$EXTENSION_ID" \
+  -round-id "$ROUND_ID" \
+  -root-accord-id "$ROOT_ACCORD_ID" \
+  -out-dir "$RUNNER_TEMP/concord-quotes" \
+  -provider-a "$PROVIDER_A" \
+  -provider-b "$PROVIDER_B" \
+  -provider-c "$PROVIDER_C")
+```
+
+`build-quotes` reads the three provider private keys from the environment,
+checks the live round and eligibility onchain, and writes mode-0600 quote
+payloads plus the finalization payload. It never writes a provider key.
+
 Verify that envelope against the deployed CapitalFacility before materializing
 children:
 
@@ -75,6 +96,19 @@ go run ./cmd/verify-allocation \
 The verifier is read-only by default. Use `-mark` only after the signed
 action, active-machine, facility-binding, and digest checks pass; the caller
 must be the facility's configured `allocationVerifier`.
+
+After that verification, the treasury borrower can materialize the selected
+Child Accords in the same bounded step:
+
+```bash
+go run ./cmd/verify-allocation \
+  ...same verification flags... \
+  -mark -materialize
+```
+
+`-materialize` requires `-mark`; it first authorizes the verified digest and
+then calls `materializeAllocation`. A selected child is still not funded until
+its provider's USDT0 transfer succeeds.
 
 Counters are in memory, so the numbers restart at 1 after any TEE relaunch.
 

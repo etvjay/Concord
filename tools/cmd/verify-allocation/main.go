@@ -49,6 +49,19 @@ type actionEvidence struct {
 	VerifiedAt    string                          `json:"verifiedAt"`
 }
 
+type contractAllocationResult struct {
+	ExtensionID       [32]byte
+	RoundID           [32]byte
+	RootAccordID      [32]byte
+	Success           bool
+	SelectedProviders []common.Address
+	AllocatedCapacity []*big.Int
+	AcceptedFeeBps    []uint32
+	TermsCommitments  [][32]byte
+	RoundExpiry       uint64
+	ResultDigest      [32]byte
+}
+
 const facilityABIJSON = `[
   {
     "inputs": [],
@@ -94,6 +107,29 @@ const facilityABIJSON = `[
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
+  },
+  {
+    "inputs": [{
+      "components": [
+        {"internalType": "bytes32", "name": "extensionId", "type": "bytes32"},
+        {"internalType": "bytes32", "name": "roundId", "type": "bytes32"},
+        {"internalType": "bytes32", "name": "rootAccordId", "type": "bytes32"},
+        {"internalType": "bool", "name": "success", "type": "bool"},
+        {"internalType": "address[]", "name": "selectedProviders", "type": "address[]"},
+        {"internalType": "uint256[]", "name": "allocatedCapacity", "type": "uint256[]"},
+        {"internalType": "uint32[]", "name": "acceptedFeeBps", "type": "uint32[]"},
+        {"internalType": "bytes32[]", "name": "termsCommitments", "type": "bytes32[]"},
+        {"internalType": "uint64", "name": "roundExpiry", "type": "uint64"},
+        {"internalType": "bytes32", "name": "resultDigest", "type": "bytes32"}
+      ],
+      "internalType": "struct ConcordTypes.AllocationResult",
+      "name": "result",
+      "type": "tuple"
+    }],
+    "name": "materializeAllocation",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   }
 ]`
 
@@ -126,11 +162,15 @@ func run() error {
 	rootFlag := flag.String("rootAccordId", "", "expected root Accord id")
 	teeRegistryFlag := flag.String("teeRegistry", "", "FlareTeeManager diamond address for active-machine verification")
 	mark := flag.Bool("mark", false, "broadcast markAllocationVerified after local verification")
+	materialize := flag.Bool("materialize", false, "after -mark, materialize the verified allocation into Child Accords")
 	evidenceFile := flag.String("out", "", "optional JSON evidence output path")
 	flag.Parse()
 
 	if *facilityFlag == "" || *resultFile == "" || *extensionFlag == "" || *roundFlag == "" || *rootFlag == "" {
 		return fmt.Errorf("--facility, --result, --extensionId, --roundId, and --rootAccordId are required")
+	}
+	if *materialize && !*mark {
+		return fmt.Errorf("-materialize requires -mark so the FCC digest is authorized first")
 	}
 	if !common.IsHexAddress(*facilityFlag) || common.HexToAddress(*facilityFlag) == (common.Address{}) {
 		return fmt.Errorf("facility must be a non-zero EVM address")
@@ -275,7 +315,87 @@ func run() error {
 		}
 	}
 	fmt.Printf("allocation digest marked verified: tx=%s\n", tx.Hash().Hex())
+	if *materialize {
+		allocation, err := contractAllocation(result)
+		if err != nil {
+			return err
+		}
+		materializeTx, err := bound.Transact(opts, "materializeAllocation", allocation)
+		if err != nil {
+			return fmt.Errorf("send materializeAllocation: %w", err)
+		}
+		materializeReceipt, err := bind.WaitMined(ctx, client, materializeTx)
+		if err != nil {
+			return fmt.Errorf("wait for materializeAllocation %s: %w", materializeTx.Hash().Hex(), err)
+		}
+		if materializeReceipt.Status != coretypes.ReceiptStatusSuccessful {
+			return fmt.Errorf("materializeAllocation reverted in transaction %s", materializeTx.Hash().Hex())
+		}
+		evidence["materialized"] = true
+		evidence["materializeTxHash"] = materializeTx.Hash().Hex()
+		if materializeReceipt.BlockNumber != nil {
+			evidence["materializeBlockNumber"] = materializeReceipt.BlockNumber.String()
+		}
+		if *evidenceFile != "" {
+			if err := writeEvidence(*evidenceFile, evidence); err != nil {
+				return err
+			}
+		}
+		fmt.Printf("allocation materialized into Child Accords: tx=%s\n", materializeTx.Hash().Hex())
+	}
 	return nil
+}
+
+func contractAllocation(result allocationResult) (contractAllocationResult, error) {
+	extensionID, err := parseBytes32(result.ExtensionID, "result extensionId", false)
+	if err != nil {
+		return contractAllocationResult{}, err
+	}
+	roundID, err := parseBytes32(result.RoundID, "result roundId", false)
+	if err != nil {
+		return contractAllocationResult{}, err
+	}
+	rootID, err := parseBytes32(result.RootAccordID, "result rootAccordId", false)
+	if err != nil {
+		return contractAllocationResult{}, err
+	}
+	digest, err := parseBytes32(result.ResultDigest, "resultDigest", false)
+	if err != nil {
+		return contractAllocationResult{}, err
+	}
+	providers := make([]common.Address, len(result.SelectedProviders))
+	amounts := make([]*big.Int, len(result.AllocatedCapacity))
+	terms := make([][32]byte, len(result.TermsCommitments))
+	if len(providers) != len(result.AcceptedFeeBps) || len(providers) != len(terms) {
+		return contractAllocationResult{}, fmt.Errorf("allocation arrays have different lengths")
+	}
+	for i := range providers {
+		providers[i], err = parseAddress(result.SelectedProviders[i], fmt.Sprintf("selectedProviders[%d]", i))
+		if err != nil {
+			return contractAllocationResult{}, err
+		}
+		amounts[i], err = parsePositiveUint256(result.AllocatedCapacity[i], fmt.Sprintf("allocatedCapacity[%d]", i))
+		if err != nil {
+			return contractAllocationResult{}, err
+		}
+		term, err := parseBytes32(result.TermsCommitments[i], fmt.Sprintf("termsCommitments[%d]", i), true)
+		if err != nil {
+			return contractAllocationResult{}, err
+		}
+		terms[i] = term
+	}
+	return contractAllocationResult{
+		ExtensionID:       extensionID,
+		RoundID:           roundID,
+		RootAccordID:      rootID,
+		Success:           result.Success,
+		SelectedProviders: providers,
+		AllocatedCapacity: amounts,
+		AcceptedFeeBps:    result.AcceptedFeeBps,
+		TermsCommitments:  terms,
+		RoundExpiry:       result.RoundExpiry,
+		ResultDigest:      digest,
+	}, nil
 }
 
 func decodeEvidence(payload []byte) (allocationResult, *actionEvidence, error) {

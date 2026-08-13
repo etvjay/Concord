@@ -35,6 +35,11 @@ on:
         required: false
         default: false
         type: boolean
+      execute_fcc_round:
+        description: 'Submit three signed provider offers, finalize CoFill, verify FCC evidence, and materialize Child Accords'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -225,6 +230,109 @@ jobs:
             echo "TEE machine status: 2 (PRODUCTION); teeId: $tee_id"
             echo 'The relay is an ingress fallback; it is not a named Cloudflare Tunnel or production hardware-TEE claim.'
           } >> "$GITHUB_STEP_SUMMARY"
+
+
+  live_fcc_round:
+    name: Coston2 FCC round and Child Accord materialization
+    if: github.event_name == 'workflow_dispatch' && inputs.setup_fcc == true && inputs.execute_fcc_round == true && github.ref == 'refs/heads/agent/concord-rebuild'
+    needs: codespace_fcc_runtime
+    concurrency:
+      group: concord-coston2-fcc-round
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    env:
+      CHAIN_URL: https://coston2-api.flare.network/ext/C/rpc
+      EXT_PROXY_URL: ${{ secrets.CONCORD_FCC_PUBLIC_PROXY_URL }}
+      DEPLOYMENT_PRIVATE_KEY: ${{ secrets.CONCORD_E2E_DEPLOYER_PRIVATE_KEY }}
+      CONCORD_E2E_PROVIDER_A_PRIVATE_KEY: ${{ secrets.CONCORD_E2E_PROVIDER_A_PRIVATE_KEY }}
+      CONCORD_E2E_PROVIDER_B_PRIVATE_KEY: ${{ secrets.CONCORD_E2E_PROVIDER_B_PRIVATE_KEY }}
+      CONCORD_E2E_PROVIDER_C_PRIVATE_KEY: ${{ secrets.CONCORD_E2E_PROVIDER_C_PRIVATE_KEY }}
+      INSTRUCTION_SENDER: 0x574b523eA944EFe9143AF9d6c46bfA925beE2968
+      FACILITY: 0xfaff601a18a9fca33378953515aa0f3ef9286ecd
+      TEE_REGISTRY: 0x1a9C4A0f9D76c0b1D91d22E24E573a9b377618aE
+      EXTENSION_ID: 0x000000000000000000000000000000000000000000000000000000000001028c
+      ADDRESSES_FILE: ./config/coston2/deployed-addresses.json
+    steps:
+      - name: Check out requested ref
+        uses: actions/checkout@v4
+
+      - name: Install Go 1.25.1
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.1"
+          cache: false
+
+      - name: Build ephemeral signed provider offers from live round state
+        shell: bash
+        run: |
+          set -euo pipefail
+          round_id="$(jq -r '.rootRound.roundId' config/coston2/concord-deployment.json)"
+          root_id="$(jq -r '.rootRound.rootAccordId' config/coston2/concord-deployment.json)"
+          provider_a="$(jq -r '.rootRound.eligibleProviders[0]' config/coston2/concord-deployment.json)"
+          provider_b="$(jq -r '.rootRound.eligibleProviders[1]' config/coston2/concord-deployment.json)"
+          provider_c="$(jq -r '.rootRound.eligibleProviders[2]' config/coston2/concord-deployment.json)"
+          test "$round_id" != "null"
+          test "$root_id" != "null"
+          mkdir -p "$RUNNER_TEMP/concord-quotes"
+          (cd go && GOTOOLCHAIN=local go run ./cmd/build-quotes \
+            -rpc "$CHAIN_URL" \
+            -facility "$FACILITY" \
+            -extension-id "$EXTENSION_ID" \
+            -round-id "$round_id" \
+            -root-accord-id "$root_id" \
+            -out-dir "$RUNNER_TEMP/concord-quotes" \
+            -provider-a "$provider_a" \
+            -provider-b "$provider_b" \
+            -provider-c "$provider_c")
+          jq -e '.roundId == $round and .rootAccordId == $root' \
+            --arg round "$round_id" --arg root "$root_id" \
+            "$RUNNER_TEMP/concord-quotes/finalize-round.json" >/dev/null
+
+      - name: Submit quotes and finalize CoFill through FCC
+        shell: bash
+        env:
+          CONCORD_QUOTES: ${{ runner.temp }}/concord-quotes/quote-a.json,${{ runner.temp }}/concord-quotes/quote-b.json,${{ runner.temp }}/concord-quotes/quote-c.json
+          CONCORD_FINALIZE: ${{ runner.temp }}/concord-quotes/finalize-round.json
+          CONCORD_EVIDENCE_OUT: ${{ runner.temp }}/concord-fcc-action.json
+          LOCAL_MODE: "false"
+        run: |
+          set -euo pipefail
+          case "$EXT_PROXY_URL" in https://*) ;; *) echo 'FCC round requires public HTTPS proxy URL' >&2; exit 1 ;; esac
+          bash scripts/test.sh
+
+      - name: Verify FCC evidence and materialize Child Accords
+        shell: bash
+        run: |
+          set -euo pipefail
+          round_id="$(jq -r '.rootRound.roundId' config/coston2/concord-deployment.json)"
+          root_id="$(jq -r '.rootRound.rootAccordId' config/coston2/concord-deployment.json)"
+          (cd tools && GOTOOLCHAIN=local go run ./cmd/verify-allocation \
+            -c "$CHAIN_URL" \
+            -facility "$FACILITY" \
+            -teeRegistry "$TEE_REGISTRY" \
+            -result "$RUNNER_TEMP/concord-fcc-action.json" \
+            -extensionId "$EXTENSION_ID" \
+            -roundId "$round_id" \
+            -rootAccordId "$root_id" \
+            -mark \
+            -materialize \
+            -out "$RUNNER_TEMP/concord-allocation-verification.json")
+          jq -e '.broadcast == true and .materialized == true' \
+            "$RUNNER_TEMP/concord-allocation-verification.json" >/dev/null
+          {
+            echo 'FCC round evidence verified against the active Coston2 TEE machine.'
+            echo 'Allocation digest authorized and Child Accords materialized on the canonical CapitalFacility.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Preserve FCC round evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: concord-fcc-round-evidence
+          path: |
+            ${{ runner.temp }}/concord-fcc-action.json
+            ${{ runner.temp }}/concord-allocation-verification.json
+          if-no-files-found: ignore
 
 
   live_sender_deploy:
