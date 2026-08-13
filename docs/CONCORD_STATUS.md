@@ -45,9 +45,10 @@ The following values were read from the live Coston2 RPC and explorer on
   immutably to a different 18-decimal ERC-20 deployment and is now retained
   only as historical evidence. It must not be used for the current faucet
   balance or the canonical flow.
-- A replacement facility pair must be deployed with the current Coston2
-  `USDT0 test` token before a new root Accord is opened. The evidence file
-  leaves the replacement slot empty until those receipts exist.
+- The replacement pair is now deployed with the current Coston2 `USDT0 test`
+  token: `AccordRegistry 0x68b19a3967760489b57341669cd7ea960b5f7367` and
+  `CapitalFacility 0xfaff601a18a9fca33378953515aa0f3ef9286ecd`. The deployment
+  receipts and registry-link transaction are in the evidence file.
 
 ## Asset binding correction
 
@@ -58,8 +59,8 @@ asset is `USDT0 test` at
 and 6 decimals. The [official Coston2 explorer token list](https://coston2-explorer.flare.network/tokens)
 is the recorded address source. Because `CapitalFacility.liquidityAsset` is immutable, this
 is a deployment contradiction, not a config-only change; the old facility and
-its 18-decimal root round are superseded and a new facility/root round are
-required.
+its 18-decimal root round are superseded. The replacement facility is now
+bound to the current token; its root round has not yet been opened.
 
 ## Not yet evidenced
 
@@ -69,9 +70,9 @@ required.
 - The three disposable provider wallets and the treasury now each hold 10
   units of the current six-decimal `USDT0 test` token. They still need gas
   funding before provider transfers or a replacement root can be broadcast.
-- The old facility has a live SYNDICATING root Accord and OPEN Makkari round,
-  but that round uses the superseded 18-decimal liquidity token and cannot be
-  used for the current funding proof.
+- The replacement facility is deployed but does not yet have a current root
+  Accord or Makkari round. The old facility's live round remains historical
+  only because it uses the superseded 18-decimal liquidity token.
 - No FCC quote/finalize instruction, allocation verification, child Accord, draw,
   settlement, repayment, or restored-capacity receipt has been observed.
 - The current FCC path still needs a reachable extension proxy and the

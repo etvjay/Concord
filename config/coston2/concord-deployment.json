@@ -33,7 +33,23 @@
     },
     "reason": "CapitalFacility.liquidityAsset is immutable; the previously deployed facility and root round cannot consume balances of the current faucet token."
   },
-  "canonicalFacility": null,
+  "canonicalFacility": {
+    "accordRegistry": "0x68b19a3967760489b57341669cd7ea960b5f7367",
+    "capitalFacility": "0xfaff601a18a9fca33378953515aa0f3ef9286ecd",
+    "owner": "0x1aF42c70837f08c6C89a6FA274EB9eeF040820B3",
+    "allocationVerifier": "0x1aF42c70837f08c6C89a6FA274EB9eeF040820B3",
+    "liquidityAsset": "0xC1A5B41512496B80903D1f32d6dEa3a73212E71F",
+    "liquidityAssetDecimals": 6,
+    "registrySetFacility": "0x7d4512a8f0adcaabd6896e3bfea32f88b5e29d9ba0a5773cc29eb300c888009d",
+    "registryDeploy": "0xdcaf8538ecb6f416e1d85500d14d13e0476d6135e6c05583344b14b8653a3b5c",
+    "facilityDeploy": "0x476b51a35934c84f1c8b593ff07c29a3a69e29a72559aa8e9f63f902fb1a1905",
+    "workflowRun": "https://github.com/etvjay/Concord/actions/runs/31700945393",
+    "blocks": {
+      "registryDeploy": 34008030,
+      "facilityDeploy": 34008030,
+      "registrySetFacility": 34008031
+    }
+  },
   "supersededAssetFacility": {
     "accordRegistry": "0x9A5663519C3D4B36ef155A4AE0e2d8Be2E7a89cF",
     "capitalFacility": "0x0AcBb062BE75491b5992dddD59aEf64a4f4Cc8b8",
@@ -64,14 +80,14 @@
   },
   "status": {
     "facilityContractsDeployed": true,
-    "canonicalFacilityDeployed": false,
+    "canonicalFacilityDeployed": true,
     "assetBindingCurrent": true,
     "extensionRegistered": true,
     "activeTeeMachine": false,
     "providerWalletsFunded": false,
     "providerUSDT0BalancesObserved": true,
     "usdt0AvailableToTreasury": true,
-    "rootAccordCreated": true,
+    "rootAccordCreated": false,
     "rootRoundAssetBindingCurrent": false,
     "fccRoundExecuted": false,
     "childrenMaterialized": false,
@@ -81,7 +97,7 @@
   },
   "warnings": [
     "The previously deployed facility and root round use a separate 18-decimal token at 0x479854495cefBc8D12B971A3Ec4d18E6dbcE81a3; they are superseded for the current Coston2 USDT0 test flow.",
-    "The current faucet token is 0xC1A5B41512496B80903D1f32d6dEa3a73212E71F (USD₮0, 6 decimals). A replacement facility and root round are required before funding.",
+    "The current faucet token is 0xC1A5B41512496B80903D1f32d6dEa3a73212E71F (USD₮0, 6 decimals). The replacement facility is deployed; a new root round is required before funding.",
     "The current Flare/Foundry toolchain still reports chain 114 as unsupported for EIP-3855; deployment succeeded after targeting solc 0.8.27, optimizer=true, optimizer_runs=200, and evm_version=paris. Keep this warning in the deployment record.",
     "The Coston2 FCC development path is not hardware-TEE evidence; the intended path uses the documented simulated development TEE.",
     "No private key is stored in this file."
@@ -89,6 +105,9 @@
   "explorerLinks": {
     "instructionSenderDeploy": "https://coston2-explorer.flare.network/tx/0x85e6056f410be261830f5e4e8e35b172886b915ea977ad0fba46953c19577612",
     "extensionRegister": "https://coston2-explorer.flare.network/tx/0x20e1bf7f6e14d93fd5c06bd35b2d3eda93e711b46dff0ecf2433da121dac16ca",
+    "canonicalFacilityDeploy": "https://coston2-explorer.flare.network/tx/0x476b51a35934c84f1c8b593ff07c29a3a69e29a72559aa8e9f63f902fb1a1905",
+    "canonicalRegistryDeploy": "https://coston2-explorer.flare.network/tx/0xdcaf8538ecb6f416e1d85500d14d13e0476d6135e6c05583344b14b8653a3b5c",
+    "canonicalRegistrySetFacility": "https://coston2-explorer.flare.network/tx/0x7d4512a8f0adcaabd6896e3bfea32f88b5e29d9ba0a5773cc29eb300c888009d",
     "supersededAssetFacilityDeploy": "https://coston2-explorer.flare.network/tx/0x0b0c5acb99a20025e6b6a029474bcad882bbdd9589de39604d06cf41d6f9b3c7",
     "supersededAssetRegistryDeploy": "https://coston2-explorer.flare.network/tx/0x1058604bb6650650feee1b980973e55fddf1db52d24f8215bf07b52aa67efd9e",
     "rootApprove": "https://coston2-explorer.flare.network/tx/0xddba5e78d15ea4c1b38c2aabcc8bc6eb340e2e70b0864f42f7ee21ad22532b3",
@@ -133,12 +152,13 @@
     "url": "https://faucet.flare.network/",
     "perAddress": "100 C2FLR, 10 USDT0, 10 FXRP per 24 hours",
     "neededForNextStep": [
-      "provider_a: 100 C2FLR + 10 USDT0",
-      "provider_b: 100 C2FLR + 10 USDT0",
-      "provider_c: 100 C2FLR + 10 USDT0"
+      "provider_a: C2FLR for gas and approval/funding transactions",
+      "provider_b: C2FLR for gas and approval/funding transactions",
+      "provider_c: C2FLR for gas and approval/funding transactions"
     ]
   },
-  "rootRound": {
+  "rootRound": null,
+  "supersededRootRound": {
     "status": "SUPERSEDED_ASSET_BINDING",
     "facility": "0x0AcBb062BE75491b5992dddD59aEf64a4f4Cc8b8",
     "rootAccordId": "0xee94755eb101d1604d83a4d77eb4c20cd0b4a2ee8fd596c8c63b04109f954042",
