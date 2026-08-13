@@ -428,7 +428,8 @@ secondary cue only.
 
 ### Desktop
 
-- Persistent left navigation for facilities, activity, evidence, and settings.
+- One stable global header for facilities, activity, evidence, network, wallet,
+  and settings; no permanent left sidebar in the first version.
 - Relationship workspace uses the full container; metrics stay above the
   fold.
 - Relationship spine is horizontal; child table remains tabular.

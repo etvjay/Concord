@@ -9,20 +9,25 @@ implementation follows the live contract/FCC integration evidence gate.
 ```text
 ┌──────────────────────────────────────────────────────────────────────┐
 │ Concord   Facilities   Activity   Evidence            Network  Wallet │
-├───────────────┬──────────────────────────────────────────────────────┤
-│ role switcher  │ Root Accord                                         │
-│                │ FXRP collateral · committed · drawn · available     │
-│ Treasury       │ expiry · state explanation · next permitted action   │
-│ Provider       ├──────────────────────────────────────────────────────┤
-│ Institution    │ Relationship map                                    │
-│ Auditor        │ Root → Makkari → CoFill → children → draw legs      │
-│ Observer       ├──────────────────────────────────────────────────────┤
-│                │ Child Accords                                       │
-│ guided/detail  │ provider · selected · funded · drawn · available     │
-│                ├──────────────────────────────────────────────────────┤
-│                │ Activity / evidence / action review                 │
-└───────────────┴──────────────────────────────────────────────────────┘
+├──────────────────────────────────────────────────────────────────────┤
+│ facility context · role/organization · guided/detail                 │
+├──────────────────────────────────────────────────────────────────────┤
+│ Root Accord · state · FXRP collateral · committed · drawn · available │
+│ expiry · state explanation · next permitted action                    │
+├──────────────────────────────────────────────────────────────────────┤
+│ Relationship spine: Root → Makkari → CoFill → children → draw legs    │
+├──────────────────────────────────────────────────────────────────────┤
+│ Child Accords · provider · selected · funded · drawn · available      │
+├──────────────────────────────────────────────────────────────────────┤
+│ Activity · evidence · action review                                   │
+└──────────────────────────────────────────────────────────────────────┘
 ```
+
+The first version uses one stable global header and no permanent desktop
+sidebar. Role and organization context are shown in the facility header or
+context controls, while the primary action remains in the relationship
+workspace. On mobile, the global header collapses into the accessible hamburger
+drawer defined in the art direction.
 
 The relationship view is the primary screen. A chart or graph is subordinate
 to readable relationship cards and exact amounts; the graph is not decoration
