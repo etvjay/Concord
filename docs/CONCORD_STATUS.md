@@ -60,7 +60,7 @@ and 6 decimals. The [official Coston2 explorer token list](https://coston2-explo
 is the recorded address source. Because `CapitalFacility.liquidityAsset` is immutable, this
 is a deployment contradiction, not a config-only change; the old facility and
 its 18-decimal root round are superseded. The replacement facility is now
-bound to the current token; its root round has not yet been opened.
+bound to the current token, and its current root round is recorded below.
 
 ## Not yet evidenced
 
@@ -70,9 +70,12 @@ bound to the current token; its root round has not yet been opened.
 - The three disposable provider wallets and the treasury now each hold 10
   units of the current six-decimal `USDT0 test` token. They still need gas
   funding before provider transfers or a replacement root can be broadcast.
-- The replacement facility is deployed but does not yet have a current root
-  Accord or Makkari round. The old facility's live round remains historical
-  only because it uses the superseded 18-decimal liquidity token.
+- The replacement facility has a current SYNDICATING root Accord and OPEN
+  Makkari round: root `0x6e03af…cfddd`, round
+  `0x732328…76ce`, 1 FXRP locked, and a 9 USDT0 target at 6 decimals. The
+  four transaction receipts and workflow run are in the evidence file.
+- The old facility's live round remains historical only because it uses the
+  superseded 18-decimal liquidity token.
 - No FCC quote/finalize instruction, allocation verification, child Accord, draw,
   settlement, repayment, or restored-capacity receipt has been observed.
 - The current FCC path still needs a reachable extension proxy and the
