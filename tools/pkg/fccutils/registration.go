@@ -155,14 +155,22 @@ func RegisterNode(s *support.Support, teeInfo *types.SignedTeeInfoResponse, host
 	}
 
 	if strings.Contains(command, "p") {
-		toProductionProof, err := GetFTDCAvailabilityCheckResult(ftdcTeeURL, instructionID)
-		if err != nil {
-			return err
-		}
+		// Registration is intentionally idempotent for a still-running TEE.
+		// The machine manager rejects ToProduction for a machine that is already
+		// in status 2 (PRODUCTION). This is the normal path when a workflow
+		// reuses the persistent Codespace and its existing simulated TEE identity.
+		status, statusErr := s.TeeMachineRegistry.GetTeeMachineStatus(nil, teeID)
+		if statusErr == nil && status == 2 {
+			logger.Infof("TEE machine %s is already in PRODUCTION, skipping promotion", teeID.Hex())
+		} else {
+			toProductionProof, proofErr := GetFTDCAvailabilityCheckResult(ftdcTeeURL, instructionID)
+			if proofErr != nil {
+				return proofErr
+			}
 
-		err = ToProduction(s, toProductionProof)
-		if err != nil {
-			return err
+			if productionErr := ToProduction(s, toProductionProof); productionErr != nil {
+				return productionErr
+			}
 		}
 	}
 
