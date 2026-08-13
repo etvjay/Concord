@@ -1,15 +1,19 @@
 # Coston2 live integration runbook
 
 This is the operator path for the first truthful Concord vertical slice. It is
-an execution checklist, not deployment evidence. The committed evidence remains
-`not_observed` until the corresponding live receipts and explorer links exist.
+an execution checklist, not deployment evidence by itself or a substitute for
+the recorded deployment evidence. The observed
+2026-08-13 Coston2 run is recorded in
+`config/coston2/concord-deployment.json` and summarized in
+`docs/CONCORD_STATUS.md`. A fresh run must produce its own receipts before it
+changes the recorded status.
 
 ## Current gate
 
-The repository is ready for a credential-gated Coston2 run. The read-only asset
-resolver can run from GitHub Actions or a local Foundry installation. No private
-key, proxy credential, deployment address, FCC registration, or settlement receipt
-belongs in the repository.
+The first complete credential-gated Coston2 run has passed. The read-only asset
+resolver can still run from GitHub Actions or a local Foundry installation, and
+the same guarded workflow can be repeated against a newly created disposable
+environment. No private key or proxy credential belongs in the repository.
 
 The current development path may use `SIMULATED_TEE=true`. That proves the
 documented development integration path only; it is not production
@@ -102,6 +106,13 @@ curl -s "$EXT_PROXY_URL/info" | jq '{extensionId, codeHash, platform}'
 If `platform` is the simulated development value or the code hash is documented
 as simulated, preserve that limitation in every demo and release note.
 
+The observed run used
+`https://concord-fcc-ingress.microcosm.workers.dev` as the stable Workers.dev
+relay, extension `66188`, and simulated TEE id
+`0xeE39d5e7d1C5043232282e3CC884B41a9Db22c85`. The relay is a development
+fallback backed by the disposable Codespace proxy; it is not a named tunnel or
+production ingress claim.
+
 ### 4. Deploy and register in two phases
 
 Deploy the instruction sender first. Register the extension through the official
@@ -161,6 +172,13 @@ Record only observed values:
 - explorer links and timestamps;
 - whether the TEE path was simulated or hardware-backed;
 - any failure, retry, expiry, or replay result that affects the claim.
+
+For the completed 2026-08-13 run, use the recorded
+[facility lifecycle workflow](https://github.com/etvjay/Concord/actions/runs/31734593116),
+[facility evidence artifact](https://github.com/etvjay/Concord/actions/runs/31734593116/artifacts/9194681063),
+[FCC workflow](https://github.com/etvjay/Concord/actions/runs/31733200629), and
+[materialization recovery workflow](https://github.com/etvjay/Concord/actions/runs/31733740564)
+as the public CI evidence trail. The exact hashes remain in the deployment JSON.
 
 ## Hard stop conditions
 

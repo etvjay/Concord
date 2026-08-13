@@ -1,6 +1,6 @@
 # Concord status
 
-Updated 2026-08-13.
+Updated 2026-08-13 after the complete observed Coston2 lifecycle run.
 
 - The fresh source snapshot used for this checkpoint is [source-snapshot-2026-08-13.yaml](source-snapshot-2026-08-13.yaml). It records the current official Coston2 FCC development path, including simulated-TEE labeling, public HTTPS proxy exposure, and current indexer-credential requirements.
 
@@ -49,6 +49,10 @@ The following values were read from the live Coston2 RPC and explorer on
   token: `AccordRegistry 0x68b19a3967760489b57341669cd7ea960b5f7367` and
   `CapitalFacility 0xfaff601a18a9fca33378953515aa0f3ef9286ecd`. The deployment
   receipts and registry-link transaction are in the evidence file.
+- The canonical root is now `ACTIVE` with three `ACTIVE` child Accords, each
+  funded with `3 USDT0` base units (`3,000,000` at six decimals). The final
+  observed root state, child lineage, allocation digest, and lifecycle receipts
+  are recorded in the deployment file.
 
 ## Asset binding correction
 
@@ -62,7 +66,7 @@ is a deployment contradiction, not a config-only change; the old facility and
 its 18-decimal root round are superseded. The replacement facility is now
 bound to the current token, and its current root round is recorded below.
 
-## Not yet evidenced
+## Live Coston2 vertical slice evidenced
 
 - One simulated development TEE machine is active for extension `66188` at
   status `2` (`PRODUCTION`): tee id
@@ -75,18 +79,48 @@ bound to the current token, and its current root round is recorded below.
   units of the current six-decimal `USDT0 test` token. Each provider also has
   105 C2FLR after the guarded gas-funding step, so approval and funding
   transactions can proceed.
-- The replacement facility has a current SYNDICATING root Accord and OPEN
-  Makkari round: root `0x6e03af…cfddd`, round
-  `0x732328…76ce`, 1 FXRP locked, and a 9 USDT0 target at 6 decimals. The
-  four transaction receipts and workflow run are in the evidence file.
+- The replacement facility has the current root Accord and Makkari round:
+  root `0x6e03af…cfddd`, round `0x732328…76ce`, 1 FXRP locked, and a 9 USDT0
+  target at 6 decimals. The round is finalized and the root is now `ACTIVE`;
+  the creation, FCC, funding, draw, and repayment receipts are in the
+  deployment file.
 - The old facility's live round remains historical only because it uses the
   superseded 18-decimal liquidity token.
-- No FCC quote/finalize instruction, allocation verification, child Accord, draw,
-  settlement, repayment, or restored-capacity receipt has been observed.
+- Three signed provider quotes entered the confidential flow, CoFill finalized
+  the deterministic allocation, and the verified result digest is
+  `0xf17a292655b898d8b00c9794565972ed838cd3de2812f6fa59d877d6963c88ec`.
+  The signed action evidence, active TEE binding, and recovery materialization
+  run are linked from the deployment file.
+- Child Accords were materialized for providers A, B, and C. Each provider then
+  transferred its exact `3,000,000` base-unit allocation, moving the root from
+  `FUNDING` to `ACTIVE` and increasing committed capacity to `9,000,000`.
+- The treasury executed draw
+  `0x85f634b07d8dfd83fe0f0f1a9b34504973e5e2d5e1e3886656bfb072c26f56ec` for
+  `4,000,000` base units across two DrawLegs, then repaid the draw through a
+  real USDT0 transfer. Final observed state is root `ACTIVE`, committed
+  `9,000,000`, drawn `0`, and available `9,000,000`.
+- The complete funding/draw/repayment job passed in
+  [GitHub Actions run 31734593116](https://github.com/etvjay/Concord/actions/runs/31734593116),
+  with the public evidence artifact at
+  [9194681063](https://github.com/etvjay/Concord/actions/runs/31734593116/artifacts/9194681063).
+- The FCC round and materialization receipts are preserved in the earlier
+  [FCC run 31733200629](https://github.com/etvjay/Concord/actions/runs/31733200629),
+  its [signed action artifact 9194157272](https://github.com/etvjay/Concord/actions/runs/31733200629/artifacts/9194157272),
+  and the [materialization recovery run 31733740564](https://github.com/etvjay/Concord/actions/runs/31733740564).
 - The current Coston2 indexer configuration is stored as encrypted GitHub
-  Actions secrets using the current DevHub values. FCC registration is now
-  evidenced through the stable Workers.dev relay. This is a development ingress
-  fallback, not a named Cloudflare Tunnel or production hardware-TEE claim.
+  Actions secrets. FCC registration and the live instruction path use the
+  stable Workers.dev relay as a development ingress fallback, not a named
+  Cloudflare Tunnel or production hardware-TEE claim.
+
+## Not yet evidenced / intentionally bounded
+
+- Production hardware-backed TEE execution has not been claimed; this run used
+  the documented Coston2 simulated development TEE path.
+- A named Cloudflare Tunnel or custom-domain ingress has not been provisioned;
+  the stable Workers.dev relay remains the current development ingress.
+- The full consumer/institutional frontend and its browser-wallet UX are not
+  yet the source of the live evidence; the evidence above comes from the
+  contract/FCC runners and explorer receipts.
 
 ## Privacy truth
 
@@ -163,3 +197,9 @@ Explorer links:
 - This run proves registration and live FCC ingress only. It does not prove
   quote submission, CoFill finalization, provider funding, draw settlement,
   repayment, or restored capacity.
+- The live FCC round, signed-result verification, Child Accord materialization,
+  provider funding, two-leg draw, real USDT0 repayment, and restored-capacity
+  assertions passed in the [FCC recovery run](https://github.com/etvjay/Concord/actions/runs/31733740564)
+  and the [complete facility lifecycle run](https://github.com/etvjay/Concord/actions/runs/31734593116).
+  This is Coston2 simulated-development-TEE evidence with public settlement
+  receipts; it is not production hardware-TEE evidence.

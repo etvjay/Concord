@@ -1,7 +1,7 @@
 {
   "network": "Coston2",
   "chainId": 114,
-  "observedAt": "2026-08-13T18:35:30Z",
+  "observedAt": "2026-08-13T19:14:40Z",
   "rpcUrl": "https://coston2-api.flare.network/ext/C/rpc",
   "explorerUrl": "https://coston2-explorer.flare.network",
   "teeRegistry": "0x1a9C4A0f9D76c0b1D91d22E24E573a9b377618aE",
@@ -96,15 +96,15 @@
     "usdt0AvailableToTreasury": true,
     "rootAccordCreated": true,
     "rootRoundAssetBindingCurrent": true,
-    "fccRoundExecuted": false,
-    "childrenMaterialized": false,
-    "facilityFunded": false,
-    "drawSettled": false,
-    "repaid": false
+    "fccRoundExecuted": true,
+    "childrenMaterialized": true,
+    "facilityFunded": true,
+    "drawSettled": true,
+    "repaid": true
   },
   "warnings": [
     "The previously deployed facility and root round use a separate 18-decimal token at 0x479854495cefBc8D12B971A3Ec4d18E6dbcE81a3; they are superseded for the current Coston2 USDT0 test flow.",
-    "The current faucet token is 0xC1A5B41512496B80903D1f32d6dEa3a73212E71F (USD₮0, 6 decimals). The replacement facility and root round are deployed, and provider gas is funded; FCC execution and quote/funding steps remain.",
+    "The current faucet token is 0xC1A5B41512496B80903D1f32d6dEa3a73212E71F (USD₮0, 6 decimals). The replacement facility completed the observed FCC, funding, multi-child draw, and repayment flow.",
     "The current Flare/Foundry toolchain still reports chain 114 as unsupported for EIP-3855; deployment succeeded after targeting solc 0.8.27, optimizer=true, optimizer_runs=200, and evm_version=paris. Keep this warning in the deployment record.",
     "The Coston2 FCC development path is not hardware-TEE evidence; the intended path uses the documented simulated development TEE.",
     "The Concord extension is registered through a stable Cloudflare Workers.dev ingress relay backed by the disposable Codespace public port; this is not a named Cloudflare Tunnel or a production ingress claim.",
@@ -160,8 +160,8 @@
     "url": "https://faucet.flare.network/",
     "perAddress": "100 C2FLR, 10 USDT0, 10 FXRP per 24 hours",
     "neededForNextStep": [
-      "provider_a/provider_b/provider_c: approve and fund selected child allocations",
-      "FCC: active machine, reachable proxy, and current indexer credentials"
+      "frontend wiring and interface QA against the observed relationship state",
+      "optional named Cloudflare Tunnel if the Workers.dev development relay is replaced"
     ]
   },
   "providerGasFunding": {
@@ -178,8 +178,8 @@
     "facility": "0xfaff601a18a9fca33378953515aa0f3ef9286ecd",
     "rootAccordId": "0x6e03af41b0194c5a369a50629474090cfc5b041a712144855e6efb1a574cfddd",
     "roundId": "0x7323280ede4786463744a755e4cddf9ce2a91be952d05d152679b58b67d176ce",
-    "rootState": "SYNDICATING",
-    "roundStatus": "OPEN",
+    "rootState": "ACTIVE",
+    "roundStatus": "FINALIZED",
     "borrower": "0x1aF42c70837f08c6C89a6FA274EB9eeF040820B3",
     "targetCapacity": "9000000",
     "targetDisplay": "9 USDT0",
@@ -199,16 +199,84 @@
       "openSyndication": "0x393174832b260cdd34a91a3df24f23066ac3672a64f1b0bcf25468236b7314c8"
     },
     "workflowRun": "https://github.com/etvjay/Concord/actions/runs/31701379940",
-    "verifiedAt": "2026-08-13T12:43:43Z",
+    "verifiedAt": "2026-08-13T19:14:40Z",
     "verifiedOnchain": {
       "facilityFxrpBalance": "1",
-      "committedCapacity": "0",
+      "committedCapacity": "9000000",
       "drawnPrincipal": "0",
       "eligibleProviderCount": 3,
       "registryHasRoot": true,
       "rootChildIds": [
-        "0x7323280ede4786463744a755e4cddf9ce2a91be952d05d152679b58b67d176ce"
+        "0x4335182fe9119ef6af37b5bd838f514d7a896a877be0a63578015b373a0bdfc0",
+        "0x2225a13ff17ac4f577d169d626b51e5b8311c01b336c6d5b09861a3363bfe97a",
+        "0xbf169c1b664684a8cfde0fea5a870e9358a903a1dd5042d650fe2d21bf43086a"
       ]
+    },
+    "allocation": {
+      "resultDigest": "0xf17a292655b898d8b00c9794565972ed838cd3de2812f6fa59d877d6963c88ec",
+      "selectedProviders": [
+        "0x8d9340278094DF3F032c674C912D8eA08c17437C",
+        "0xF2E25459108A0454a85d03848AD6059C271cc9a5",
+        "0x9537eA25C28e8c1663e8B57C52A0761a244183A1"
+      ],
+      "allocatedCapacity": ["3000000", "3000000", "3000000"],
+      "acceptedFeeBps": [610, 640, 680],
+      "submitQuoteTransactions": [
+        "0xa6a200f2ecd1a3c06366ad2b88ecbc7046378a3f290ddab3e118a56298dbddb3",
+        "0x64f6eb5f6b94848718b7e3da4657e2fc68e5243aaa1527be4c90fc9f7fbd311b",
+        "0xef861e50be8dc58a47b8fdfe556597779ee56fbe436ecfe7ba8ecd483834d02a"
+      ],
+      "finalizeRoundTransaction": "0x2c5b06bf45e6318ece5262f30e5df91a8cbbacb4676f6efd997e714fcb3a8f0f",
+      "verifyAllocationTransaction": "0xb77400b70e8d54157fdb455b47797d5c583a387968afeb699319fe13fae95544",
+      "materializeTransaction": "0x4cdd56ca3a80f83b6333e4e0434d4f202fcb9cf5ad5dd3ced820a53779a7559a",
+      "workflowRun": "https://github.com/etvjay/Concord/actions/runs/31733200629",
+      "recoveryWorkflowRun": "https://github.com/etvjay/Concord/actions/runs/31733740564",
+      "evidenceArtifact": "https://github.com/etvjay/Concord/actions/runs/31733200629/artifacts/9194157272"
+    },
+    "children": [
+      {
+        "id": "0x4335182fe9119ef6af37b5bd838f514d7a896a877be0a63578015b373a0bdfc0",
+        "provider": "0x8d9340278094DF3F032c674C912D8eA08c17437C",
+        "selectedCapacity": "3000000",
+        "committedCapacity": "3000000",
+        "drawnPrincipal": "0",
+        "state": "ACTIVE"
+      },
+      {
+        "id": "0x2225a13ff17ac4f577d169d626b51e5b8311c01b336c6d5b09861a3363bfe97a",
+        "provider": "0xF2E25459108A0454a85d03848AD6059C271cc9a5",
+        "selectedCapacity": "3000000",
+        "committedCapacity": "3000000",
+        "drawnPrincipal": "0",
+        "state": "ACTIVE"
+      },
+      {
+        "id": "0xbf169c1b664684a8cfde0fea5a870e9358a903a1dd5042d650fe2d21bf43086a",
+        "provider": "0x9537eA25C28e8c1663e8B57C52A0761a244183A1",
+        "selectedCapacity": "3000000",
+        "committedCapacity": "3000000",
+        "drawnPrincipal": "0",
+        "state": "ACTIVE"
+      }
+    ],
+    "facilityLifecycle": {
+      "drawId": "0x85f634b07d8dfd83fe0f0f1a9b34504973e5e2d5e1e3886656bfb072c26f56ec",
+      "drawAmount": "4000000",
+      "drawLegCount": 2,
+      "fundingTransactions": [
+        "0xfcb3ae5b2cdca68fbb974d30f1780defeb0ea65b49d3fe542e2b6ff395fd3bf0",
+        "0x061e3b64c8978a405cc22510bb9620263697860be4fa3e7badcb7feb4b2ebb0f",
+        "0xfbb3fa72ab3294807697a6aa973247c786f85021f30d41568f2300dc27b0be0c"
+      ],
+      "drawTransaction": "0xea0348757169428b73dbbc20eca7f2faf267c29941e5f0c0291bc3923b12cbe5",
+      "repaymentApprovalTransaction": "0x3ed2f0b47c3c853d38fb654167a3236877a402b422437285b993fd769031f213",
+      "repaymentTransaction": "0xe2146fb4c498964754b5754a1dd91992c62e29d3d627cd6fb0ebba6432d8c46c",
+      "finalRootState": "ACTIVE",
+      "finalCommittedCapacity": "9000000",
+      "finalDrawnPrincipal": "0",
+      "finalAvailableCapacity": "9000000",
+      "workflowRun": "https://github.com/etvjay/Concord/actions/runs/31734593116",
+      "evidenceArtifact": "https://github.com/etvjay/Concord/actions/runs/31734593116/artifacts/9194681063"
     }
   },
   "supersededRootRound": {

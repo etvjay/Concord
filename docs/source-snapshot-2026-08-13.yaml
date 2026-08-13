@@ -1,5 +1,5 @@
 snapshot:
-  captured_at_utc: 2026-08-13T15:46:54Z
+  captured_at_utc: 2026-08-13T19:14:40Z
   freshness: FRESH
   environment: Coston2
   chain_id: 114
@@ -46,8 +46,27 @@ snapshot:
     - No product-semantic contradiction was found.
     - Simulated TEE evidence remains development-path evidence, not production hardware-backed confidentiality.
     - FDC remains an evidence seam and is not added to the MVP.
-  live_gate_inputs_still_required:
+  live_gate_inputs_completed:
     - funded Coston2 deployment/proxy accounts
     - a stable public HTTPS EXT_PROXY_URL (the current guarded branch uses the Workers.dev relay fallback)
-    - current extension registration and active TEE-machine evidence (now observed for extension 66188)
-    - real provider funding, draw, repayment, and explorer receipts
+    - current extension registration and active TEE-machine evidence for extension 66188
+    - signed quote submission, CoFill finalization, allocation verification, and child materialization
+    - real provider funding, multi-child draw, repayment, and explorer receipts
+  live_evidence:
+    extension_id: "0x000000000000000000000000000000000000000000000000000000000001028c"
+    tee_id: "0xeE39d5e7d1C5043232282e3CC884B41a9Db22c85"
+    facility: "0xfaff601a18a9fca33378953515aa0f3ef9286ecd"
+    root_accord_id: "0x6e03af41b0194c5a369a50629474090cfc5b041a712144855e6efb1a574cfddd"
+    round_id: "0x7323280ede4786463744a755e4cddf9ce2a91be952d05d152679b58b67d176ce"
+    allocation_digest: "0xf17a292655b898d8b00c9794565972ed838cd3de2812f6fa59d877d6963c88ec"
+    complete_lifecycle_run: "https://github.com/etvjay/Concord/actions/runs/31734593116"
+    evidence_artifact: "https://github.com/etvjay/Concord/actions/runs/31734593116/artifacts/9194681063"
+    final_root_state: ACTIVE
+    final_committed_capacity: 9000000
+    final_drawn_principal: 0
+    final_available_capacity: 9000000
+    draw_leg_count: 2
+  remaining_boundaries:
+    - production hardware-backed TEE execution is not evidenced; the run used the documented simulated development TEE
+    - a named Cloudflare Tunnel/custom-domain ingress is not provisioned; the stable Workers.dev relay is a development fallback
+    - the browser frontend and wallet UX are not the source of the live lifecycle evidence
