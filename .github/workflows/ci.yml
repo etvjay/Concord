@@ -50,6 +50,11 @@ on:
         required: false
         default: ''
         type: string
+      execute_facility_flow:
+        description: 'Fund all materialized children, execute a multi-child draw, repay it, and assert restored capacity'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -408,6 +413,62 @@ jobs:
             echo "Recovered signed FCC artifact from run ${{ inputs.source_run_id }}."
             echo 'Allocation digest was already authorized; Child Accords are now materialized on the canonical CapitalFacility.'
           } >> "$GITHUB_STEP_SUMMARY"
+
+
+  live_facility_flow:
+    name: Coston2 funding, multi-child draw, and repayment
+    if: github.event_name == 'workflow_dispatch' && inputs.execute_facility_flow == true && github.ref == 'refs/heads/agent/concord-rebuild'
+    permissions:
+      contents: read
+    concurrency:
+      group: concord-coston2-facility-flow
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    env:
+      CHAIN_URL: https://coston2-api.flare.network/ext/C/rpc
+      DEPLOYMENT_PRIVATE_KEY: ${{ secrets.CONCORD_E2E_DEPLOYER_PRIVATE_KEY }}
+      CONCORD_E2E_PROVIDER_A_PRIVATE_KEY: ${{ secrets.CONCORD_E2E_PROVIDER_A_PRIVATE_KEY }}
+      CONCORD_E2E_PROVIDER_B_PRIVATE_KEY: ${{ secrets.CONCORD_E2E_PROVIDER_B_PRIVATE_KEY }}
+      CONCORD_E2E_PROVIDER_C_PRIVATE_KEY: ${{ secrets.CONCORD_E2E_PROVIDER_C_PRIVATE_KEY }}
+      FACILITY: "0xfaff601a18a9fca33378953515aa0f3ef9286ecd"
+      USDT0: "0xC1A5B41512496B80903D1f32d6dEa3a73212E71F"
+    steps:
+      - name: Check out requested ref
+        uses: actions/checkout@v4
+
+      - name: Install Go 1.25.1
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.1"
+          cache: false
+
+      - name: Run funded facility lifecycle
+        shell: bash
+        run: |
+          set -euo pipefail
+          root_id="$(jq -r '.rootRound.rootAccordId' config/coston2/concord-deployment.json)"
+          test "$root_id" != "null"
+          mkdir -p "$RUNNER_TEMP/concord-facility-flow"
+          (cd tools && GOTOOLCHAIN=local go run ./cmd/facility-flow \
+            -rpc "$CHAIN_URL" \
+            -facility "$FACILITY" \
+            -token "$USDT0" \
+            -root-accord-id "$root_id" \
+            -out "$RUNNER_TEMP/concord-facility-flow/facility-flow.json")
+          jq -e 'all(.invariants[]; . == true) and .drawLegCount >= 2 and .drawnAfter == "0"' \
+            "$RUNNER_TEMP/concord-facility-flow/facility-flow.json" >/dev/null
+          {
+            echo 'All materialized Child Accords funded with real Coston2 USDT0 transfers.'
+            echo 'A multi-child draw was settled, fully repaid, and available capacity was restored.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Preserve facility lifecycle evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: concord-facility-flow-evidence
+          path: ${{ runner.temp }}/concord-facility-flow/facility-flow.json
+          if-no-files-found: ignore
 
 
   live_sender_deploy:
