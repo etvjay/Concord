@@ -58,6 +58,7 @@ export default {
     const headers = new Headers(request.headers);
     headers.delete("host");
     headers.delete("content-length");
+    headers.delete("cookie");
     headers.set("cache-control", "no-store");
     headers.set("x-concord-ingress", "cloudflare-workers-development-relay");
 
@@ -73,6 +74,7 @@ export default {
       });
 
       const responseHeaders = new Headers(response.headers);
+      responseHeaders.delete("set-cookie");
       responseHeaders.set("cache-control", "no-store");
       responseHeaders.set(
         "x-concord-ingress",
