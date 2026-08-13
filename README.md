@@ -74,9 +74,10 @@ The current Coston2 FCC sequence remains the official scaffold sequence:
 pre-build → start-services --chain coston2 → post-build → run-test
 ```
 
-Concord's facility deployment and full Coston2 evidence are not claimed until
-the necessary funded account, public proxy, provider offers, and transaction
-receipts are available. See [docs/CONCORD_STATUS.md](docs/CONCORD_STATUS.md).
+The observed Coston2 sender, FCC extension registration, and facility deployment
+receipts are recorded in [docs/CONCORD_STATUS.md](docs/CONCORD_STATUS.md). The
+complete Coston2 proof is not claimed until an active FCC machine, funded
+provider offers, and the full settlement/repayment lineage are observed.
 
 ## Repository map
 
