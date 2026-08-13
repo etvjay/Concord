@@ -84,7 +84,7 @@
     "assetBindingCurrent": true,
     "extensionRegistered": true,
     "activeTeeMachine": false,
-    "providerWalletsFunded": false,
+    "providerWalletsFunded": true,
     "providerUSDT0BalancesObserved": true,
     "usdt0AvailableToTreasury": true,
     "rootAccordCreated": true,
@@ -97,7 +97,7 @@
   },
   "warnings": [
     "The previously deployed facility and root round use a separate 18-decimal token at 0x479854495cefBc8D12B971A3Ec4d18E6dbcE81a3; they are superseded for the current Coston2 USDT0 test flow.",
-    "The current faucet token is 0xC1A5B41512496B80903D1f32d6dEa3a73212E71F (USD₮0, 6 decimals). The replacement facility and root round are deployed; providers still need C2FLR gas before funding.",
+    "The current faucet token is 0xC1A5B41512496B80903D1f32d6dEa3a73212E71F (USD₮0, 6 decimals). The replacement facility and root round are deployed, and provider gas is funded; FCC execution and quote/funding steps remain.",
     "The current Flare/Foundry toolchain still reports chain 114 as unsupported for EIP-3855; deployment succeeded after targeting solc 0.8.27, optimizer=true, optimizer_runs=200, and evm_version=paris. Keep this warning in the deployment record.",
     "The Coston2 FCC development path is not hardware-TEE evidence; the intended path uses the documented simulated development TEE.",
     "No private key is stored in this file."
@@ -116,10 +116,10 @@
     "openSyndication": "https://coston2-explorer.flare.network/tx/0x8d32a236da024a63d57302df74dd5e7493d52048b4048f9dd43fcd4a108e68fb"
   },
   "accounts": {
-    "observedAt": "2026-08-13T05:06:00Z",
+    "observedAt": "2026-08-13T12:48:12Z",
     "treasury": {
       "address": "0x1aF42c70837f08c6C89a6FA274EB9eeF040820B3",
-      "c2flr": "86.338238475",
+      "c2flr": "62.76633304163635",
       "fxrp": "10",
       "usdt0": "10"
     },
@@ -127,21 +127,21 @@
       {
         "role": "provider_a",
         "address": "0x8d9340278094DF3F032c674C912D8eA08c17437C",
-        "c2flr": "0",
+        "c2flr": "105",
         "fxrp": "0",
         "usdt0": "10"
       },
       {
         "role": "provider_b",
         "address": "0xF2E25459108A0454a85d03848AD6059C271cc9a5",
-        "c2flr": "0",
+        "c2flr": "105",
         "fxrp": "0",
         "usdt0": "10"
       },
       {
         "role": "provider_c",
         "address": "0x9537eA25C28e8c1663e8B57C52A0761a244183A1",
-        "c2flr": "0",
+        "c2flr": "105",
         "fxrp": "0",
         "usdt0": "10"
       }
@@ -152,10 +152,18 @@
     "url": "https://faucet.flare.network/",
     "perAddress": "100 C2FLR, 10 USDT0, 10 FXRP per 24 hours",
     "neededForNextStep": [
-      "provider_a: C2FLR for gas and approval/funding transactions",
-      "provider_b: C2FLR for gas and approval/funding transactions",
-      "provider_c: C2FLR for gas and approval/funding transactions"
+      "provider_a/provider_b/provider_c: approve and fund selected child allocations",
+      "FCC: active machine, reachable proxy, and current indexer credentials"
     ]
+  },
+  "providerGasFunding": {
+    "amountPerProvider": "5 C2FLR",
+    "workflowRun": "https://github.com/etvjay/Concord/actions/runs/31701743746",
+    "transactions": {
+      "provider_a": "0x1abd6e28d90cb9ad15aef85a9e7aa3bf64d4406078afe3ab6afcee5836b84982",
+      "provider_b": "0xc14f3e74a67624dd50a1b501515c7959aac4c1a2bdcd010f0f8c36eec65ebb1d",
+      "provider_c": "0x22a0db432f8a782e84ddf69cb2734e57644909b18b20453a5eadab8f85941182"
+    }
   },
   "rootRound": {
     "status": "CURRENT",

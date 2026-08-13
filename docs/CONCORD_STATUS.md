@@ -68,8 +68,9 @@ bound to the current token, and its current root round is recorded below.
   query returned zero active machines), so the OPEN round has not yet produced a
   live FCC instruction result.
 - The three disposable provider wallets and the treasury now each hold 10
-  units of the current six-decimal `USDT0 test` token. They still need gas
-  funding before provider transfers or a replacement root can be broadcast.
+  units of the current six-decimal `USDT0 test` token. Each provider also has
+  105 C2FLR after the guarded gas-funding step, so approval and funding
+  transactions can proceed.
 - The replacement facility has a current SYNDICATING root Accord and OPEN
   Makkari round: root `0x6e03af…cfddd`, round
   `0x732328…76ce`, 1 FXRP locked, and a 9 USDT0 target at 6 decimals. The
