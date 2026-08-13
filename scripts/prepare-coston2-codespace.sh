@@ -17,11 +17,15 @@ shell_quote() {
     printf '%q' "$1"
 }
 
+toml_quote() {
+    printf '%s' "$1" | jq -Rs .
+}
+
 proxy_key_q="$(shell_quote "$PROXY_PRIVATE_KEY")"
-db_host_q="$(shell_quote "$INDEXER_DB_HOST")"
-db_name_q="$(shell_quote "$INDEXER_DB_NAME")"
-db_user_q="$(shell_quote "$INDEXER_DB_USER")"
-db_password_q="$(shell_quote "$INDEXER_DB_PASSWORD")"
+db_host_q="$(toml_quote "$INDEXER_DB_HOST")"
+db_name_q="$(toml_quote "$INDEXER_DB_NAME")"
+db_user_q="$(toml_quote "$INDEXER_DB_USER")"
+db_password_q="$(toml_quote "$INDEXER_DB_PASSWORD")"
 
 gh codespace list --json name,state \
     | jq -e --arg name "$CODESPACE_NAME" '.[] | select(.name == $name) | [.name,.state] | @tsv'
