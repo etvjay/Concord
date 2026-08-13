@@ -29,16 +29,38 @@ Updated 2026-08-13.
   and the adversarial cases are recorded in
   `docs/experiments/coston2-failure-matrix.md`.
 
+## Observed Coston2 deployment
+
+The following values were read from the live Coston2 RPC and explorer on
+2026-08-13 and are recorded in
+[config/coston2/concord-deployment.json](../config/coston2/concord-deployment.json).
+
+- `ConcordInstructionSender` deployed at `0x574b523eA944EFe9143AF9d6c46bfA925beE2968`; transaction
+  [0x85e605…77612](https://coston2-explorer.flare.network/tx/0x85e6056f410be261830f5e4e8e35b172886b915ea977ad0fba46953c19577612).
+- FCC extension `0x…1028c` (decimal `66188`) registered against that sender;
+  registration and allowlist/key-type transactions succeeded. The primary
+  registration receipt is
+  [0x20e1bf…16ca](https://coston2-explorer.flare.network/tx/0x20e1bf7f6e14d93fd5c06bd35b2d3eda93e711b46dff0ecf2433da121dac16ca).
+- The later successful facility deployment is the canonical pair for the
+  next test flow: `AccordRegistry 0x9A5663519C3D4B36ef155A4AE0e2d8Be2E7a89cF` and
+  `CapitalFacility 0x0AcBb062BE75491b5992dddD59aEf64a4f4Cc8b8`.
+- A second manual dispatch also deployed a valid pair before the first result
+  was observed. It is explicitly marked superseded in the evidence file and
+  will not be used for the canonical flow.
+
 ## Not yet evidenced
 
-- No Concord contracts are claimed as deployed from this checkpoint.
-- No funded Coston2 treasury/provider accounts, FCC registration, instruction
-  IDs, settlement receipts or end-to-end explorer evidence are recorded yet.
-- The configured allocationVerifier is an explicit offchain integration
-  boundary. A local test actor is not a live FCC proof. The `-mark` path is
-  deliberately restricted to signed action evidence plus an active machine
-  lookup; it has not been run against a deployed Concord facility in this
-  checkpoint.
+- No active TEE machine is registered for extension `66188` (the live
+  registry query returned zero active machines), so no live FCC instruction
+  round can be claimed yet.
+- The three disposable provider wallets are currently unfunded, and the
+  deployer has 0 USDT0. No provider commitment has therefore occurred.
+- No root Accord, Makkari round, FCC quote/finalize instruction, allocation
+  verification, child Accord, draw, settlement, repayment, or restored-capacity
+  receipt has been observed.
+- The current FCC path still needs a reachable extension proxy and the
+  scaffold's current Coston2 indexer database credentials before the machine
+  registration and instruction flow can run.
 
 ## Privacy truth
 
