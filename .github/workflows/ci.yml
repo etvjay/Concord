@@ -40,6 +40,16 @@ on:
         required: false
         default: false
         type: boolean
+      materialize_existing:
+        description: 'Materialize a previously verified FCC artifact without replaying the finalized round'
+        required: false
+        default: false
+        type: boolean
+      source_run_id:
+        description: 'Workflow run ID containing concord-fcc-round-evidence when materialize_existing is true'
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: read
@@ -333,6 +343,71 @@ jobs:
             ${{ runner.temp }}/concord-fcc-action.json
             ${{ runner.temp }}/concord-allocation-verification.json
           if-no-files-found: ignore
+
+
+  live_materialize_existing:
+    name: Materialize previously verified FCC allocation
+    if: github.event_name == 'workflow_dispatch' && inputs.materialize_existing == true && github.ref == 'refs/heads/agent/concord-rebuild'
+    permissions:
+      actions: read
+      contents: read
+    concurrency:
+      group: concord-coston2-fcc-materialization
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    env:
+      CHAIN_URL: https://coston2-api.flare.network/ext/C/rpc
+      DEPLOYMENT_PRIVATE_KEY: ${{ secrets.CONCORD_E2E_DEPLOYER_PRIVATE_KEY }}
+      FACILITY: "0xfaff601a18a9fca33378953515aa0f3ef9286ecd"
+      TEE_REGISTRY: "0x1a9C4A0f9D76c0b1D91d22E24E573a9b377618aE"
+      EXTENSION_ID: "0x000000000000000000000000000000000000000000000000000000000001028c"
+    steps:
+      - name: Check out requested ref
+        uses: actions/checkout@v4
+
+      - name: Install Go 1.25.1
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.1"
+          cache: false
+
+      - name: Require source run id
+        shell: bash
+        run: test -n "${{ inputs.source_run_id }}"
+
+      - name: Download signed FCC evidence from source run
+        uses: actions/download-artifact@v4
+        with:
+          name: concord-fcc-round-evidence
+          path: ${{ runner.temp }}/concord-fcc-round-evidence
+          run-id: ${{ inputs.source_run_id }}
+          github-token: ${{ github.token }}
+
+      - name: Verify digest and materialize Child Accords
+        shell: bash
+        run: |
+          set -euo pipefail
+          round_id="$(jq -r '.rootRound.roundId' config/coston2/concord-deployment.json)"
+          root_id="$(jq -r '.rootRound.rootAccordId' config/coston2/concord-deployment.json)"
+          action_file="$(find "$RUNNER_TEMP/concord-fcc-round-evidence" -name concord-fcc-action.json -type f -print -quit)"
+          test -n "$action_file"
+          (cd tools && GOTOOLCHAIN=local go run ./cmd/verify-allocation \
+            -c "$CHAIN_URL" \
+            -facility "$FACILITY" \
+            -teeRegistry "$TEE_REGISTRY" \
+            -result "$action_file" \
+            -extensionId "$EXTENSION_ID" \
+            -roundId "$round_id" \
+            -rootAccordId "$root_id" \
+            -mark \
+            -materialize \
+            -out "$RUNNER_TEMP/concord-allocation-verification.json")
+          jq -e '.broadcast == true and .materialized == true' \
+            "$RUNNER_TEMP/concord-allocation-verification.json" >/dev/null
+          {
+            echo "Recovered signed FCC artifact from run ${{ inputs.source_run_id }}."
+            echo 'Allocation digest was already authorized; Child Accords are now materialized on the canonical CapitalFacility.'
+          } >> "$GITHUB_STEP_SUMMARY"
 
 
   live_sender_deploy:

@@ -50,16 +50,16 @@ type actionEvidence struct {
 }
 
 type contractAllocationResult struct {
-	ExtensionID       [32]byte
-	RoundID           [32]byte
-	RootAccordID      [32]byte
-	Success           bool
-	SelectedProviders []common.Address
-	AllocatedCapacity []*big.Int
-	AcceptedFeeBps    []uint32
-	TermsCommitments  [][32]byte
-	RoundExpiry       uint64
-	ResultDigest      [32]byte
+	ExtensionID       [32]byte         `abi:"extensionId"`
+	RoundID           [32]byte         `abi:"roundId"`
+	RootAccordID      [32]byte         `abi:"rootAccordId"`
+	Success           bool             `abi:"success"`
+	SelectedProviders []common.Address `abi:"selectedProviders"`
+	AllocatedCapacity []*big.Int       `abi:"allocatedCapacity"`
+	AcceptedFeeBps    []uint32         `abi:"acceptedFeeBps"`
+	TermsCommitments  [][32]byte       `abi:"termsCommitments"`
+	RoundExpiry       uint64           `abi:"roundExpiry"`
+	ResultDigest      [32]byte         `abi:"resultDigest"`
 }
 
 const facilityABIJSON = `[
