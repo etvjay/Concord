@@ -50,16 +50,19 @@ The following values were read from the live Coston2 RPC and explorer on
 
 ## Not yet evidenced
 
-- No active TEE machine is registered for extension `66188` (the live
-  registry query returned zero active machines), so no live FCC instruction
-  round can be claimed yet.
+- No active TEE machine is registered for extension `66188` (the live registry
+  query returned zero active machines), so the OPEN round has not yet produced a
+  live FCC instruction result.
 - The three disposable provider wallets are currently unfunded; the treasury
   has 86.338238475 C2FLR and 10 FXRP but 0 USDT0. No provider commitment has
   therefore occurred. The exact public addresses and observed balances are in
   the deployment evidence file.
-- No root Accord, Makkari round, FCC quote/finalize instruction, allocation
-  verification, child Accord, draw, settlement, repayment, or restored-capacity
-  receipt has been observed.
+- The canonical facility now has a live SYNDICATING root Accord and OPEN Makkari
+  round: 1 FXRP locked, 9 USDT0 target, 700 bps maximum fee, and three eligible
+  provider addresses. The four transaction hashes and read-back state are in the
+  deployment evidence file.
+- No FCC quote/finalize instruction, allocation verification, child Accord, draw,
+  settlement, repayment, or restored-capacity receipt has been observed.
 - The current FCC path still needs a reachable extension proxy and the
   scaffold's current Coston2 indexer database credentials before the machine
   registration and instruction flow can run.
