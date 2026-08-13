@@ -112,7 +112,7 @@ on it. This is required for the Coston2 FCC registration path:
 2. Add a public hostname pointing at `http://host.docker.internal:6674`.
 3. In `.env`:
    ```
-   TUNNEL_ARGS=tunnel --no-autoupdate run --token eyJhIjoi...
+   TUNNEL_ARGS=run --token eyJhIjoi...
    EXT_PROXY_URL=https://tee.yourdomain.com
    ```
 4. `docker compose -f docker-compose.cloudflared.yaml up -d` — same command, named mode now.
