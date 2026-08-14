@@ -42,6 +42,12 @@ Accord, Makkari, CoFill, FCC, and Lineage. Its relationship composition,
 prismatic facility object, pointer response, and ambient motion all respect the
 user's reduced-motion preference.
 
+The application shell is route-aware. It distinguishes global destinations
+from facility sections, keeps the current object and parent trail visible, and
+guides the main lifecycle from overview through Funding, Activity, Evidence,
+and Lineage. Rounds, draws, Child Accords, and result evidence return to their
+owning section instead of dropping the user into a navigation loop.
+
 ## Wallet connection
 
 The app supports injected EVM wallets through Wagmi and Viem. A user can:

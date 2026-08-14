@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
@@ -44,6 +44,28 @@ describe("Concord frontend product semantics", () => {
     expect(screen.getByText("Provider 2")).toBeInTheDocument();
     expect(draw.legs).toHaveLength(2);
     expect(children).toHaveLength(3);
+  });
+
+  it("keeps a draw detail anchored to its parent activity and onward lineage", () => {
+    renderRoute(`/draws/${draw.id}`);
+    expect(screen.getByRole("link", { name: /back to activity/i })).toHaveAttribute("href", `/facilities/${facility.id}/activity`);
+    expect(within(screen.getByRole("navigation", { name: "Breadcrumb" })).getByText("Activity")).toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: /view lineage/i }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("link", { name: "Activity" }).some((link) => link.getAttribute("aria-current") === "page")).toBe(true);
+  });
+
+  it("presents facility sections as a directed sequence without repeating the overview header", () => {
+    renderRoute(`/facilities/${facility.id}/funding`);
+    expect(screen.getByRole("heading", { level: 1, name: "Funding formation" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { level: 1, name: "Coston2 syndicated facility" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /back to facility overview/i })).toHaveAttribute("href", `/facilities/${facility.id}`);
+    expect(screen.getAllByRole("link", { name: /activity/i }).some((link) => link.getAttribute("href") === `/facilities/${facility.id}/activity`)).toBe(true);
+  });
+
+  it("marks lineage as the end of the guided relationship trail", () => {
+    renderRoute(`/facilities/${facility.id}/lineage`);
+    expect(screen.getByText("Relationship trail complete")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /back to facility overview/i })).toBeInTheDocument();
   });
 
   it("does not convert an unknown Root Accord into the observed facility", () => {

@@ -23,11 +23,14 @@ implementation follows the live contract/FCC integration evidence gate.
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
-The first version uses one stable global header and no permanent desktop
-sidebar. Role and organization context are shown in the facility header or
-context controls, while the primary action remains in the relationship
-workspace. On mobile, the global header collapses into the accessible hamburger
-drawer defined in the art direction.
+The first version uses one route-aware global header and no permanent desktop
+sidebar. The global destinations remain stable, while a sticky context bar
+states the current object, shows its parent trail, and provides explicit Back
+and Next actions. Role and organization context are shown in the facility
+header or context controls, while the primary action remains in the
+relationship workspace. On mobile, the global header collapses into the
+accessible hamburger drawer and the context bar retains a compact parent and
+next-step control.
 
 The relationship view is the primary screen. A chart or graph is subordinate
 to readable relationship cards and exact amounts; the graph is not decoration
@@ -40,12 +43,29 @@ and cannot be the only way to understand causality.
 | `/` | Outcome-first product story, wallet entry, and public proof | recorded evidence, network identity |
 | `/facilities` | Facility register | accessible/recorded facilities and current state |
 | `/facilities/:rootAccordId` | Primary Root Accord workspace | facility, round, children, invariants |
+| `/facilities/:rootAccordId/funding` | Formation and funded Child Accords | round, allocation, funded children |
+| `/facilities/:rootAccordId/activity` | Causally ordered lifecycle activity | facility events and receipts |
+| `/facilities/:rootAccordId/evidence` | Facility verification boundary | FCC and public-chain evidence |
 | `/facilities/:rootAccordId/lineage` | Full causal relationship trail | lineage, linked public actions |
 | `/rounds/:roundId` | Makkari/CoFill status | round, authorization-scoped evidence |
 | `/children/:childAccordId` | Provider relationship view | child, root summary, funding/exposure |
 | `/draws/:drawId` | One draw and its explicit legs | draw, child/provider links, settlements |
 | `/evidence/:resultDigest` | Verification and disclosure boundary | evidence metadata, source, warning |
 | `/settings` | Network/assets and disclosure settings | network config, asset decimals |
+
+## Wayfinding contract
+
+The facility lifecycle has one directed reading path:
+
+```text
+Facilities → Facility overview → Funding → Activity → Evidence → Lineage
+```
+
+Detail objects return to the section that owns them: rounds and Child Accords
+return to Funding, draws return to Activity, and allocation results return to
+Evidence. Each page exposes a breadcrumb, a labelled parent return, and a
+previous/next footer. Lineage ends with an explicit completion state, so a user
+is never sent back into an accidental loop.
 
 ## Components
 

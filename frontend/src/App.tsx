@@ -339,15 +339,169 @@ function LandingPage() {
   );
 }
 
-const globalRoutes: Array<{ label: string; to: string; icon: IconType }> = [
-  { label: "Facilities", to: "/facilities", icon: DocumentTextIcon },
-  { label: "Funding", to: `${rootHref}/funding`, icon: BanknotesIcon },
-  { label: "Activity", to: `${rootHref}/activity`, icon: ClockIcon },
-  { label: "Evidence", to: `${rootHref}/evidence`, icon: ShieldCheckIcon },
+type RouteLink = { label: string; to: string };
+type RouteGuide = {
+  section: string;
+  current: string;
+  crumbs: RouteLink[];
+  back?: RouteLink;
+  previous?: RouteLink;
+  next?: RouteLink;
+};
+
+const globalRoutes: Array<{ label: string; to: string; icon: IconType; matches: (pathname: string) => boolean }> = [
+  { label: "Facilities", to: "/facilities", icon: DocumentTextIcon, matches: (pathname) => pathname === "/facilities" },
+  {
+    label: "Facility",
+    to: rootHref,
+    icon: RectangleGroupIcon,
+    matches: (pathname) => pathname === rootHref
+      || pathname.startsWith(`${rootHref}/funding`)
+      || pathname.startsWith(`${rootHref}/lineage`)
+      || pathname.startsWith("/children/")
+      || pathname.startsWith("/rounds/"),
+  },
+  { label: "Activity", to: `${rootHref}/activity`, icon: ClockIcon, matches: (pathname) => pathname.startsWith(`${rootHref}/activity`) || pathname.startsWith("/draws/") },
+  { label: "Evidence", to: `${rootHref}/evidence`, icon: ShieldCheckIcon, matches: (pathname) => pathname.startsWith(`${rootHref}/evidence`) || pathname.startsWith("/evidence/") },
 ];
+
+function routeGuide(pathname: string): RouteGuide {
+  const facilityCrumb = { label: "Coston2 facility", to: rootHref };
+  const workspaceCrumb = { label: "Facilities", to: "/facilities" };
+
+  if (pathname === "/facilities") return {
+    section: "Workspace",
+    current: "Facilities",
+    crumbs: [],
+    back: { label: "Public site", to: "/" },
+    next: { label: "Open facility", to: rootHref },
+  };
+  if (pathname === rootHref) return {
+    section: "Root Accord",
+    current: "Overview",
+    crumbs: [workspaceCrumb],
+    back: workspaceCrumb,
+    next: { label: "Funding formation", to: `${rootHref}/funding` },
+  };
+  if (pathname === `${rootHref}/funding`) return {
+    section: "Root Accord",
+    current: "Funding",
+    crumbs: [workspaceCrumb, facilityCrumb],
+    back: { label: "Facility overview", to: rootHref },
+    previous: { label: "Overview", to: rootHref },
+    next: { label: "Activity", to: `${rootHref}/activity` },
+  };
+  if (pathname === `${rootHref}/activity`) return {
+    section: "Root Accord",
+    current: "Activity",
+    crumbs: [workspaceCrumb, facilityCrumb],
+    back: { label: "Facility overview", to: rootHref },
+    previous: { label: "Funding", to: `${rootHref}/funding` },
+    next: { label: "Evidence", to: `${rootHref}/evidence` },
+  };
+  if (pathname === `${rootHref}/evidence`) return {
+    section: "Root Accord",
+    current: "Evidence",
+    crumbs: [workspaceCrumb, facilityCrumb],
+    back: { label: "Facility overview", to: rootHref },
+    previous: { label: "Activity", to: `${rootHref}/activity` },
+    next: { label: "Lineage", to: `${rootHref}/lineage` },
+  };
+  if (pathname === `${rootHref}/lineage`) return {
+    section: "Root Accord",
+    current: "Lineage",
+    crumbs: [workspaceCrumb, facilityCrumb],
+    back: { label: "Facility overview", to: rootHref },
+    previous: { label: "Evidence", to: `${rootHref}/evidence` },
+  };
+  if (pathname.startsWith("/draws/")) return {
+    section: "Activity detail",
+    current: "Repaid draw",
+    crumbs: [workspaceCrumb, facilityCrumb, { label: "Activity", to: `${rootHref}/activity` }],
+    back: { label: "Activity", to: `${rootHref}/activity` },
+    previous: { label: "Activity", to: `${rootHref}/activity` },
+    next: { label: "View lineage", to: `${rootHref}/lineage` },
+  };
+  if (pathname.startsWith("/children/")) {
+    const childId = pathname.slice("/children/".length);
+    const child = children.find((candidate) => candidate.id === childId);
+    const provider = child ? providerLabels.get(child.provider.toLowerCase()) ?? "Provider relationship" : "Provider relationship";
+    return {
+      section: "Funding detail",
+      current: provider,
+      crumbs: [workspaceCrumb, facilityCrumb, { label: "Funding", to: `${rootHref}/funding` }],
+      back: { label: "Funding", to: `${rootHref}/funding` },
+      previous: { label: "Funding", to: `${rootHref}/funding` },
+      next: { label: "View lineage", to: `${rootHref}/lineage` },
+    };
+  }
+  if (pathname.startsWith("/rounds/")) return {
+    section: "Funding detail",
+    current: "Syndication round",
+    crumbs: [workspaceCrumb, facilityCrumb, { label: "Funding", to: `${rootHref}/funding` }],
+    back: { label: "Funding", to: `${rootHref}/funding` },
+    previous: { label: "Funding", to: `${rootHref}/funding` },
+    next: { label: "Allocation evidence", to: `/evidence/${evidence.resultDigest}` },
+  };
+  if (pathname.startsWith("/evidence/")) return {
+    section: "Evidence detail",
+    current: "Allocation result",
+    crumbs: [workspaceCrumb, facilityCrumb, { label: "Evidence", to: `${rootHref}/evidence` }],
+    back: { label: "Evidence", to: `${rootHref}/evidence` },
+    previous: { label: "Evidence", to: `${rootHref}/evidence` },
+    next: { label: "View lineage", to: `${rootHref}/lineage` },
+  };
+  if (pathname === "/settings") return {
+    section: "System context",
+    current: "Network & assets",
+    crumbs: [workspaceCrumb],
+    back: workspaceCrumb,
+  };
+  return {
+    section: "Workspace",
+    current: "Not observed",
+    crumbs: [],
+    back: workspaceCrumb,
+  };
+}
+
+function GlobalNavLink({ route, pathname, onClick }: { route: typeof globalRoutes[number]; pathname: string; onClick?: () => void }) {
+  const active = route.matches(pathname);
+  const Icon = route.icon;
+  return <Link className={active ? "active" : ""} aria-current={active ? "page" : undefined} to={route.to} onClick={onClick}><Icon aria-hidden="true" /><span>{route.label}</span></Link>;
+}
+
+function ContextNavigation({ guide }: { guide: RouteGuide }) {
+  return (
+    <div className="context-navigation">
+      {guide.back && <Link className="context-navigation__back" to={guide.back.to}><ArrowLeftIcon aria-hidden="true" /><span>Back to {guide.back.label}</span></Link>}
+      <nav className="breadcrumb" aria-label="Breadcrumb">
+        {guide.crumbs.map((crumb) => <span key={`${crumb.to}-${crumb.label}`}><Link to={crumb.to}>{crumb.label}</Link><ChevronRightIcon aria-hidden="true" /></span>)}
+        <span aria-current="page">{guide.current}</span>
+      </nav>
+      <div className="context-navigation__identity"><small>{guide.section}</small><strong>{guide.current}</strong></div>
+      {guide.next && <Link className="context-navigation__next" to={guide.next.to}><span><small>Next</small><strong>{guide.next.label}</strong></span><ArrowRightIcon aria-hidden="true" /></Link>}
+    </div>
+  );
+}
+
+function JourneyFooter({ guide }: { guide: RouteGuide }) {
+  if (!guide.previous && !guide.next) return null;
+  return (
+    <nav className="journey-footer" aria-label="Page sequence">
+      {guide.previous
+        ? <Link to={guide.previous.to}><ArrowLeftIcon aria-hidden="true" /><span><small>Previous</small><strong>{guide.previous.label}</strong></span></Link>
+        : <span />}
+      {guide.next
+        ? <Link className="journey-footer__next" to={guide.next.to}><span><small>Continue to</small><strong>{guide.next.label}</strong></span><ArrowRightIcon aria-hidden="true" /></Link>
+        : <div className="journey-footer__complete"><CheckCircleSolid aria-hidden="true" /><span><small>End of this path</small><strong>Relationship trail complete</strong></span></div>}
+    </nav>
+  );
+}
 
 function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const closeRef = useRef<HTMLButtonElement>(null);
+  const location = useLocation();
   useEffect(() => {
     if (!open) return;
     closeRef.current?.focus();
@@ -367,7 +521,7 @@ function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => void })
         <div className="mobile-drawer__header"><Brand /><button ref={closeRef} className="icon-button" onClick={onClose} aria-label="Close navigation"><XMarkIcon /></button></div>
         <p className="drawer-label">WORKSPACE</p>
         <nav aria-label="Mobile workspace navigation">
-          {globalRoutes.map(({ label, to, icon: Icon }) => <NavLink key={to} to={to} onClick={onClose}><Icon aria-hidden="true" />{label}</NavLink>)}
+          {globalRoutes.map((route) => <GlobalNavLink key={route.to} route={route} pathname={location.pathname} onClick={onClose} />)}
         </nav>
         <p className="drawer-label">CONTEXT</p>
         <nav aria-label="Mobile secondary navigation">
@@ -383,6 +537,7 @@ function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => void })
 function AppShell({ children }: PropsWithChildren) {
   const [drawer, setDrawer] = useState(false);
   const location = useLocation();
+  const guide = routeGuide(location.pathname);
   useEffect(() => setDrawer(false), [location.pathname]);
   return (
     <div className="app-shell">
@@ -390,18 +545,19 @@ function AppShell({ children }: PropsWithChildren) {
         <button className="icon-button app-header__menu" aria-label="Open navigation" aria-expanded={drawer} onClick={() => setDrawer(true)}><Bars3Icon /></button>
         <Brand />
         <nav className="app-header__nav" aria-label="Application navigation">
-          {globalRoutes.map(({ label, to }) => <NavLink key={to} to={to} className={({ isActive }) => isActive ? "active" : ""}>{label}</NavLink>)}
+          {globalRoutes.map((route) => <GlobalNavLink key={route.to} route={route} pathname={location.pathname} />)}
         </nav>
         <div className="app-header__context">
           <NetworkMark />
           <WalletControl compact />
         </div>
       </header>
+      <ContextNavigation guide={guide} />
       <MobileDrawer open={drawer} onClose={() => setDrawer(false)} />
-      <div className="app-content">{children}</div>
+      <div className="app-content">{children}<JourneyFooter guide={guide} /></div>
       <footer className="app-footer"><Brand /><span>Coston2 · chain 114 · recorded {formatDate(snapshot.deployment.observedAt)}</span><div><a href="https://github.com/etvjay/Concord" target="_blank" rel="noreferrer">Source</a><Link to="/settings">Disclosure</Link></div></footer>
       <nav className="mobile-bottom-nav" aria-label="Primary mobile navigation">
-        {globalRoutes.map(({ label, to, icon: Icon }) => <NavLink key={to} to={to}><Icon aria-hidden="true" /><span>{label}</span></NavLink>)}
+        {globalRoutes.map((route) => <GlobalNavLink key={route.to} route={route} pathname={location.pathname} />)}
       </nav>
     </div>
   );
@@ -469,12 +625,19 @@ const localTabs = [
   ["Lineage", `${rootHref}/lineage`],
 ];
 
+function FacilityTabs({ standalone = false }: { standalone?: boolean }) {
+  return (
+    <nav className={`facility-tabs${standalone ? " facility-tabs--standalone" : ""}`} aria-label="Facility sections">
+      {localTabs.map(([label, to]) => <NavLink key={to} end={to === rootHref} to={to}>{label}</NavLink>)}
+    </nav>
+  );
+}
+
 function AccordHeader({ onPrepare }: { onPrepare?: () => void }) {
   return (
     <>
       <div className="accord-header">
         <div>
-          <Link className="back-link" to="/facilities"><ArrowLeftIcon aria-hidden="true" />Facilities</Link>
           <div className="accord-header__eyebrow"><span>ROOT ACCORD</span><Status label="Active · observed" /></div>
           <h1>Coston2 syndicated facility</h1>
           <p>One FXRP-backed relationship composed from three independently funded USDT0 commitments.</p>
@@ -486,9 +649,7 @@ function AccordHeader({ onPrepare }: { onPrepare?: () => void }) {
           <small>Requires treasury wallet review</small>
         </div>
       </div>
-      <nav className="facility-tabs" aria-label="Facility sections">
-        {localTabs.map(([label, to]) => <NavLink key={to} end={to === rootHref} to={to}>{label}</NavLink>)}
-      </nav>
+      <FacilityTabs />
     </>
   );
 }
@@ -642,7 +803,7 @@ function OverviewPage() {
 function FundingPage() {
   return (
     <AppShell>
-      <AccordHeader />
+      <FacilityTabs standalone />
       <PageHeading eyebrow="MAKKARI · COFILL" title="Funding formation" description="How confidential offers became three funded child relationships." />
       <section className="round-summary">
         <div><span className="eyebrow">SYNDICATION ROUND</span><h2>Allocation finalized</h2><p>CoFill selected the lowest eligible fees and filled the 9 USDT0 target deterministically.</p></div>
@@ -658,7 +819,7 @@ function FundingPage() {
 function ActivityPage() {
   return (
     <AppShell>
-      <AccordHeader />
+      <FacilityTabs standalone />
       <PageHeading eyebrow="PUBLIC LIFECYCLE" title="Activity" description="Observed relationship events, ordered by causal progression rather than wallet recency." />
       <section className="section-block activity-page"><ActivityList /></section>
     </AppShell>
@@ -668,7 +829,7 @@ function ActivityPage() {
 function EvidencePage() {
   return (
     <AppShell>
-      <AccordHeader />
+      <FacilityTabs standalone />
       <PageHeading eyebrow="VERIFICATION & DISCLOSURE" title="Evidence" description="What Concord observed, what remains withheld, and what the implementation does not claim." />
       <section className="evidence-grid">
         <EvidenceSummary />
@@ -688,7 +849,7 @@ function EvidencePage() {
 function LineagePage() {
   return (
     <AppShell>
-      <AccordHeader />
+      <FacilityTabs standalone />
       <PageHeading eyebrow="RELATIONSHIP LINEAGE" title="One traceable causal path" description="Each movement links to the relationship, allocation, or draw leg that authorized it." />
       <section className="lineage-map">
         {relationshipSteps.map(({ label, detail, state, icon: Icon, href }, index) => <div className="lineage-node" key={label}><span>{String(index + 1).padStart(2, "0")}</span><Icon aria-hidden="true" /><div><strong>{label}</strong><small>{detail}</small></div><Status label={state} /><Link to={href} aria-label={`Open ${label}`}><ChevronRightIcon /></Link></div>)}
