@@ -1,7 +1,7 @@
 # Concord frontend design system
 
-Status: design specification only. This document defines the interface before
-the React implementation begins. It must remain subordinate to
+Status: first React implementation checkpoint. This document defines and now
+audits the implemented interface. It remains subordinate to
 [`shared-product-contract.md`](./shared-product-contract.md) and
 [`frontend-map.md`](./frontend-map.md).
 
@@ -81,8 +81,10 @@ economic relationship.
   decoration.
 - One proof accent is reserved for verified/observed states. Pending and
   blocked states use separate semantic colors plus text and icons.
-- No rainbow gradients, crypto-market candlesticks, floating neon cards,
-  decorative 3D objects, or anonymous “AI” surfaces.
+- No crypto-market candlesticks, floating neon cards, or anonymous “AI”
+  surfaces. One restrained spectral Root Accord artifact is permitted on the
+  public landing page as the persistent relationship signature; it does not
+  enter data-dense workspace views.
 - Elevation is restrained: borders and surface contrast carry hierarchy;
   shadows are soft and rare.
 
@@ -91,11 +93,11 @@ should communicate precision and calm, not yield or price excitement.
 
 ### Layout constraints
 
-The desktop content container is `1120px` maximum with responsive horizontal
+The desktop workspace content container is `1320px` maximum with responsive horizontal
 padding:
 
 ```css
---container-max: 1120px;
+--container-max: 1320px;
 --container-pad: clamp(20px, 4vw, 48px);
 ```
 

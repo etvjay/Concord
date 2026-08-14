@@ -1,0 +1,55 @@
+snapshot:
+  captured_at_utc: 2026-08-14T05:09:35Z
+  freshness: FRESH
+  environment: Coston2
+  chain_id: 114
+  tee_mode: simulated
+  hardware_attestation_claim: false
+  official_flare_sources:
+    skills_repository:
+      url: https://github.com/flare-foundation/flare-ai-skills
+      revision: 0bd60deb977df97455da720df1aaf765480b8141
+    fce_scaffold:
+      url: https://github.com/flare-foundation/fce-extension-scaffold
+      revision: e3f587949069780084e2ced8a53c9419ed05c250
+    developer_hub:
+      - https://dev.flare.network/fcc/guides/getting-started
+      - https://dev.flare.network/network/overview
+  hosting_sources:
+    railway:
+      - https://docs.railway.com/config-as-code/reference
+      - https://docs.railway.com/networking/private-networking
+      - https://docs.railway.com/builds/dockerfiles
+      - https://docs.railway.com/deployments/restart-policy
+    northflank:
+      - https://northflank.com/features/application-layer
+      - https://northflank.com/docs/v1/application/getting-started/build-and-deploy-your-code
+      - https://northflank.com/docs/v1/application/network/configure-ports
+      - https://northflank.com/docs/v1/application/observe/configure-health-checks
+      - https://northflank.com/docs/v1/application/scale/scale-instances
+  verified_facts:
+    - The current official FCE scaffold still composes extension-tee, tee-proxy, and Redis; Concord keeps that runtime separation.
+    - The Coston2 provider-facing extension-proxy external port is 6664 and requires a stable public HTTPS URL.
+    - SIMULATED_TEE=true remains a supported Coston2 hackathon development path and is not production hardware-backed execution.
+    - A simulated TEE restart creates a new identity; the new machine must be registered and promoted and the stale identity paused.
+    - Exactly one active machine per endpoint avoids random dispatch to stale machines.
+    - Railway supports Dockerfile configuration-as-code, private service DNS, and stable public domains.
+    - Railway ALWAYS restart is unavailable on free/trial plans; an always-on claim requires a paid plan and no scale-to-zero behavior.
+    - Northflank long-running services are a viable fallback when scale remains at one or greater and only proxy port 6664 is public.
+  current_recorded_machine:
+    extension_id_decimal: 66188
+    tee_id: 0xeE39d5e7d1C5043232282e3CC884B41a9Db22c85
+    tee_proxy_id: 0x801470C95f78D0cA444e589aF8Ea0858Ce6d613e
+    status: 2
+    registered_url: https://concord-fcc-ingress.microcosm.workers.dev
+    availability_now: unavailable_because_disposable_codespace_upstream_is_offline
+  decision:
+    primary_host: Railway paid long-running services
+    fallback_host: Northflank long-running combined services
+    cutover_required: true
+    reason: A stable host removes the disposable Codespace ingress dependency, but the fresh simulated TEE identity must still be deliberately registered and the stale machine paused.
+  product_semantics:
+    contradiction_found: false
+    mvp_changed: false
+    fdc_added: false
+    privacy_claim_expanded: false

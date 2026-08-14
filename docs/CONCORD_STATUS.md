@@ -1,8 +1,10 @@
 # Concord status
 
-Updated 2026-08-13 after the complete observed Coston2 lifecycle run.
+Updated 2026-08-14 after the first frontend implementation and always-on FCC
+hosting package. The complete observed Coston2 lifecycle remains the canonical
+deployment proof.
 
-- The fresh source snapshot used for this checkpoint is [source-snapshot-2026-08-13.yaml](source-snapshot-2026-08-13.yaml). It records the current official Coston2 FCC development path, including simulated-TEE labeling, public HTTPS proxy exposure, and current indexer-credential requirements.
+- The fresh source snapshot used for this checkpoint is [source-snapshot-2026-08-14.yaml](source-snapshot-2026-08-14.yaml). It records the current official Coston2 FCC development path and the Railway/Northflank availability decision.
 
 ## Works in the durable checkpoint
 
@@ -28,6 +30,13 @@ Updated 2026-08-13 after the complete observed Coston2 lifecycle run.
 - `scripts/coston2-preflight.sh` provides a read-only offline/live operator gate,
   and the adversarial cases are recorded in
   `docs/experiments/coston2-failure-matrix.md`.
+- The React/Vite frontend now implements the institutional landing page,
+  facility register, Root Accord workspace, funding, activity, evidence,
+  lineage, child, and draw views from the recorded Coston2 deployment and the
+  shared TypeScript SDK types. Its build and four semantic tests pass locally.
+- `infra/railway/` and `docs/fcc-always-on-hosting.md` package the official
+  three-service FCC topology for a stable Railway deployment, with Northflank
+  documented as the fallback. No new hosted machine has been registered yet.
 
 ## Observed Coston2 deployment
 
@@ -118,9 +127,12 @@ bound to the current token, and its current root round is recorded below.
   the documented Coston2 simulated development TEE path.
 - A named Cloudflare Tunnel or custom-domain ingress has not been provisioned;
   the stable Workers.dev relay remains the current development ingress.
-- The full consumer/institutional frontend and its browser-wallet UX are not
-  yet the source of the live evidence; the evidence above comes from the
-  contract/FCC runners and explorer receipts.
+- The institutional read frontend is implemented, but browser-wallet intent
+  generation and transaction submission remain disconnected. The evidence
+  above still comes from the contract/FCC runners and explorer receipts.
+- The Railway/Northflank runtime bundle is reproducible but not yet deployed;
+  a fresh hosted simulated TEE identity must be registered and the stale
+  machine paused before the endpoint can be called continuously available.
 
 ## Privacy truth
 

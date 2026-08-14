@@ -10,6 +10,11 @@ testing/
 cache/
 out/
 config/
+!config/
+config/**
+!config/coston2/
+config/coston2/**
+!config/coston2/concord-deployment.json
 contracts/
 scripts/
 proxy/
@@ -17,3 +22,6 @@ foundry.toml
 docker-compose*.yaml
 Dockerfile*
 .dockerignore
+frontend/node_modules/
+frontend/dist/
+frontend/*.tsbuildinfo

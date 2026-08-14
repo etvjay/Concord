@@ -1,19 +1,45 @@
 # Concord frontend
 
-The frontend is currently in the design phase. The semantic route/component
-map is in [`docs/frontend-map.md`](../docs/frontend-map.md); the visual,
-interaction, icon, responsive, and accessibility specification is in
-[`docs/frontend-design-system.md`](../docs/frontend-design-system.md).
-The complete art direction, navigation, page architecture, typography, motion,
-imagery, and usability gate is in
-[`docs/frontend-art-direction.md`](../docs/frontend-art-direction.md).
+The first institutional frontend checkpoint is implemented in React,
+TypeScript, and Vite. It translates the supplied visual reference into
+Concord's actual product semantics: a public landing page, facility register,
+Root Accord workspace, funding formation, activity, FCC evidence, explicit
+lineage, child dossiers, and draw-leg detail.
 
-The implementation must use the shared product contract and the TypeScript
-SDK; it must not create a parallel facility state model. Heroicons is the
-single icon family for the first frontend.
+The rendered data comes directly from
+`config/coston2/concord-deployment.json` and uses the canonical TypeScript SDK
+types. It does not invent a second facility model or fake institutional data.
+The recorded proof facility contains 9 USDT0 of funded capacity, three active
+children, a repaid two-leg draw, and restored capacity.
 
-Planned stack from the build handoff: React, TypeScript, Vite, Wagmi, Viem,
-and TanStack Query. The first implementation checkpoint remains the Root
-Accord workspace, but implementation begins only after the design review gate
-in the design-system document is satisfied and contract/FCC semantics are
-demonstrated with authoritative Coston2 evidence.
+## Run locally
+
+```bash
+cd frontend
+npm ci --ignore-scripts --no-audit --no-fund
+npm run dev
+```
+
+Use `npm run build` for the TypeScript and production-bundle gate and
+`npm test` for semantic/invariant tests. The root-context production image is:
+
+```bash
+docker build -f frontend/Dockerfile -t concord-frontend .
+docker run --rm -p 8080:8080 concord-frontend
+```
+
+The GitHub workflow in `.github/workflows/frontend.yml` reproduces dependency
+installation, build, tests, and the container build.
+
+The semantic map remains in `docs/frontend-map.md`. Visual decisions are in
+`docs/frontend-design-system.md` and `docs/frontend-art-direction.md`.
+Heroicons is the single interface icon family. Inter Variable is self-hosted
+through the npm package; no runtime font CDN is required.
+
+## Current interaction boundary
+
+Read views use recorded Coston2 evidence. The “Prepare draw” review explains
+the unsigned intent flow but does not fabricate calldata or transaction
+success: a live intent service and wallet approval path are still required.
+The FCC label is intentionally “simulated development TEE”; token settlement
+and public EVM state are not represented as private.

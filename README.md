@@ -33,6 +33,9 @@ repayments are explicit nodes in its lineage.
 - The FCC extension requires ECIES-encrypted payloads through the TEE decrypt
   endpoint. Local unit tests inject a decrypt function; they do not turn the
   production handler into a plaintext path.
+- The React frontend renders the recorded Coston2 Root Accord, Makkari/CoFill
+  formation, three funded Child Accords, explicit draw legs, repayment,
+  restored capacity, and evidence boundary through one shared SDK model.
 
 ## Truth boundary
 
@@ -76,8 +79,20 @@ pre-build → start-services --chain coston2 → post-build → run-test
 
 The observed Coston2 sender, FCC extension registration, and facility deployment
 receipts are recorded in [docs/CONCORD_STATUS.md](docs/CONCORD_STATUS.md). The
-complete Coston2 proof is not claimed until an active FCC machine, funded
-provider offers, and the full settlement/repayment lineage are observed.
+complete active-machine, provider-funding, multi-child settlement, repayment,
+and restored-capacity proof is recorded there with transaction and workflow
+evidence.
+
+Build the frontend from its exact lockfile:
+
+```bash
+(cd frontend && npm ci --ignore-scripts --no-audit --no-fund)
+(cd frontend && npm run build && npm test)
+```
+
+The current always-on FCC development-host plan and safe simulated-TEE identity
+cutover are in
+[docs/fcc-always-on-hosting.md](docs/fcc-always-on-hosting.md).
 
 ## Repository map
 
@@ -97,6 +112,7 @@ scripts/                    scaffold lifecycle and binding commands
 api/                        REST/OpenAPI integration contract
 sdk/typescript/             typed read and unsigned-intent client
 frontend/                   frontend boundary and implementation map
+infra/railway/              long-running FCC proxy/TEE deployment config
 ```
 
 ## Shared surfaces

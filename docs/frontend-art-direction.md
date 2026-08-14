@@ -1,6 +1,7 @@
 # Concord frontend art direction and information architecture
 
-Status: design phase, before React implementation.
+Status: first React implementation checkpoint, updated from the supplied
+institutional porcelain reference.
 
 This document turns the first visual territory exploration into a complete
 product direction. It governs the webapp's visual language, navigation,
@@ -58,21 +59,17 @@ product than to a crypto exchange.
 
 ### Primary recommendation
 
-Use **IBM Plex Sans** for interface, headings, labels, and body copy, paired
-with **IBM Plex Mono** for IDs, hashes, addresses, block references, and exact
-base-unit values.
-
-This pairing is appropriate because the IBM Plex family is designed for UI
-environments, is available under the SIL Open Font License, and provides broad
-script coverage including Latin, Arabic, Chinese, Cyrillic, Devanagari, Greek,
-Hebrew, Japanese, Korean, and Thai. The product must still test actual
-fallback rendering for every supported locale.
+Use **Inter Variable** for interface, headings, labels, numerals, and body copy,
+paired with the platform monospace stack for IDs, hashes, addresses, block
+references, and exact base-unit values. Inter is self-hosted in the frontend
+bundle; the system fallback remains responsible for scripts outside its
+coverage and must be tested before a locale is declared supported.
 
 ### Type roles
 
 ```text
-Plex Sans      primary UI, headings, explanations, navigation, buttons
-Plex Mono      IDs, hashes, addresses, exact units, technical evidence
+Inter Variable primary UI, headings, explanations, navigation, buttons
+System mono    IDs, hashes, addresses, exact units, technical evidence
 System fallback  unavailable font or unsupported glyph fallback
 ```
 
@@ -114,7 +111,7 @@ names, large amounts, and translated labels before being frozen.
   --pending-surface: #fff1d5;
   --blocked: #b8495b;
   --blocked-surface: #fbe7eb;
-  --focus: #145fd7;
+  --focus: #205cf3;
 }
 ```
 

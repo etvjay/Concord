@@ -184,7 +184,12 @@
     "targetCapacity": "9000000",
     "targetDisplay": "9 USDT0",
     "targetDecimals": 6,
+    "validUntilUnix": "1787229810",
+    "validUntil": "2026-08-20T12:43:30Z",
+    "policyHash": "0xcb41179c81b6d45a22487986ae6ca4faa1c025ff4492c02ce3d26c5b0de8443e",
     "maxFeeBps": 700,
+    "roundExpiryUnix": "1786884210",
+    "roundExpiry": "2026-08-16T12:43:30Z",
     "collateralLocked": "1000000",
     "collateralDisplay": "1 FXRP",
     "eligibleProviders": [
@@ -236,26 +241,38 @@
     "children": [
       {
         "id": "0x4335182fe9119ef6af37b5bd838f514d7a896a877be0a63578015b373a0bdfc0",
+        "allocationId": "0xf17a292655b898d8b00c9794565972ed838cd3de2812f6fa59d877d6963c88ec",
         "provider": "0x8d9340278094DF3F032c674C912D8eA08c17437C",
         "selectedCapacity": "3000000",
         "committedCapacity": "3000000",
         "drawnPrincipal": "0",
+        "feeBps": 610,
+        "validUntilUnix": "1786884210",
+        "termsCommitment": "0x73ba825304d56f474d450c58780aa250b5cd98e0924e9a56c79d2d1f5b0988bb",
         "state": "ACTIVE"
       },
       {
         "id": "0x2225a13ff17ac4f577d169d626b51e5b8311c01b336c6d5b09861a3363bfe97a",
+        "allocationId": "0xf17a292655b898d8b00c9794565972ed838cd3de2812f6fa59d877d6963c88ec",
         "provider": "0xF2E25459108A0454a85d03848AD6059C271cc9a5",
         "selectedCapacity": "3000000",
         "committedCapacity": "3000000",
         "drawnPrincipal": "0",
+        "feeBps": 640,
+        "validUntilUnix": "1786884210",
+        "termsCommitment": "0x12730a1f45e22aec3175729182a7192e4ed51cc07b5493e4f4d8f5185c419f6a",
         "state": "ACTIVE"
       },
       {
         "id": "0xbf169c1b664684a8cfde0fea5a870e9358a903a1dd5042d650fe2d21bf43086a",
+        "allocationId": "0xf17a292655b898d8b00c9794565972ed838cd3de2812f6fa59d877d6963c88ec",
         "provider": "0x9537eA25C28e8c1663e8B57C52A0761a244183A1",
         "selectedCapacity": "3000000",
         "committedCapacity": "3000000",
         "drawnPrincipal": "0",
+        "feeBps": 680,
+        "validUntilUnix": "1786884210",
+        "termsCommitment": "0xa4af953d87f72ee095b6ba6940055ee7f8fdfcd10c278278d60e10774569a7d7",
         "state": "ACTIVE"
       }
     ],
@@ -263,6 +280,22 @@
       "drawId": "0x85f634b07d8dfd83fe0f0f1a9b34504973e5e2d5e1e3886656bfb072c26f56ec",
       "drawAmount": "4000000",
       "drawLegCount": 2,
+      "drawCreatedAtUnix": "1786648474",
+      "drawCreatedAt": "2026-08-13T19:14:34Z",
+      "drawLegs": [
+        {
+          "id": "0xb9afb4dc836bc1dacfbd810b7a4fa69c3d015f76a9ad8cc6057dfb994548b791",
+          "childAccordId": "0x4335182fe9119ef6af37b5bd838f514d7a896a877be0a63578015b373a0bdfc0",
+          "principal": "3000000",
+          "repaidPrincipal": "3000000"
+        },
+        {
+          "id": "0xfabc9644b2e712870eddc4e6d195912bb34b56f0bc2a90a3b72559b3fb5835a1",
+          "childAccordId": "0x2225a13ff17ac4f577d169d626b51e5b8311c01b336c6d5b09861a3363bfe97a",
+          "principal": "1000000",
+          "repaidPrincipal": "1000000"
+        }
+      ],
       "fundingTransactions": [
         "0xfcb3ae5b2cdca68fbb974d30f1780defeb0ea65b49d3fe542e2b6ff395fd3bf0",
         "0x061e3b64c8978a405cc22510bb9620263697860be4fa3e7badcb7feb4b2ebb0f",
