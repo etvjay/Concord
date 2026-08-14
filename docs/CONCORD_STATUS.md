@@ -34,7 +34,8 @@ deployment proof.
   facility register, Root Accord workspace, funding, activity, evidence,
   lineage, child, and draw views from the recorded Coston2 deployment and the
   shared TypeScript SDK types. Injected-wallet connection, Coston2 switching,
-  native balance reads, and the official faucet link are live. Its build and
+  native balance reads, the official faucet link, live capacity reads, local
+  draw-intent generation, explicit wallet submission, and receipt tracking are live. Its build and
   ten semantic, invariant, learning, and wayfinding tests pass locally. The
   shell now exposes a single product-level destination, stable facility tabs,
   plain parent breadcrumbs, canonical terms with in-place definitions, and an
@@ -135,10 +136,13 @@ bound to the current token, and its current root round is recorded below.
   the documented Coston2 simulated development TEE path.
 - A named Cloudflare Tunnel or custom-domain ingress has not been provisioned;
   the stable Workers.dev relay remains the current development ingress.
-- The institutional frontend can connect and identify an injected Coston2
-  wallet, but lifecycle intent generation and transaction submission remain
-  disconnected. The evidence above still comes from the contract/FCC runners
-  and explorer receipts.
+- The institutional frontend now builds canonical draw calldata locally,
+  requires the recorded treasury borrower on Coston2, shows the unsigned intent
+  before a separate wallet-approval action, and waits for a public receipt.
+  Repayment and the broader lifecycle actions remain available through the
+  unsigned-intent API/SDK but are not yet surfaced as frontend controls. The
+  canonical evidence above still comes from the contract/FCC runners and
+  explorer receipts; browser-submitted transactions are reported separately.
 - The Northflank/Railway runtime bundle is reproducible but not yet deployed;
   a fresh hosted simulated TEE identity must be registered and the stale
   machine paused before the endpoint can be called continuously available.

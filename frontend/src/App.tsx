@@ -26,7 +26,6 @@ import {
   SparklesIcon,
   Squares2X2Icon,
   UserGroupIcon,
-  WalletIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { CheckCircleIcon as CheckCircleSolid } from "@heroicons/react/20/solid";
@@ -48,6 +47,7 @@ import {
   useLocation,
   useParams,
 } from "react-router-dom";
+import { DrawActionReview } from "./components/DrawActionReview";
 import { WalletControl } from "./components/WalletControl";
 import {
   activity,
@@ -793,36 +793,6 @@ function EvidenceSummary() {
   );
 }
 
-function ActionReview({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const dialogRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    dialogRef.current?.focus();
-    const onKey = (event: KeyboardEvent) => event.key === "Escape" && onClose();
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
-  if (!open) return null;
-  return (
-    <div className="modal-layer">
-      <button className="modal-scrim" aria-label="Close action review" onClick={onClose} />
-      <div className="action-review" role="dialog" aria-modal="true" aria-labelledby="action-review-title" ref={dialogRef} tabIndex={-1}>
-        <div className="action-review__header"><div className="action-review__icon"><ArrowDownTrayIcon aria-hidden="true" /></div><button className="icon-button" onClick={onClose} aria-label="Close action review"><XMarkIcon /></button></div>
-        <span className="eyebrow">UNSIGNED INTENT REVIEW</span>
-        <h2 id="action-review-title">Prepare a facility draw</h2>
-        <p>This interface is rendering recorded Coston2 evidence. A live intent service and treasury wallet must be connected before Concord can prepare calldata.</p>
-        <ol className="review-steps">
-          <li><span>1</span><div><strong>What would happen?</strong><p>A new root draw would allocate principal across eligible child capacity.</p></div></li>
-          <li><span>2</span><div><strong>Why is it allowed?</strong><p>The root is active, exposure is zero, and 9 USDT0 is available.</p></div></li>
-          <li><span>3</span><div><strong>What remains required?</strong><p>Amount entry, unsigned intent generation, explicit wallet approval, receipt confirmation, and an observed state update.</p></div></li>
-        </ol>
-        <div className="review-boundary"><WalletIcon aria-hidden="true" /><span><strong>No transaction has been prepared or submitted.</strong><small>The frontend does not hold private keys or broadcast on behalf of the treasury.</small></span></div>
-        <div className="action-review__actions"><button className="button button--secondary" onClick={onClose}>Close</button><button className="button button--primary" disabled>Intent service not connected</button></div>
-      </div>
-    </div>
-  );
-}
-
 function OverviewPage() {
   const [review, setReview] = useState(false);
   return (
@@ -835,7 +805,7 @@ function OverviewPage() {
         <div className="section-block"><div className="section-header"><div><span className="eyebrow">ACTIVITY</span><h2>Recent activity</h2></div><Link className="text-link" to={`${rootHref}/activity`}>All activity <ArrowRightIcon /></Link></div><ActivityList limit={3} /></div>
         <LineageInvitation />
       </section>
-      <ActionReview open={review} onClose={() => setReview(false)} />
+      <DrawActionReview open={review} onClose={() => setReview(false)} />
     </AppShell>
   );
 }

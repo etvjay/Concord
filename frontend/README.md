@@ -66,9 +66,18 @@ WalletConnect support. Public evidence remains browsable without connecting.
 
 ## Current interaction boundary
 
-Read views use recorded Coston2 evidence. Wallet connection establishes live
-network identity and balance only. The “Prepare draw” review explains the
-unsigned intent flow but does not fabricate calldata or transaction success: a
-live intent service and transaction-action boundary are still required.
-The FCC label is intentionally “simulated development TEE”; token settlement
-and public EVM state are not represented as private.
+Read views remain anchored to the recorded Coston2 evidence. The “Prepare draw”
+review now reads live capacity from the canonical CapitalFacility, validates the
+connected wallet against the recorded treasury borrower, and builds canonical
+`draw(bytes32,bytes32,uint256)` calldata locally. It presents the network,
+contract, Root Accord, amount, generated Draw ID, zero native value,
+preconditions, warnings, and full calldata before a separate “Approve in
+wallet” action. Submission is fixed to Coston2 and confirmation is read from the
+public receipt; Concord never receives a private key.
+
+Only the recorded treasury borrower can pass the client-side authority gate,
+and the contract independently enforces that authority and available capacity.
+The recorded snapshot is not silently rewritten after a new transaction; the
+review reports live post-confirmation capacity separately. The FCC label remains
+“simulated development TEE”; token settlement and public EVM state are not
+represented as private.
