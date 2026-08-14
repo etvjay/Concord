@@ -20,6 +20,13 @@ npm ci --ignore-scripts --no-audit --no-fund
 npm run dev
 ```
 
+For the fastest team walkthrough, open `http://localhost:5173/demo`. The
+Guided Demo replays the six-stage facility lifecycle using deterministic local
+state only; it does not connect a wallet or write to Coston2. The optional
+`/borrower` sandbox can prepare a fresh wallet-bound Root Accord on Coston2
+after explicit wallet approval. See [`docs/TEAM_DEMO.md`](../docs/TEAM_DEMO.md)
+for the complete boundary and runbook.
+
 Use `npm run build` for the TypeScript and production-bundle gate and
 `npm test` for semantic/invariant tests. The root-context production image is:
 

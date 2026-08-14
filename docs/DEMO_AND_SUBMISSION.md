@@ -18,6 +18,13 @@ settlement, and repayment.
 
 ## Four-minute demo
 
+For a transaction-free rehearsal, open the frontend's `/demo` route first and
+use **Next step** through the six local stages. It is a deterministic scenario
+replay, not additional Coston2 evidence. For a live wallet test, use the
+separate `/borrower` route only with a disposable Coston2 wallet; it creates a
+fresh Root Accord and stops at explicit wallet approval. The recorded facility
+below remains the primary evidence path.
+
 ### 0:00–0:35 — Start with the outcome
 
 Open the landing page and say:

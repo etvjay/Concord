@@ -102,6 +102,33 @@ describe("Concord frontend product semantics", () => {
     expect(screen.getByRole("heading", { name: /not in the recorded evidence/i })).toBeInTheDocument();
     expect(screen.queryByText(/all 9 usdt0 is available/i)).not.toBeInTheDocument();
   });
+
+  it("provides a complete local demo without mounting wallet actions", () => {
+    renderRoute("/demo");
+    expect(screen.getByTestId("guided-demo")).toBeInTheDocument();
+    expect(screen.getByText(/local demo · no transactions/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /run the full concord story/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /approve in wallet/i })).not.toBeInTheDocument();
+
+    for (let step = 0; step < 5; step += 1) {
+      fireEvent.click(screen.getByRole("button", { name: /next step/i }));
+    }
+
+    expect(screen.getByRole("heading", { name: /repay and reuse the relationship/i })).toBeInTheDocument();
+    expect(screen.getAllByText(/4 usdt0 repaid · capacity restored/i).length).toBeGreaterThan(0);
+    expect(screen.getByLabelText("Scenario facility position").querySelector(".demo-metric--accent strong")).toHaveTextContent("9");
+    fireEvent.click(screen.getByRole("button", { name: /replay demo/i }));
+    expect(screen.getByRole("heading", { name: /start one facility/i })).toBeInTheDocument();
+  });
+
+  it("separates the wallet-bound borrower sandbox from the recorded facility", () => {
+    renderRoute("/borrower");
+    expect(screen.getByTestId("borrower-sandbox")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /become the borrower of a new facility/i })).toBeInTheDocument();
+    expect(screen.getByText(/fresh facility · chain 114/i)).toBeInTheDocument();
+    expect(screen.getByText(/the recorded facility is not reused/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /install wallet/i })).toBeInTheDocument();
+  });
 });
 
 describe("recorded Coston2 invariants", () => {

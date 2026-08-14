@@ -1,8 +1,9 @@
 # Concord frontend map
 
-This is the frontend implementation map for the first product phase. It is a
-map over the shared product contract, not a second protocol design. Full UI
-implementation follows the live contract/FCC integration evidence gate.
+This is the frontend implementation map for the current product phase. It is a
+map over the shared product contract, not a second protocol design. The
+recorded evidence view, local Guided Demo, and wallet-bound Borrower Sandbox
+are intentionally separate surfaces.
 
 ## Product shell
 
@@ -47,6 +48,8 @@ and cannot be the only way to understand causality.
 | Route | Purpose | Required contract data |
 |---|---|---|
 | `/` | Outcome-first product story, wallet entry, and public proof | recorded evidence, network identity |
+| `/demo` | Deterministic six-stage team walkthrough with no writes | local scenario state, recorded terminology |
+| `/borrower` | Fresh wallet-bound borrower authorization boundary | Coston2 contract address, connected wallet, unsigned create intent |
 | `/facilities` | Facility register | accessible/recorded facilities and current state |
 | `/facilities/:rootAccordId` | Primary Root Accord workspace | facility, round, children, invariants |
 | `/facilities/:rootAccordId/funding` | Formation and funded Child Accords | round, allocation, funded children |
@@ -189,7 +192,10 @@ are made from an action boundary after the API/SDK returns an unsigned intent.
 This keeps the same semantics across web, CLI, REST, MCP, and institution
 integrations.
 
-The current wallet foundation intentionally stops before that write boundary:
-it connects an injected wallet, switches to Coston2, and reads the native
-balance. It does not infer a treasury/provider role from an address and does
-not submit facility transactions.
+The current wallet foundation keeps the write boundary explicit. It connects
+an injected wallet, switches to Coston2, reads the native balance, prepares
+unsigned Root Accord and draw intents locally, and submits only after a
+separate wallet approval. The recorded facility draw is restricted to its
+observed borrower. The Borrower Sandbox binds a new Root Accord to the wallet
+that calls `createRootAccord`; it does not infer authority for the recorded
+facility, automatically fund providers, or silently broadcast runner actions.

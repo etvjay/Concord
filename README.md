@@ -38,7 +38,10 @@ repayments are explicit nodes in its lineage.
   restored capacity, and evidence boundary through one shared SDK model. It
   connects injected wallets, switches to Coston2, reads live capacity, prepares
   canonical draw calldata locally, requires a separate wallet approval, and
-  tracks the public receipt without retaining keys.
+  tracks the public receipt without retaining keys. It also provides a
+  transaction-free six-step Guided Demo and a separate wallet-bound Borrower
+  Sandbox that can prepare a fresh Root Accord intent without reusing the
+  recorded facility.
 
 ## Truth boundary
 

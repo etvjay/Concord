@@ -45,8 +45,12 @@ in this pass.
   lineage, child, and draw views from the recorded Coston2 deployment and the
   shared TypeScript SDK types. Injected-wallet connection, Coston2 switching,
   native balance reads, the official faucet link, live capacity reads, local
-  draw-intent generation, explicit wallet submission, and receipt tracking are live. Its build and
-  ten semantic, invariant, learning, and wayfinding tests pass locally. The
+  draw-intent generation, explicit wallet submission, and receipt tracking are live.
+  The `/demo` route is a deterministic six-stage local walkthrough with no
+  wallet or RPC writes. The `/borrower` route prepares a fresh wallet-bound
+  `createRootAccord` intent and stops at explicit approval; it does not reuse
+  the recorded facility or claim a public coordinator runner. Its build and
+  fifteen semantic, invariant, learning, and wayfinding tests pass locally. The
   shell now exposes a single product-level destination, stable facility tabs,
   plain parent breadcrumbs, canonical terms with in-place definitions, and an
   optional first-use tour plus persistent glossary. Forced Back/Next journey
@@ -190,9 +194,11 @@ bound to the current token, and its current root round is recorded below.
 - The institutional frontend now builds canonical draw calldata locally,
   requires the recorded treasury borrower on Coston2, shows the unsigned intent
   before a separate wallet-approval action, and waits for a public receipt.
-  Repayment and the broader lifecycle actions remain available through the
-  unsigned-intent API/SDK but are not yet surfaced as frontend controls. The
-  canonical evidence above still comes from the contract/FCC runners and
+  The Borrower Sandbox can also prepare the first fresh-facility
+  `createRootAccord` intent, where `msg.sender` becomes the borrower. It does
+  not yet surface collateral approval, provider funding, verifier, or
+  automatic runner actions; those remain explicit team-operated boundaries.
+  The canonical evidence above still comes from the contract/FCC runners and
   explorer receipts; browser-submitted transactions are reported separately.
 - The Northflank runtime bundle is deployed and reproducible. The fresh hosted
   simulated TEE identity must still be registered and the stale machine paused

@@ -48,6 +48,8 @@ import {
   useParams,
 } from "react-router-dom";
 import { DrawActionReview } from "./components/DrawActionReview";
+import { BorrowerSandbox } from "./components/BorrowerSandbox";
+import { GuidedDemo } from "./components/GuidedDemo";
 import { WalletControl } from "./components/WalletControl";
 import {
   activity,
@@ -109,7 +111,7 @@ function PublicHeader() {
       </nav>
       <div className="public-header__actions">
         <WalletControl compact />
-        <Link className="button button--primary button--compact" to={rootHref}>Open app</Link>
+        <Link className="button button--primary button--compact" to="/demo">Run demo</Link>
       </div>
     </header>
   );
@@ -202,8 +204,8 @@ function LandingPage() {
               Concord lets a treasury coordinate funding privately, draw from the combined facility, and see exactly which provider funded every amount.
             </p>
             <div className="hero-actions">
-              <Link className="button button--primary" to={rootHref}>Explore the facility record <ArrowRightIcon aria-hidden="true" /></Link>
-              <Link className="button button--secondary" to={`/draws/${draw.id}`}>Follow one draw</Link>
+              <Link className="button button--primary" to="/demo"><SparklesIcon aria-hidden="true" />Run the guided demo</Link>
+              <Link className="button button--secondary" to={rootHref}>Explore the recorded facility <ArrowRightIcon aria-hidden="true" /></Link>
             </div>
             <div className="proof-line" aria-label="Current implementation evidence">
               <span>Recorded on Coston2</span>
@@ -303,8 +305,8 @@ function LandingPage() {
       <section className="landing-cta shell-frame">
         <span className="eyebrow">SEE CONCORD IN CONTEXT</span>
         <h2>One facility. Every participant. Every movement explained.</h2>
-        <p>Connect a Coston2 wallet for network identity, or explore the completed public facility without connecting.</p>
-        <div className="landing-cta__actions"><WalletControl /><Link className="button button--primary" to={rootHref}>Explore facility <ArrowRightIcon aria-hidden="true" /></Link></div>
+        <p>Run a transaction-free walkthrough, inspect the completed public proof, or connect a wallet when you are ready to test borrower authority on a fresh facility.</p>
+        <div className="landing-cta__actions"><WalletControl /><Link className="button button--primary" to="/demo"><SparklesIcon aria-hidden="true" />Run guided demo</Link><Link className="button button--secondary" to="/borrower"><UserGroupIcon aria-hidden="true" />Borrower sandbox</Link></div>
       </section>
 
       <footer className="public-footer">
@@ -325,13 +327,26 @@ type RouteGuide = {
 };
 
 const globalRoutes: Array<{ label: string; to: string; icon: IconType; matches: (pathname: string) => boolean }> = [
-  { label: "Facilities", to: "/facilities", icon: DocumentTextIcon, matches: (pathname) => pathname !== "/settings" },
+  { label: "Demo", to: "/demo", icon: SparklesIcon, matches: (pathname) => pathname === "/demo" },
+  { label: "Facilities", to: "/facilities", icon: DocumentTextIcon, matches: (pathname) => pathname !== "/settings" && pathname !== "/demo" && pathname !== "/borrower" },
 ];
 
 function routeGuide(pathname: string): RouteGuide {
   const facilityCrumb = { label: "Coston2 facility", to: rootHref };
   const workspaceCrumb = { label: "Facilities", to: "/facilities" };
 
+  if (pathname === "/demo") return {
+    section: "Team demo",
+    current: "Guided lifecycle",
+    crumbs: [],
+    back: { label: "Public site", to: "/" },
+  };
+  if (pathname === "/borrower") return {
+    section: "Borrower sandbox",
+    current: "Fresh facility",
+    crumbs: [],
+    back: { label: "Guided demo", to: "/demo" },
+  };
   if (pathname === "/facilities") return {
     section: "Workspace",
     current: "Facilities",
@@ -514,6 +529,8 @@ function HelpCenter({ onStartTour }: { onStartTour: () => void }) {
           <p>Learn the product at your own pace. Nothing here blocks the facility.</p>
           <button onClick={() => { setOpen(false); onStartTour(); }}><SparklesIcon /><span><strong>Take the product tour</strong><small>A five-step introduction</small></span><ChevronRightIcon /></button>
           <button onClick={() => setView("glossary")}><DocumentTextIcon /><span><strong>Concord glossary</strong><small>Plain language and canonical terms</small></span><ChevronRightIcon /></button>
+          <Link to="/demo" onClick={() => setOpen(false)}><SparklesIcon /><span><strong>Run the guided demo</strong><small>Six steps · no transactions</small></span><ChevronRightIcon /></Link>
+          <Link to="/borrower" onClick={() => setOpen(false)}><UserGroupIcon /><span><strong>Borrower sandbox</strong><small>Fresh wallet-bound Root Accord</small></span><ChevronRightIcon /></Link>
           <Link to={`${rootHref}/evidence`} onClick={() => setOpen(false)}><ShieldCheckIcon /><span><strong>Privacy and evidence</strong><small>What is private, public, and verified</small></span><ChevronRightIcon /></Link>
           <Link to="/settings" onClick={() => setOpen(false)}><ServerStackIcon /><span><strong>Network and assets</strong><small>Coston2 environment details</small></span><ChevronRightIcon /></Link>
         </> : <>
@@ -572,7 +589,7 @@ function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => void })
   );
 }
 
-function AppShell({ children }: PropsWithChildren) {
+function AppShell({ children, demoMode = false }: PropsWithChildren<{ demoMode?: boolean }>) {
   const [drawer, setDrawer] = useState(false);
   const [tour, setTour] = useState(false);
   const [showPrimer, setShowPrimer] = useState(() => {
@@ -605,8 +622,7 @@ function AppShell({ children }: PropsWithChildren) {
         </nav>
         <div className="app-header__context">
           <HelpCenter onStartTour={startTour} />
-          <NetworkMark />
-          <WalletControl compact />
+          {demoMode ? <span className="demo-header-mark"><SparklesIcon aria-hidden="true" />Local demo</span> : <><NetworkMark /><WalletControl compact /></>}
         </div>
       </header>
       <MobileDrawer open={drawer} onClose={() => setDrawer(false)} />
@@ -615,7 +631,7 @@ function AppShell({ children }: PropsWithChildren) {
         {location.pathname === rootHref && showPrimer && <OnboardingPrimer onStart={startTour} onDismiss={dismissPrimer} />}
         {children}
       </div>
-      <footer className="app-footer"><Brand /><span>Coston2 · chain 114 · recorded {formatDate(snapshot.deployment.observedAt)}</span><div><a href="https://github.com/etvjay/Concord" target="_blank" rel="noreferrer">Source</a><Link to="/settings">Disclosure</Link></div></footer>
+      <footer className="app-footer"><Brand /><span>{demoMode ? "Local scenario · no Coston2 transactions" : `Coston2 · chain 114 · recorded ${formatDate(snapshot.deployment.observedAt)}`}</span><div><a href="https://github.com/etvjay/Concord" target="_blank" rel="noreferrer">Source</a><Link to="/settings">Disclosure</Link></div></footer>
       <ProductTour open={tour} onClose={() => setTour(false)} />
     </div>
   );
@@ -944,6 +960,14 @@ function SettingsPage() {
   );
 }
 
+function DemoPage() {
+  return <AppShell demoMode><GuidedDemo /></AppShell>;
+}
+
+function BorrowerPage() {
+  return <AppShell><BorrowerSandbox /></AppShell>;
+}
+
 function NotFound() {
   return <AppShell><div className="not-found"><DocumentTextIcon /><span className="eyebrow">NOT OBSERVED</span><h1>This relationship is not in the recorded evidence.</h1><p>Concord is not asserting an empty or zero state for this identifier.</p><Link className="button button--primary" to="/facilities">Return to facilities</Link></div></AppShell>;
 }
@@ -957,6 +981,8 @@ export function App() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
+      <Route path="/demo" element={<DemoPage />} />
+      <Route path="/borrower" element={<BorrowerPage />} />
       <Route path="/facilities" element={<FacilitiesPage />} />
       <Route path="/facilities/:rootId" element={<ObservedFacilityRoute><OverviewPage /></ObservedFacilityRoute>} />
       <Route path="/facilities/:rootId/funding" element={<ObservedFacilityRoute><FundingPage /></ObservedFacilityRoute>} />

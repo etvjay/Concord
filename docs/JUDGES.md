@@ -17,20 +17,22 @@ root-child lineage.
 
 ## Five-minute evaluation path
 
-1. Read the [current status](CONCORD_STATUS.md) and the
+1. Start with the [local team demo and truth boundary](TEAM_DEMO.md) if you
+   want to rehearse the product flow without a wallet or network writes.
+2. Read the [current status](CONCORD_STATUS.md) and the
    [deployment record](../config/coston2/concord-deployment.json).
-2. From a clean checkout, run the credential-free preflight:
+3. From a clean checkout, run the credential-free preflight:
    `./scripts/judge-check.sh`.
-3. Open the [complete facility lifecycle run](https://github.com/etvjay/Concord/actions/runs/31734593116)
+4. Open the [complete facility lifecycle run](https://github.com/etvjay/Concord/actions/runs/31734593116)
    and its [public evidence artifact](https://github.com/etvjay/Concord/actions/runs/31734593116/artifacts/9194681063).
-4. Inspect the [FCC round run](https://github.com/etvjay/Concord/actions/runs/31733200629),
+5. Inspect the [FCC round run](https://github.com/etvjay/Concord/actions/runs/31733200629),
    [signed action evidence](https://github.com/etvjay/Concord/actions/runs/31733200629/artifacts/9194157272),
    and [materialization recovery run](https://github.com/etvjay/Concord/actions/runs/31733740564).
-5. Verify the public Coston2 contract and settlement receipts in the
+6. Verify the public Coston2 contract and settlement receipts in the
    [Coston2 explorer](https://coston2-explorer.flare.network):
    `CapitalFacility 0xfaff601a18a9fca33378953515aa0f3ef9286ecd` and
    `AccordRegistry 0x68b19a3967760489b57341669cd7ea960b5f7367`.
-6. Review the contract lifecycle tests and the deterministic CoFill tests in
+7. Review the contract lifecycle tests and the deterministic CoFill tests in
    `contracts/test/`, `go/`, and `tools/`.
 
 ## Observed result

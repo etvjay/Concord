@@ -44,6 +44,8 @@ record before making a deployment or privacy claim.
   — current FCC source refresh and deployment-attempt boundary.
 - [JUDGES.md](JUDGES.md) — five-minute evaluation path, public evidence, and
   live-verification boundaries.
+- [TEAM_DEMO.md](TEAM_DEMO.md) — local guided demo, wallet-bound borrower
+  sandbox, and coordinator boundary for teammates.
 - `../scripts/judge-check.sh` — credential-free, read-only judge preflight.
 - [templates/coston2-evidence.template.json](templates/coston2-evidence.template.json)
   — blank evidence shape with `not_observed` defaults.
