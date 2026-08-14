@@ -5,11 +5,13 @@ current Coston2 FCC development path. Northflank keeps one proxy service, one
 TEE service, and one private Redis addon running continuously. It does not make
 the simulated TEE identity persistent across a process restart.
 
-Deployment checkpoint: the contract is prepared, but no Northflank project,
-proxy URL, or new machine identity is claimed in this checkout. The first
-operator with Northflank access must create the project, provision the private
-dependencies, and attach live evidence before updating the Coston2 deployment
-records.
+Deployment checkpoint (2026-08-14): project `concord` is running in
+`europe-west` with private Redis `concord-redis`, proxy service
+`concord-fcc-proxy`, and simulated TEE service `concord-fcc-tee`. The
+Cloudflare relay at `https://concord-fcc-ingress.microcosm.workers.dev` returns
+HTTP 200 from `/info` with chain ID `114` and extension `66188`. This
+deployment performed no Coston2 broadcast. The current simulated TEE identity
+is ephemeral and still requires the gated registration procedure below.
 
 ## Topology
 
@@ -94,8 +96,9 @@ After the first TEE deployment, or after any TEE restart:
    ./scripts/check-hosted-fcc.sh https://<stable-proxy-domain> 66188
    ```
 
-6. Dispatch one new Coston2 development instruction and retain the dispatch,
-   status, result, and registry evidence.
+6. After explicit operator confirmation at broadcast time, dispatch one new
+   Coston2 development instruction and retain the dispatch, status, result,
+   and registry evidence.
 
 When preparing the official `rRap` run, pass a temporary state file outside the
 checkout (for example `/tmp/concord-register-tee.state`). Never commit or
