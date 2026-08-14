@@ -9,14 +9,17 @@ Accord, Makkari, CoFill, Lineage, or the completed facility evidence.
 At the 2026-08-14 deployment attempt, the repository contract and read-only
 verification fixes are prepared, but no new hosted runtime is evidenced. The
 Vercel production deployment was rejected by the connected team with HTTP 403
-because the integration lacks Production Deploy permission. No Northflank API
-or dashboard connection is available in this session, so no Northflank project,
-managed proxy URL, new `teeId`, registration transaction, pause transaction, or
-fresh availability proof is recorded. Do not treat the placeholders below as
-live endpoints.
+because the integration lacks Production Deploy permission. The historical
+Workers.dev `/info` endpoint returned HTTP 404 at 2026-08-14T10:49:53Z, and the
+GitHub Codespaces API showed both Concord Codespaces as `Shutdown`. No
+Northflank project, managed proxy URL, new `teeId`, registration transaction,
+pause transaction, or fresh availability proof is recorded. Do not treat the
+placeholders below as live endpoints.
 
 The exact source refresh for this attempt is recorded in
 [`docs/source-snapshot-2026-08-14-deployment.yaml`](source-snapshot-2026-08-14-deployment.yaml).
+The follow-up live blocker record is
+[`docs/source-snapshot-2026-08-14-live-blocker.yaml`](source-snapshot-2026-08-14-live-blocker.yaml).
 
 ## Recommended topology: Northflank
 

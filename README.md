@@ -106,7 +106,8 @@ integration is granted Production Deploy permission. The Vercel project must
 also have Settings → Deployment Protection → Vercel Authentication disabled
 for Production. Northflank has likewise
 not been provisioned in this session. See the [current status](docs/CONCORD_STATUS.md)
-and [deployment source snapshot](docs/source-snapshot-2026-08-14-deployment.yaml)
+and [deployment source snapshot](docs/source-snapshot-2026-08-14-deployment.yaml),
+plus the [live blocker check](docs/source-snapshot-2026-08-14-live-blocker.yaml)
 before making a public-hosting claim.
 
 The current always-on FCC development-host plan and safe simulated-TEE identity

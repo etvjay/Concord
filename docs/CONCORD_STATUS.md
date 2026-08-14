@@ -7,6 +7,7 @@ Vercel/Northflank cutover is not claimed without live evidence.
 
 - The fresh source snapshot used for this checkpoint is [source-snapshot-2026-08-14.yaml](source-snapshot-2026-08-14.yaml). It records the current official Coston2 FCC development path and the Northflank/Railway availability decision.
 - The deployment-attempt source refresh is [source-snapshot-2026-08-14-deployment.yaml](source-snapshot-2026-08-14-deployment.yaml). It records the current official source revisions, verified development values, and access blockers.
+- The follow-up live blocker check is [source-snapshot-2026-08-14-live-blocker.yaml](source-snapshot-2026-08-14-live-blocker.yaml). It records the dead Workers.dev `/info` endpoint, the public Systems Explorer reachability check, and the two shutdown Concord Codespaces.
 
 ## Works in the durable checkpoint
 
@@ -71,6 +72,7 @@ Vercel/Northflank cutover is not claimed without live evidence.
   status `2`. The old `/info` endpoint currently returns HTTP 404, while the
   official normal/FTDC proxy returns HTTP 200 with chain ID `114`; this is not
   new Concord-host evidence.
+- A follow-up check at 2026-08-14T10:49:53Z loaded the public [Coston2 Systems Explorer machine view](https://coston2-systems-explorer.flare.network/tee/objects?tab=machines&machine_extensionId=66188) with HTTP 200, but the raw response had not finished the client-rendered machine table. The GitHub Codespaces API showed both Concord Codespaces in `Shutdown` state with no public port, explaining the Workers.dev 404. No replacement proxy URL is inferred from this check.
 - No Coston2 transaction was broadcast during this attempt. The old identity
   remains historical evidence until a future operator explicitly confirms the
   new registration/pause batches with complete transaction details.

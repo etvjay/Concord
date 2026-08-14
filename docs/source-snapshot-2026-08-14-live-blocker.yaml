@@ -1,0 +1,66 @@
+snapshot:
+  captured_at_utc: 2026-08-14T10:49:53Z
+  freshness: LIVE_BLOCKER_CHECK
+  environment: Coston2
+  chain_id: 114
+  rpc_url: https://coston2-api.flare.network/ext/C/rpc
+  concord_extension_id:
+    decimal: 66188
+    bytes32: 0x000000000000000000000000000000000000000000000000000000000001028c
+  tee_registry: 0x1a9C4A0f9D76c0b1D91d22E24E573a9b377618aE
+  runtime_values:
+    SIMULATED_TEE: true
+    MODE: 1
+  normal_ftdc_proxy_url: https://tee-proxy-coston2-1.flare.rocks
+  sources:
+    - url: https://dev.flare.network/network/overview
+      retrieved_at_utc: 2026-08-14T10:17:34Z
+      verified: Coston2 RPC, chain ID, and explorer
+    - url: https://dev.flare.network/fcc/guides/getting-started
+      retrieved_at_utc: 2026-08-14T10:17:34Z
+      verified: simulated Coston2 flow, nested /info fields, separate indexer DB, and normal proxy guidance
+    - url: https://coston2-systems-explorer.flare.network/tee/objects?tab=machines&machine_extensionId=66188
+      retrieved_at_utc: 2026-08-14T10:49:53Z
+      http_status: 200
+      note: The public Systems Explorer page loaded; the client-rendered machine table was still loading in the raw HTTP response. The Coston2 RPC read remains the registry authority.
+    - url: https://concord-fcc-ingress.microcosm.workers.dev/info
+      retrieved_at_utc: 2026-08-14T10:49:53Z
+      http_status: 404
+      note: Historical Workers.dev relay is not serving /info.
+  historical_machine:
+    tee_id: 0xeE39d5e7d1C5043232282e3CC884B41a9Db22c85
+    registered_url: https://concord-fcc-ingress.microcosm.workers.dev
+    status: 2
+    last_chain_registry_read_at_utc: 2026-08-14T10:22:48Z
+  codespaces:
+    source: https://api.github.com/user/codespaces
+    retrieved_at_utc: 2026-08-14T10:49:53Z
+    repository: etvjay/Concord
+    observed:
+      - state: Shutdown
+        public_port: absent
+      - state: Shutdown
+        public_port: absent
+    implication: The historical Codespace-backed upstream cannot currently serve the Workers.dev relay.
+  deployment_attempt:
+    vercel:
+      project: concord-flare
+      team: jaydearcadians-projects
+      public_production_url: not_observed
+      blocker: HTTP_403_missing_production_deploy_permission
+    northflank:
+      project: not_created_or_observed
+      stable_proxy_url: not_observed
+      blocker: short-lived token was pasted into chat and was not consumed; safe env-file or managed-secret injection is required
+    cloudflare:
+      worker_change: not_claimed
+      historical_worker: https://concord-fcc-ingress.microcosm.workers.dev
+  broadcast_boundary:
+    transactions_broadcast: false
+    pending_actions:
+      - allow_or_confirm_tee_version_only_if_not_already_satisfied
+      - set_governance_only_if_not_already_satisfied
+      - register_new_simulated_tee_with_command_rRap
+      - pause_historical_codespace_identity
+      - dispatch_one_fresh_concord_development_instruction
+    confirmation_required: true

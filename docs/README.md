@@ -38,6 +38,7 @@ record before making a deployment or privacy claim.
 
 - [CONCORD_STATUS.md](CONCORD_STATUS.md) — what is and is not evidenced.
 - [source-snapshot-2026-08-14-deployment.yaml](source-snapshot-2026-08-14-deployment.yaml)
+- [source-snapshot-2026-08-14-live-blocker.yaml](source-snapshot-2026-08-14-live-blocker.yaml)
   — current FCC source refresh and deployment-attempt boundary.
 - [JUDGES.md](JUDGES.md) — five-minute evaluation path, public evidence, and
   live-verification boundaries.
