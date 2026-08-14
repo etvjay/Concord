@@ -1,0 +1,356 @@
+name: Northflank Concord runtime
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type DEPLOY_CONCORD to create the Northflank runtime"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: concord-northflank-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/agent/concord-rebuild' && inputs.confirm == 'DEPLOY_CONCORD'
+    runs-on: ubuntu-latest
+    env:
+      NF_API: https://api.northflank.com/v1
+      NF_PROJECT: concord
+      REDIS_ADDON: concord-redis
+      NF_API_KEY: ${{ secrets.CONCORD_NORTHFLANK_API_KEY_TEMP }}
+      PROXY_PRIVATE_KEY: ${{ secrets.CONCORD_FCC_PROXY_PRIVATE_KEY }}
+      INDEXER_DB_HOST: ${{ secrets.CONCORD_FCC_INDEXER_DB_HOST }}
+      INDEXER_DB_NAME: ${{ secrets.CONCORD_FCC_INDEXER_DB_NAME }}
+      INDEXER_DB_USER: ${{ secrets.CONCORD_FCC_INDEXER_DB_USER }}
+      INDEXER_DB_PASSWORD: ${{ secrets.CONCORD_FCC_INDEXER_DB_PASSWORD }}
+    steps:
+      - name: Check out the requested revision
+        uses: actions/checkout@v4
+
+      - name: Create Northflank services and encrypted runtime groups
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          : "${NF_API_KEY:?CONCORD_NORTHFLANK_API_KEY_TEMP is required}"
+          : "${PROXY_PRIVATE_KEY:?CONCORD_FCC_PROXY_PRIVATE_KEY is required}"
+          : "${INDEXER_DB_HOST:?CONCORD_FCC_INDEXER_DB_HOST is required}"
+          : "${INDEXER_DB_NAME:?CONCORD_FCC_INDEXER_DB_NAME is required}"
+          : "${INDEXER_DB_USER:?CONCORD_FCC_INDEXER_DB_USER is required}"
+          : "${INDEXER_DB_PASSWORD:?CONCORD_FCC_INDEXER_DB_PASSWORD is required}"
+
+          api() {
+            local method="$1"
+            local path="$2"
+            local body_file="${3:-}"
+            local response_file="${RUNNER_TEMP}/northflank-${RANDOM}.json"
+            local status
+
+            if [[ -n "$body_file" ]]; then
+              status="$(curl --silent --show-error --max-time 180 \
+                --request "$method" \
+                --header "Authorization: Bearer ${NF_API_KEY}" \
+                --header "Content-Type: application/json" \
+                --header "User-Agent: concord-github-actions" \
+                --data-binary "@${body_file}" \
+                --output "$response_file" \
+                --write-out '%{http_code}' \
+                "${NF_API}${path}")"
+            else
+              status="$(curl --silent --show-error --max-time 180 \
+                --request "$method" \
+                --header "Authorization: Bearer ${NF_API_KEY}" \
+                --header "User-Agent: concord-github-actions" \
+                --output "$response_file" \
+                --write-out '%{http_code}' \
+                "${NF_API}${path}")"
+            fi
+
+            if [[ "$status" != 2* ]]; then
+              echo "Northflank ${method} ${path} failed with HTTP ${status}" >&2
+              return 1
+            fi
+            printf '%s\n' "$response_file"
+          }
+
+          response_has_service() {
+            local response_file="$1"
+            local service_name="$2"
+            jq -e --arg name "$service_name" '
+              ((.data // {}) | if type == "array" then . else (.services // []) end)
+              | any(.[]; (.name == $name or .id == $name))
+            ' "$response_file" >/dev/null
+          }
+
+          response_has_secret() {
+            local response_file="$1"
+            local secret_name="$2"
+            jq -e --arg name "$secret_name" '
+              ((.data // {}) | if type == "array" then . else (.secrets // []) end)
+              | any(.[]; (.name == $name or .id == $name))
+            ' "$response_file" >/dev/null
+          }
+
+          services_response="$(api GET "/projects/${NF_PROJECT}/services")"
+          for service_name in concord-fcc-proxy concord-fcc-tee; do
+            if response_has_service "$services_response" "$service_name"; then
+              echo "Refusing to overwrite existing Northflank service ${service_name}; inspect it before rerunning." >&2
+              exit 1
+            fi
+          done
+
+          secrets_response="$(api GET "/projects/${NF_PROJECT}/secrets")"
+          for secret_name in concord-fcc-proxy-runtime concord-fcc-tee-runtime; do
+            if response_has_secret "$secrets_response" "$secret_name"; then
+              echo "Refusing to overwrite existing Northflank secret group ${secret_name}; inspect it before rerunning." >&2
+              exit 1
+            fi
+          done
+
+          redis_credentials=""
+          redis_host=""
+          redis_port=""
+          redis_password=""
+          for _ in $(seq 1 36); do
+            redis_credentials="$(api GET "/projects/${NF_PROJECT}/addons/${REDIS_ADDON}/credentials")"
+            redis_host="$(jq -r '.data.envs.HOST // empty' "$redis_credentials")"
+            redis_port="$(jq -r '.data.envs.PORT // empty' "$redis_credentials")"
+            redis_password="$(jq -r '.data.secrets.PASSWORD // empty' "$redis_credentials")"
+            if [[ -n "$redis_host" && -n "$redis_port" && -n "$redis_password" ]]; then
+              break
+            fi
+            sleep 10
+          done
+          [[ -n "$redis_host" && -n "$redis_port" && -n "$redis_password" ]] || {
+            echo "Northflank Redis credentials were not available after waiting." >&2
+            exit 1
+          }
+          redis_endpoint="${redis_host}:${redis_port}"
+
+          proxy_body="${RUNNER_TEMP}/concord-fcc-proxy.json"
+          jq -n \
+            '{
+              name: "concord-fcc-proxy",
+              description: "Concord Flare Connectivity Controller extension proxy",
+              billing: {
+                deploymentPlan: "nf-compute-100-1",
+                buildPlan: "nf-compute-200-8"
+              },
+              deployment: {
+                type: "deployment",
+                instances: 1,
+                docker: {configType: "default"},
+                storage: {ephemeralStorage: {storageSize: 1024}}
+              },
+              ports: [
+                {name: "pub6664", internalPort: 6664, public: true, protocol: "HTTP"},
+                {name: "int6663", internalPort: 6663, public: false, protocol: "HTTP"}
+              ],
+              disabledCI: true,
+              buildSource: "git",
+              vcsData: {
+                projectUrl: "https://github.com/etvjay/Concord",
+                projectType: "github",
+                projectBranch: "agent/concord-rebuild"
+              },
+              buildSettings: {
+                storage: {ephemeralStorage: {storageSize: 32768}},
+                dockerfile: {
+                  buildEngine: "buildkit",
+                  dockerFilePath: "/infra/railway/proxy.Dockerfile",
+                  dockerWorkDir: "/",
+                  buildkit: {useCache: true, cacheStorageSize: 32768}
+                }
+              },
+              healthChecks: [
+                {
+                  protocol: "HTTP",
+                  type: "readinessProbe",
+                  path: "/info",
+                  port: 6664,
+                  initialDelaySeconds: 30,
+                  periodSeconds: 30,
+                  timeoutSeconds: 5,
+                  failureThreshold: 5,
+                  successThreshold: 1
+                },
+                {
+                  protocol: "HTTP",
+                  type: "livenessProbe",
+                  path: "/info",
+                  port: 6664,
+                  initialDelaySeconds: 90,
+                  periodSeconds: 30,
+                  timeoutSeconds: 5,
+                  failureThreshold: 5,
+                  successThreshold: 1
+                }
+              ],
+              autoscaling: {horizontal: {enabled: false}}
+            }' >"$proxy_body"
+
+          tee_body="${RUNNER_TEMP}/concord-fcc-tee.json"
+          jq -n \
+            '{
+              name: "concord-fcc-tee",
+              description: "Concord simulated Coston2 extension TEE",
+              billing: {
+                deploymentPlan: "nf-compute-100-1",
+                buildPlan: "nf-compute-200-8"
+              },
+              deployment: {
+                type: "deployment",
+                instances: 1,
+                docker: {configType: "default"},
+                storage: {ephemeralStorage: {storageSize: 1024}}
+              },
+              ports: [
+                {name: "cfg5501", internalPort: 5501, public: false, protocol: "TCP"},
+                {name: "sign7701", internalPort: 7701, public: false, protocol: "TCP"},
+                {name: "ext7702", internalPort: 7702, public: false, protocol: "TCP"}
+              ],
+              disabledCI: true,
+              buildSource: "git",
+              vcsData: {
+                projectUrl: "https://github.com/etvjay/Concord",
+                projectType: "github",
+                projectBranch: "agent/concord-rebuild"
+              },
+              buildSettings: {
+                storage: {ephemeralStorage: {storageSize: 32768}},
+                dockerfile: {
+                  buildEngine: "buildkit",
+                  dockerFilePath: "/go/Dockerfile",
+                  dockerWorkDir: "/",
+                  buildkit: {useCache: true, cacheStorageSize: 32768}
+                }
+              },
+              healthChecks: [
+                {
+                  protocol: "TCP",
+                  type: "readinessProbe",
+                  port: 5501,
+                  initialDelaySeconds: 30,
+                  periodSeconds: 30,
+                  timeoutSeconds: 5,
+                  failureThreshold: 5,
+                  successThreshold: 1
+                },
+                {
+                  protocol: "TCP",
+                  type: "livenessProbe",
+                  port: 5501,
+                  initialDelaySeconds: 90,
+                  periodSeconds: 30,
+                  timeoutSeconds: 5,
+                  failureThreshold: 5,
+                  successThreshold: 1
+                }
+              ],
+              autoscaling: {horizontal: {enabled: false}}
+            }' >"$tee_body"
+
+          proxy_create="$(api POST "/projects/${NF_PROJECT}/services/combined" "$proxy_body")"
+          proxy_id="$(jq -r '.data.id // .data.service.id // .data.name // .data.service.name // empty' "$proxy_create")"
+          [[ -n "$proxy_id" ]] || { echo "Northflank did not return a proxy service id." >&2; exit 1; }
+          echo "Created Northflank service concord-fcc-proxy (${proxy_id})."
+
+          tee_create="$(api POST "/projects/${NF_PROJECT}/services/combined" "$tee_body")"
+          tee_id="$(jq -r '.data.id // .data.service.id // .data.name // .data.service.name // empty' "$tee_create")"
+          [[ -n "$tee_id" ]] || { echo "Northflank did not return a TEE service id." >&2; exit 1; }
+          echo "Created Northflank service concord-fcc-tee (${tee_id})."
+
+          proxy_secret_body="${RUNNER_TEMP}/concord-fcc-proxy-secret.json"
+          jq -n \
+            --arg service_id "$proxy_id" \
+            --arg proxy_private_key "$PROXY_PRIVATE_KEY" \
+            --arg redis_endpoint "$redis_endpoint" \
+            --arg redis_password "$redis_password" \
+            --arg indexer_db_host "$INDEXER_DB_HOST" \
+            --arg indexer_db_name "$INDEXER_DB_NAME" \
+            --arg indexer_db_user "$INDEXER_DB_USER" \
+            --arg indexer_db_password "$INDEXER_DB_PASSWORD" \
+            '{
+              name: "concord-fcc-proxy-runtime",
+              description: "Encrypted runtime variables for the Concord FCC proxy",
+              type: "secret",
+              secretType: "environment",
+              priority: 10,
+              restrictions: {
+                restricted: true,
+                nfObjects: [{id: $service_id, type: "service"}]
+              },
+              secrets: {
+                variables: {
+                  PROXY_PRIVATE_KEY: $proxy_private_key,
+                  REDIS_ENDPOINT: $redis_endpoint,
+                  REDIS_PASSWORD: $redis_password,
+                  INDEXER_DB_HOST: $indexer_db_host,
+                  INDEXER_DB_PORT: "3306",
+                  INDEXER_DB_NAME: $indexer_db_name,
+                  INDEXER_DB_USER: $indexer_db_user,
+                  INDEXER_DB_PASSWORD: $indexer_db_password,
+                  FLARE_SYSTEMS_MANAGER: "0xA90Db6D10F856799b10ef2A77EBCbF460aC71e52",
+                  FLARE_RELAY: "0xa10B672D1c62e5457b17af63d4302add6A99d7dE",
+                  VOTER_REGISTRY: "0x6a0AF07b7972177B176d3D422555cbc98DfDe914"
+                }
+              }
+            }' >"$proxy_secret_body"
+
+          tee_secret_body="${RUNNER_TEMP}/concord-fcc-tee-secret.json"
+          jq -n \
+            --arg service_id "$tee_id" \
+            '{
+              name: "concord-fcc-tee-runtime",
+              description: "Encrypted runtime variables for the Concord simulated FCC TEE",
+              type: "secret",
+              secretType: "environment",
+              priority: 10,
+              restrictions: {
+                restricted: true,
+                nfObjects: [{id: $service_id, type: "service"}]
+              },
+              secrets: {
+                variables: {
+                  CHAIN_ID: "114",
+                  CHAIN_URL: "https://coston2-api.flare.network/ext/C/rpc",
+                  MODE: "1",
+                  SIMULATED_TEE: "true",
+                  EXTENSION_ID: "0x000000000000000000000000000000000000000000000000000000000001028c",
+                  INITIAL_OWNER: "0x1aF42c70837f08c6C89a6FA274EB9eeF040820B3",
+                  GOVERNANCE_SIGNERS: "0x1aF42c70837f08c6C89a6FA274EB9eeF040820B3",
+                  GOVERNANCE_THRESHOLD: "1",
+                  PROXY_URL: "http://concord-fcc-proxy:6663",
+                  CONFIG_PORT: "5501",
+                  SIGN_PORT: "7701",
+                  EXTENSION_PORT: "7702",
+                  LOG_LEVEL: "INFO"
+                }
+              }
+            }' >"$tee_secret_body"
+
+          api POST "/projects/${NF_PROJECT}/secrets" "$proxy_secret_body" >/dev/null
+          echo "Created encrypted Northflank secret group concord-fcc-proxy-runtime."
+          api POST "/projects/${NF_PROJECT}/secrets" "$tee_secret_body" >/dev/null
+          echo "Created encrypted Northflank secret group concord-fcc-tee-runtime."
+
+          build_body="${RUNNER_TEMP}/concord-build.json"
+          jq -n --arg sha "$GITHUB_SHA" '{sha: $sha}' >"$build_body"
+          proxy_build="$(api POST "/projects/${NF_PROJECT}/services/${proxy_id}/build" "$build_body")"
+          proxy_build_id="$(jq -r '.data.id // .data.buildId // .data.build.id // empty' "$proxy_build")"
+          tee_build="$(api POST "/projects/${NF_PROJECT}/services/${tee_id}/build" "$build_body")"
+          tee_build_id="$(jq -r '.data.id // .data.buildId // .data.build.id // empty' "$tee_build")"
+
+          echo "Started proxy build ${proxy_build_id:-unknown} from ${GITHUB_SHA}."
+          echo "Started TEE build ${tee_build_id:-unknown} from ${GITHUB_SHA}."
+          {
+            echo "Northflank services: concord-fcc-proxy (${proxy_id}), concord-fcc-tee (${tee_id})"
+            echo "Northflank build revision: ${GITHUB_SHA}"
+            echo "Coston2 registration/broadcast: not performed by this workflow"
+          } >>"$GITHUB_STEP_SUMMARY"
