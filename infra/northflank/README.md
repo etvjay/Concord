@@ -43,8 +43,13 @@ Do not enable public access. Copy the addon host and port into the proxy's
 - Instances: `1`
 - Public port: `6664`, protocol `HTTP`
 - Private port: `6663`, protocol `HTTP`
-- Readiness and liveness: `GET /info` on port `6664`
-- Startup delay: `30s`; interval: `30s`; failure threshold: `5`
+- Readiness and liveness: `GET /healthy` on private port `6663`
+- Startup delay: readiness `15s`, liveness `30s`; interval: `30s`; failure threshold: `5`
+
+The proxy cannot use public `/info` as its Northflank readiness probe: the
+external server opens only after the TEE has fetched its initial info through
+private `/queue`. Probing private `/healthy` avoids that startup dependency
+cycle; verify public `/info` separately after both services are ready.
 
 Copy the keys from `proxy.variables.example` into Northflank runtime variables.
 Put all credential values in a Northflank secret group; do not commit them.
