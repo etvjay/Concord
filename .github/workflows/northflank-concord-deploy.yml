@@ -160,12 +160,12 @@ jobs:
                 projectBranch: "agent/concord-rebuild"
               },
               buildSettings: {
-                storage: {ephemeralStorage: {storageSize: 32768}},
+                storage: {ephemeralStorage: {storageSize: 16384}},
                 dockerfile: {
                   buildEngine: "buildkit",
                   dockerFilePath: "/infra/railway/proxy.Dockerfile",
                   dockerWorkDir: "/",
-                  buildkit: {useCache: true, cacheStorageSize: 32768}
+                  buildkit: {useCache: true, cacheStorageSize: 16384}
                 }
               },
               healthChecks: [
@@ -222,12 +222,12 @@ jobs:
                 projectBranch: "agent/concord-rebuild"
               },
               buildSettings: {
-                storage: {ephemeralStorage: {storageSize: 32768}},
+                storage: {ephemeralStorage: {storageSize: 16384}},
                 dockerfile: {
                   buildEngine: "buildkit",
                   dockerFilePath: "/go/Dockerfile",
                   dockerWorkDir: "/",
-                  buildkit: {useCache: true, cacheStorageSize: 32768}
+                  buildkit: {useCache: true, cacheStorageSize: 16384}
                 }
               },
               healthChecks: [
