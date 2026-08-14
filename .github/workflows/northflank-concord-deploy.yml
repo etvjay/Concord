@@ -140,7 +140,7 @@ jobs:
               description: "Concord Flare Connectivity Controller extension proxy",
               billing: {
                 deploymentPlan: "nf-compute-100-1",
-                buildPlan: "nf-compute-200-8"
+                buildPlan: "nf-compute-400-16"
               },
               deployment: {
                 type: "deployment",
@@ -201,7 +201,7 @@ jobs:
               description: "Concord simulated Coston2 extension TEE",
               billing: {
                 deploymentPlan: "nf-compute-100-1",
-                buildPlan: "nf-compute-200-8"
+                buildPlan: "nf-compute-400-16"
               },
               deployment: {
                 type: "deployment",
