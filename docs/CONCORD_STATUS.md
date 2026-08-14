@@ -114,15 +114,17 @@ is a deployment contradiction, not a config-only change; the old facility and
 its 18-decimal root round are superseded. The replacement facility is now
 bound to the current token, and its current root round is recorded below.
 
-## Live Coston2 vertical slice evidenced
+## Historical Coston2 vertical slice evidenced
 
-- One simulated development TEE machine is active for extension `66188` at
+- The recorded run used one simulated development TEE machine for extension
+  `66188` at
   status `2` (`PRODUCTION`): tee id
   `0xeE39d5e7d1C5043232282e3CC884B41a9Db22c85`. Its registered stable HTTPS
   URL is `https://concord-fcc-ingress.microcosm.workers.dev`, a narrow
   Cloudflare Workers.dev relay to the disposable Codespace proxy. The setup
   workflow obtained the availability proof and verified the on-chain machine
-  record.
+  record at that time. Current reachability is tracked separately above and is
+  not inferred from this historical record.
 - The three disposable provider wallets and the treasury now each hold 10
   units of the current six-decimal `USDT0 test` token. Each provider also has
   105 C2FLR after the guarded gas-funding step, so approval and funding
@@ -155,17 +157,18 @@ bound to the current token, and its current root round is recorded below.
   [FCC run 31733200629](https://github.com/etvjay/Concord/actions/runs/31733200629),
   its [signed action artifact 9194157272](https://github.com/etvjay/Concord/actions/runs/31733200629/artifacts/9194157272),
   and the [materialization recovery run 31733740564](https://github.com/etvjay/Concord/actions/runs/31733740564).
-- The current Coston2 indexer configuration is stored as encrypted GitHub
-  Actions secrets. FCC registration and the live instruction path use the
-  stable Workers.dev relay as a development ingress fallback, not a named
-  Cloudflare Tunnel or production hardware-TEE claim.
+- The Coston2 indexer configuration is stored as encrypted GitHub Actions
+  secrets. The recorded FCC registration and instruction path used the stable
+  Workers.dev relay as a development ingress fallback, not a named Cloudflare
+  Tunnel or production hardware-TEE claim.
 
 ## Not yet evidenced / intentionally bounded
 
 - Production hardware-backed TEE execution has not been claimed; this run used
   the documented Coston2 simulated development TEE path.
 - A named Cloudflare Tunnel or custom-domain ingress has not been provisioned;
-  the stable Workers.dev relay remains the current development ingress.
+  the stable Workers.dev relay is historical evidence only until a fresh
+  `/info` check passes.
 - Cloudflare credentials were ingested for the tunnel path but no tunnel or
   Worker change is claimed; the available Cloudflare API path could not be
   reached from this session. The Workers.dev relay remains historical fallback

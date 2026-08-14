@@ -202,11 +202,11 @@ function LandingPage() {
               Concord lets a treasury coordinate funding privately, draw from the combined facility, and see exactly which provider funded every amount.
             </p>
             <div className="hero-actions">
-              <Link className="button button--primary" to={rootHref}>Explore the live facility <ArrowRightIcon aria-hidden="true" /></Link>
+              <Link className="button button--primary" to={rootHref}>Explore the facility record <ArrowRightIcon aria-hidden="true" /></Link>
               <Link className="button button--secondary" to={`/draws/${draw.id}`}>Follow one draw</Link>
             </div>
             <div className="proof-line" aria-label="Current implementation evidence">
-              <span>Live on Coston2</span>
+              <span>Recorded on Coston2</span>
               <span>3 funded provider relationships</span>
               <span>Capacity restored after repayment</span>
             </div>
@@ -214,7 +214,7 @@ function LandingPage() {
           <FacilityArtifact />
         </div>
         <div className="hero-evidence">
-          <span>LIVE PRODUCT PROOF</span>
+          <span>RECORDED C2 PROOF</span>
           <div><ShieldCheckIcon aria-hidden="true" /> One Root Accord</div>
           <div><UserGroupIcon aria-hidden="true" /> Three funded children</div>
           <div><ArrowsRightLeftIcon aria-hidden="true" /> Drawn, repaid, restored</div>
@@ -921,7 +921,7 @@ function EvidenceDetailPage() {
     <AppShell>
       <PageHeading eyebrow="COFILL ALLOCATION" title="Verified provider allocation" description="The deterministic result bound to the intended extension, funding round, Root Accord, and digest." help="CoFill deterministically allocates eligible provider offers toward the facility target while preserving the subsequent independent relationships." action={<Status label="Verified" />} />
       <div className="proof-detail"><ShieldCheckIcon /><code>{evidence.resultDigest}</code></div>
-      <section className="dossier-grid"><div className="dossier-section"><h2>Binding</h2><dl><div><dt>Extension</dt><dd>66188</dd></div><div><dt>Root Accord</dt><dd><code>{shortId(evidence.rootAccordId!)}</code></dd></div><div><dt>Round</dt><dd><code>{shortId(evidence.roundId!)}</code></dd></div><div><dt>Selected</dt><dd>3 providers · 9 USDT0</dd></div></dl></div><div className="dossier-section"><h2>Execution truth</h2><dl><div><dt>Network</dt><dd>Coston2 · chain 114</dd></div><div><dt>TEE registry state</dt><dd>Status 2 · one active machine</dd></div><div><dt>TEE mode</dt><dd>Simulated development</dd></div><div><dt>Disclosure</dt><dd>Metadata only</dd></div></dl></div></section>
+      <section className="dossier-grid"><div className="dossier-section"><h2>Binding</h2><dl><div><dt>Extension</dt><dd>66188</dd></div><div><dt>Root Accord</dt><dd><code>{shortId(evidence.rootAccordId!)}</code></dd></div><div><dt>Round</dt><dd><code>{shortId(evidence.roundId!)}</code></dd></div><div><dt>Selected</dt><dd>3 providers · 9 USDT0</dd></div></dl></div><div className="dossier-section"><h2>Execution truth</h2><dl><div><dt>Network</dt><dd>Coston2 · chain 114</dd></div><div><dt>Recorded TEE state</dt><dd>Status 2 · one machine at verification</dd></div><div><dt>TEE mode</dt><dd>Simulated development</dd></div><div><dt>Disclosure</dt><dd>Metadata only</dd></div></dl></div></section>
       <div className="privacy-boundary"><InformationCircleIcon /><div><strong>This is real Coston2 FCC development-path evidence.</strong><p>It is not a claim of private token transfers, private EVM state, production hardware-backed TEE execution, or production institutional readiness.</p></div></div>
     </AppShell>
   );
@@ -937,7 +937,7 @@ function SettingsPage() {
           [RectangleGroupIcon, "Capital facility", shortId(snapshot.deployment.canonicalFacility.capitalFacility, 12, 10), explorerAddress(snapshot.deployment.canonicalFacility.capitalFacility)],
           [BuildingLibraryIcon, "Accord registry", shortId(snapshot.deployment.canonicalFacility.accordRegistry, 12, 10), explorerAddress(snapshot.deployment.canonicalFacility.accordRegistry)],
           [BanknotesIcon, "Liquidity asset", `USDT0 · ${snapshot.deployment.assets.usdt0Decimals} decimals`, explorerAddress(snapshot.deployment.assets.usdt0)],
-          [ShieldCheckIcon, "FCC extension", "66188 · simulated development TEE", snapshot.deployment.extension.activeTeeUrls[0]],
+          [ShieldCheckIcon, "FCC extension", "66188 · recorded simulated TEE run", "https://coston2-systems-explorer.flare.network/tee/objects?tab=machines&machine_extensionId=66188"],
         ].map(([Icon, label, value, href]) => <a className="settings-row" href={href as string} target="_blank" rel="noreferrer" key={label as string}><Icon aria-hidden="true" /><div><span>{label as string}</span><strong>{value as string}</strong></div><ArrowTopRightOnSquareIcon aria-hidden="true" /></a>)}
       </section>
     </AppShell>

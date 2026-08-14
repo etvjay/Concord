@@ -26,8 +26,10 @@ Open the landing page and say:
 > independent providers. Concord makes the facility the persistent object and
 > keeps every provider commitment and movement attributable.
 
-Open **Explore the live facility**. Point out that the page is rendering a
-recorded Coston2 proof, not invented dashboard data.
+Open **Explore the facility record**. Point out that the page is rendering a
+recorded Coston2 proof, not invented dashboard data. The frontend is a local or
+preview presentation surface until a public host has been independently
+verified.
 
 ### 0:35–1:15 — Explain the relationship
 
@@ -105,7 +107,7 @@ draw.
 | 9 USDT0 funded | [Final provider funding transaction](https://coston2-explorer.flare.network/tx/0xfbb3fa72ab3294807697a6aa973247c786f85021f30d41568f2300dc27b0be0c) |
 | 4 USDT0, two-leg draw | [Transaction](https://coston2-explorer.flare.network/tx/0xea0348757169428b73dbbc20eca7f2faf267c29941e5f0c0291bc3923b12cbe5) |
 | Principal repaid; capacity restored | [Transaction](https://coston2-explorer.flare.network/tx/0xe2146fb4c498964754b5754a1dd91992c62e29d3d627cd6fb0ebba6432d8c46c), [lifecycle run](https://github.com/etvjay/Concord/actions/runs/31734593116) |
-| Repository verification | [Full verification](https://github.com/etvjay/Concord/actions/runs/31786595661), [frontend verification](https://github.com/etvjay/Concord/actions/runs/31786595726) |
+| Repository verification | [Full verification](https://github.com/etvjay/Concord/actions/runs/31792244127), [frontend verification](https://github.com/etvjay/Concord/actions/runs/31792436520) |
 
 The machine-readable source of truth is
 [`config/coston2/concord-deployment.json`](../config/coston2/concord-deployment.json).
@@ -113,6 +115,52 @@ It records the complete identifiers, receipts, blocks, warnings, and evidence
 artifacts.
 
 ## Submission copy
+
+### Approved voiceover
+
+Use this version for the recording. It preserves the product thesis while
+stating the privacy and development-TEE boundary precisely:
+
+> Money is easy to transfer. Trust between institutions is much harder to
+> coordinate.
+>
+> Today, capital coordination is fragmented across legal agreements, manual
+> reviews, and intermediaries. Public blockchains make settlement visible, but
+> institutions still need sensitive terms and constraints to remain private.
+>
+> Concord is a confidential programmable relationship system built on Flare.
+> It treats the capital relationship—not a one-off transaction—as the primary
+> object.
+>
+> Our first implementation is an FXRP-backed syndicated capital facility. One
+> treasury creates a Root Accord that defines the borrower, collateral, target,
+> policy, participants, and expiry. The treasury locks 1 FXRP, then opens a
+> Makkari funding round for a 9 USDT0 target.
+>
+> Independent providers submit signed offers with capacity, pricing, and
+> constraints. Concord's CoFill extension evaluates those offers through the
+> Flare Confidential Compute development path. The provider inputs and losing
+> terms remain within the intended confidential boundary while the result is
+> deterministic and signed.
+>
+> A verifier checks the result against the active extension, round, Root Accord,
+> chain, and allocation digest. Only then are Child Accords materialized—one
+> explicit relationship per provider. Each provider transfers its 3 USDT0
+> allocation, and the Root Accord becomes active with 9 USDT0 of committed
+> capacity.
+>
+> Now follow one draw. A 4 USDT0 draw is split across two Child Accords: 3 USDT0
+> from Provider 1 and 1 USDT0 from Provider 2. Those Draw Legs preserve exactly
+> who funded each portion. The draw is settled publicly on Coston2, then repaid
+> through the same facility. Exposure returns to zero and all 9 USDT0 of
+> capacity is available again.
+>
+> This is a recorded Coston2 proof using the documented simulated development
+> TEE path. Concord does not claim private FXRP or USDT0 transfers, private EVM
+> state, or production hardware-backed TEE security. Its claim is narrower and
+> more useful: confidential coordination can produce a verifiable public
+> commitment, and that commitment can remain a living relationship through
+> funding, draws, repayment, and restored capacity.
 
 ### Short description
 
@@ -151,3 +199,5 @@ USDT0 across two commitments, repaid it, and restored all capacity.
 - State “simulated development TEE” once, clearly.
 - Add the final public frontend URL to the submission form only after its host
   and exact commit have been verified.
+- Do not describe the historical FCC relay as currently live until
+  `scripts/check-hosted-fcc.sh` passes against a fresh public HTTPS endpoint.

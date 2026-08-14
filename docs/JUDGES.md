@@ -55,15 +55,18 @@ runtime, confirm the stable Workers.dev relay `/info` binding, and use the
 credential-gated workflow. The runtime may be available only during a scheduled
 judge window.
 
-The current relay is:
+The relay used by the recorded run was:
 
 `https://concord-fcc-ingress.microcosm.workers.dev`
 
 It is a development ingress fallback backed by the Codespace proxy. It is not a
 named Cloudflare Tunnel, permanent production hosting, or a production
-hardware-backed TEE. Restarting the simulated TEE can require a new identity
-and fresh registration, so no restart should be made immediately before a
-planned live window without re-running the registration checks.
+hardware-backed TEE. As of the latest checkpoint, its `/info` endpoint is not
+reachable because the backing Codespaces are shut down. Do not present it as a
+live endpoint until `scripts/check-hosted-fcc.sh` passes against a fresh public
+URL. Restarting the simulated TEE can require a new identity and fresh
+registration, so no restart should be made immediately before a planned live
+window without re-running the registration checks.
 
 ## What is and is not claimed
 

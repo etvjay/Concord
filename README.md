@@ -82,9 +82,10 @@ pre-build → start-services --chain coston2 → post-build → run-test
 
 The observed Coston2 sender, FCC extension registration, and facility deployment
 receipts are recorded in [docs/CONCORD_STATUS.md](docs/CONCORD_STATUS.md). The
-complete active-machine, provider-funding, multi-child settlement, repayment,
-and restored-capacity proof is recorded there with transaction and workflow
-evidence.
+complete provider-funding, multi-child settlement, repayment, and
+restored-capacity proof is recorded there with transaction and workflow
+evidence. The FCC machine and relay details are historical unless a fresh
+reachability check passes.
 
 Build the frontend from its exact lockfile:
 
