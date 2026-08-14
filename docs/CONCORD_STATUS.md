@@ -41,6 +41,8 @@ deployment proof.
   plain parent breadcrumbs, canonical terms with in-place definitions, and an
   optional first-use tour plus persistent glossary. Forced Back/Next journey
   controls and duplicate mobile navigation were removed.
+- `docs/DEMO_AND_SUBMISSION.md` provides a four-minute evidence-led demo,
+  exact Coston2 receipt ledger, submission copy, and recording/claim gates.
 - `infra/northflank/`, `infra/railway/`, and
   `docs/fcc-always-on-hosting.md` package the official two-service plus Redis
   FCC topology. Northflank is the primary continuously running hackathon

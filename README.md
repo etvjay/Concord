@@ -36,8 +36,9 @@ repayments are explicit nodes in its lineage.
 - The React frontend renders the recorded Coston2 Root Accord, Makkari/CoFill
   formation, three funded Child Accords, explicit draw legs, repayment,
   restored capacity, and evidence boundary through one shared SDK model. It
-  also connects injected wallets, switches to Coston2, and reads the live
-  native balance without retaining keys or auto-submitting transactions.
+  connects injected wallets, switches to Coston2, reads live capacity, prepares
+  canonical draw calldata locally, requires a separate wallet approval, and
+  tracks the public receipt without retaining keys.
 
 ## Truth boundary
 
@@ -94,7 +95,9 @@ Build the frontend from its exact lockfile:
 
 The current always-on FCC development-host plan and safe simulated-TEE identity
 cutover are in
-[docs/fcc-always-on-hosting.md](docs/fcc-always-on-hosting.md).
+[docs/fcc-always-on-hosting.md](docs/fcc-always-on-hosting.md). The
+judge-ready walkthrough, evidence ledger, claim boundary, and submission copy
+are in [docs/DEMO_AND_SUBMISSION.md](docs/DEMO_AND_SUBMISSION.md).
 
 ## Repository map
 
