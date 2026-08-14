@@ -1,6 +1,6 @@
 # Concord canonical reconciliation audit
 
-Status: refreshed for the durable `agent/concord-rebuild` checkpoint on 2026-08-13.
+Status: refreshed for the durable `main` checkpoint on 2026-08-14.
 
 This audit compares the implementation with the following authority order:
 

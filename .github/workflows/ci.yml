@@ -134,7 +134,7 @@ jobs:
 
   codespace_fcc_runtime:
     name: Coston2 FCC runtime in disposable Codespace
-    if: github.event_name == 'workflow_dispatch' && inputs.setup_fcc == true && github.ref == 'refs/heads/agent/concord-rebuild'
+    if: github.event_name == 'workflow_dispatch' && inputs.setup_fcc == true && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     env:
       CODESPACE_NAME: friendly-engine-r7r5qrwvvrj5c5777
@@ -249,7 +249,7 @@ jobs:
 
   live_fcc_round:
     name: Coston2 FCC round and Child Accord materialization
-    if: github.event_name == 'workflow_dispatch' && inputs.setup_fcc == true && inputs.execute_fcc_round == true && github.ref == 'refs/heads/agent/concord-rebuild'
+    if: github.event_name == 'workflow_dispatch' && inputs.setup_fcc == true && inputs.execute_fcc_round == true && github.ref == 'refs/heads/main'
     needs: codespace_fcc_runtime
     concurrency:
       group: concord-coston2-fcc-round
@@ -352,7 +352,7 @@ jobs:
 
   live_materialize_existing:
     name: Materialize previously verified FCC allocation
-    if: github.event_name == 'workflow_dispatch' && inputs.materialize_existing == true && github.ref == 'refs/heads/agent/concord-rebuild'
+    if: github.event_name == 'workflow_dispatch' && inputs.materialize_existing == true && github.ref == 'refs/heads/main'
     permissions:
       actions: read
       contents: read
@@ -417,7 +417,7 @@ jobs:
 
   live_facility_flow:
     name: Coston2 funding, multi-child draw, and repayment
-    if: github.event_name == 'workflow_dispatch' && inputs.execute_facility_flow == true && github.ref == 'refs/heads/agent/concord-rebuild'
+    if: github.event_name == 'workflow_dispatch' && inputs.execute_facility_flow == true && github.ref == 'refs/heads/main'
     needs: go
     permissions:
       contents: read
@@ -579,7 +579,7 @@ jobs:
 
   live_fcc_setup:
     name: Coston2 FCC scaffold setup (manual only)
-    if: github.event_name == 'workflow_dispatch' && inputs.setup_fcc == true && github.ref != 'refs/heads/agent/concord-rebuild'
+    if: github.event_name == 'workflow_dispatch' && inputs.setup_fcc == true && github.ref != 'refs/heads/main'
     concurrency:
       group: concord-coston2-fcc-setup
       cancel-in-progress: false

@@ -39,7 +39,7 @@ Do not enable public access. Copy the addon host and port into the proxy's
 ## 2. Proxy combined service
 
 - Repository: `https://github.com/etvjay/Concord`
-- Branch: `agent/concord-rebuild` until merged
+- Branch: `main`
 - Dockerfile: `/infra/railway/proxy.Dockerfile`
 - Context: `/`
 - Instances: `1`

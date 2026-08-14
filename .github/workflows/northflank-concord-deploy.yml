@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   deploy:
-    if: github.ref == 'refs/heads/agent/concord-rebuild' && inputs.confirm == 'DEPLOY_CONCORD'
+    if: github.ref == 'refs/heads/main' && inputs.confirm == 'DEPLOY_CONCORD'
     runs-on: ubuntu-latest
     env:
       NF_API: https://api.northflank.com/v1
@@ -163,7 +163,7 @@ jobs:
               vcsData: {
                 projectUrl: "https://github.com/etvjay/Concord",
                 projectType: "github",
-                projectBranch: "agent/concord-rebuild"
+                projectBranch: "main"
               },
               buildSettings: {
                 storage: {ephemeralStorage: {storageSize: 16384}},
@@ -223,7 +223,7 @@ jobs:
               vcsData: {
                 projectUrl: "https://github.com/etvjay/Concord",
                 projectType: "github",
-                projectBranch: "agent/concord-rebuild"
+                projectBranch: "main"
               },
               buildSettings: {
                 storage: {ephemeralStorage: {storageSize: 16384}},

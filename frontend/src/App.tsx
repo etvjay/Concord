@@ -105,7 +105,7 @@ function PublicHeader() {
         <a href="#product">Product</a>
         <a href="#journey">How it works</a>
         <a href="#privacy">Privacy</a>
-        <a href="https://github.com/etvjay/Concord/tree/agent/concord-rebuild/docs" target="_blank" rel="noreferrer">Docs</a>
+        <a href="https://github.com/etvjay/Concord/tree/main/docs" target="_blank" rel="noreferrer">Docs</a>
       </nav>
       <div className="public-header__actions">
         <WalletControl compact />
@@ -564,7 +564,7 @@ function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => void })
         <p className="drawer-label">CONTEXT</p>
         <nav aria-label="Mobile secondary navigation">
           <NavLink to="/settings" onClick={onClose}><ServerStackIcon aria-hidden="true" />Network & assets</NavLink>
-          <a href="https://github.com/etvjay/Concord/tree/agent/concord-rebuild/docs" target="_blank" rel="noreferrer"><DocumentTextIcon aria-hidden="true" />Documentation</a>
+          <a href="https://github.com/etvjay/Concord/tree/main/docs" target="_blank" rel="noreferrer"><DocumentTextIcon aria-hidden="true" />Documentation</a>
         </nav>
         <div className="drawer-disclosure"><InformationCircleIcon aria-hidden="true" /><p><strong>Development evidence</strong><span>Coston2 · simulated TEE · public settlement</span></p></div>
       </aside>
@@ -601,7 +601,7 @@ function AppShell({ children }: PropsWithChildren) {
         <Brand />
         <nav className="app-header__nav" aria-label="Application navigation">
           {globalRoutes.map((route) => <GlobalNavLink key={route.to} route={route} pathname={location.pathname} />)}
-          <a href="https://github.com/etvjay/Concord/tree/agent/concord-rebuild/docs" target="_blank" rel="noreferrer"><DocumentTextIcon aria-hidden="true" /><span>Docs</span></a>
+          <a href="https://github.com/etvjay/Concord/tree/main/docs" target="_blank" rel="noreferrer"><DocumentTextIcon aria-hidden="true" /><span>Docs</span></a>
         </nav>
         <div className="app-header__context">
           <HelpCenter onStartTour={startTour} />
