@@ -36,6 +36,7 @@ import {
   type PropsWithChildren,
   type SVGProps,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
 } from "react";
@@ -539,6 +540,10 @@ function AppShell({ children }: PropsWithChildren) {
   const location = useLocation();
   const guide = routeGuide(location.pathname);
   useEffect(() => setDrawer(false), [location.pathname]);
+  useLayoutEffect(() => {
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [location.pathname]);
   return (
     <div className="app-shell">
       <header className="app-header">

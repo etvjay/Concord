@@ -65,7 +65,9 @@ Detail objects return to the section that owns them: rounds and Child Accords
 return to Funding, draws return to Activity, and allocation results return to
 Evidence. Each page exposes a breadcrumb, a labelled parent return, and a
 previous/next footer. Lineage ends with an explicit completion state, so a user
-is never sent back into an accidental loop.
+is never sent back into an accidental loop. Route changes reset the document to
+the top so the destination title and context are never hidden by a previous
+page's scroll position.
 
 ## Components
 

@@ -55,7 +55,9 @@ describe("Concord frontend product semantics", () => {
   });
 
   it("presents facility sections as a directed sequence without repeating the overview header", () => {
+    document.documentElement.scrollTop = 480;
     renderRoute(`/facilities/${facility.id}/funding`);
+    expect(document.documentElement.scrollTop).toBe(0);
     expect(screen.getByRole("heading", { level: 1, name: "Funding formation" })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { level: 1, name: "Coston2 syndicated facility" })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /back to facility overview/i })).toHaveAttribute("href", `/facilities/${facility.id}`);
