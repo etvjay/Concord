@@ -49,7 +49,7 @@ and cannot be the only way to understand causality.
 |---|---|---|
 | `/` | Outcome-first product story, wallet entry, and public proof | recorded evidence, network identity |
 | `/demo` | Deterministic six-stage team walkthrough with no writes | local scenario state, recorded terminology |
-| `/borrower` | Fresh wallet-bound borrower authorization boundary | Coston2 contract address, connected wallet, unsigned create intent |
+| `/borrower` | Fresh wallet-bound borrower lifecycle boundary | Coston2 contract/assets, connected wallet, unsigned Root, collateral, and session intents |
 | `/docs` | Deployed documentation hub for the demo, proof, and truth boundary | repository-backed links and frontend routes |
 | `/facilities` | Facility register | accessible/recorded facilities and current state |
 | `/facilities/:rootAccordId` | Primary Root Accord workspace | facility, round, children, invariants |
@@ -198,5 +198,8 @@ an injected wallet, switches to Coston2, reads the native balance, prepares
 unsigned Root Accord and draw intents locally, and submits only after a
 separate wallet approval. The recorded facility draw is restricted to its
 observed borrower. The Borrower Sandbox binds a new Root Accord to the wallet
-that calls `createRootAccord`; it does not infer authority for the recorded
-facility, automatically fund providers, or silently broadcast runner actions.
+that calls `createRootAccord`, then prepares explicit FXRP approval,
+`lockCollateral`, and bounded `openSyndication` intents for that same wallet.
+It does not infer authority for the recorded facility, fabricate provider or
+FCC evidence, automatically fund providers, or silently broadcast runner
+actions.

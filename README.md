@@ -35,7 +35,7 @@ The frontend has explicit paths for the evaluator and the team:
 | / | Product story and evidence boundary | None |
 | /demo | Six-stage deterministic Guided Demo | No wallet, RPC, or Coston2 writes |
 | /facilities/0x6e03af41b0194c5a369a50629474090cfc5b041a712144855e6efb1a574cfddd | Recorded Coston2 facility | Read presentation of recorded evidence |
-| /borrower | Fresh wallet-bound Root Accord sandbox | Explicit wallet approval for its optional testnet write |
+| /borrower | Fresh wallet-bound borrower lifecycle sandbox | Explicit wallet approval for Root, FXRP approval, collateral lock, and provider-session opening |
 | /docs | Deployed documentation hub | None |
 
 For the fastest walkthrough:
@@ -94,8 +94,10 @@ retaining their terms, exposure, authority, and settlement lineage.
   canonical draw calldata locally, requires a separate wallet approval, and
   tracks the public receipt without retaining keys. It also provides a
   transaction-free six-step Guided Demo and a separate wallet-bound Borrower
-  Sandbox that can prepare a fresh Root Accord intent without reusing the
-  recorded facility.
+  Sandbox that can create a fresh Root Accord, approve and lock 1 FXRP, and
+  open a bounded provider session without reusing the recorded facility. The
+  sandbox stops before provider quotes, FCC/CoFill evidence, Child Accord
+  materialization, provider funding, draw, or repayment.
 
 ## Truth boundary
 

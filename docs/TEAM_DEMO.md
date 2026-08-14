@@ -29,29 +29,38 @@ path for judges and for a teammate who needs to rehearse the story.
 ## Optional path: borrower sandbox
 
 Open `/borrower` and connect a disposable Coston2 wallet. The sandbox can
-prepare and submit one bounded `createRootAccord` transaction:
+prepare and submit a bounded borrower-owned sequence:
 
 - target: 9 USDT0;
 - validity: seven days from creation;
 - policy: the sandbox policy commitment;
 - borrower: the connected wallet, because the contract binds `msg.sender`.
 
+After the Root Accord confirms, continue in the same page:
+
+1. Prepare and approve an explicit 1 FXRP ERC-20 allowance for the
+   `CapitalFacility`.
+2. Prepare and approve `lockCollateral` for the same 1 FXRP.
+3. Prepare and approve `openSyndication` for a deterministic round ID, a
+   bounded expiry, and the three recorded fixture provider addresses.
+
 The UI shows the calldata and preconditions before the wallet approval. It
-never embeds or requests a private key. Creating the Root Accord does not fund
-Child Accords or create borrowing capacity by itself; the connected wallet
-must still have C2FLR for gas and 1 FXRP for the next collateral step.
+never embeds or requests a private key. Each write is a separate public
+Coston2 transaction. The connected wallet must have C2FLR for gas and 1 FXRP;
+the faucet link is available from the page.
 
 The recorded facility is not reused for this test. A new borrower needs a new
 Root Accord because the existing borrower is fixed onchain.
 
 ## Coordinator boundary
 
-The intended fixture runner watches the new Root Accord ID, validates the
-borrower and bounded parameters, and computes a deterministic provider
-allocation. It may prepare a proposal and provider-side actions. It must not
-silently broadcast borrower actions. Materialization, draw, and repayment
-remain explicit wallet approvals unless a future contract-supported delegated
-operator is deliberately introduced and documented.
+After `openSyndication` confirms, the intended fixture runner watches the new
+Root Accord ID, validates the borrower and bounded parameters, and computes a
+deterministic provider allocation. It may prepare a proposal and provider-side
+actions. It must not silently broadcast borrower actions. The public sandbox
+stops here: signed quotes, FCC/CoFill evidence, allocation verification,
+Child Accord materialization, provider funding, draw, and repayment are not
+fabricated by the frontend.
 
 The current frontend exposes this boundary honestly. Provider fixture funding
 and verifier credentials remain team-operated; no automatic live lifecycle is

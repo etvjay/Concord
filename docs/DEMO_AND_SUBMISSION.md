@@ -22,8 +22,10 @@ For a transaction-free rehearsal, open the frontend's `/demo` route first and
 use **Next step** through the six local stages. It is a deterministic scenario
 replay, not additional Coston2 evidence. For a live wallet test, use the
 separate `/borrower` route only with a disposable Coston2 wallet; it creates a
-fresh Root Accord and stops at explicit wallet approval. The recorded facility
-below remains the primary evidence path.
+fresh Root Accord, approves and locks 1 FXRP, and opens a bounded provider
+session, with a separate wallet approval for each write. It stops at the
+coordination handoff; the recorded facility below remains the primary evidence
+path for provider funding, draw, and repayment.
 
 ### 0:00–0:35 — Start with the outcome
 

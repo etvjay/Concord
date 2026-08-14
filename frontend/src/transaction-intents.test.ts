@@ -1,12 +1,18 @@
 import { decodeFunctionData, getAddress, type Hex } from "viem";
 import { describe, expect, it } from "vitest";
 import {
+  buildApproveAssetIntent,
   buildCreateRootIntent,
   buildDrawIntent,
+  buildLockCollateralIntent,
+  buildOpenSyndicationIntent,
   capitalFacilityAbi,
   capitalFacilityAddress,
+  collateralAssetAddress,
   createBorrowerSessionId,
   createDrawId,
+  erc20Abi,
+  sandboxProviderAddresses,
 } from "./transaction-intents";
 
 const root = `0x${"11".repeat(32)}` as Hex;
@@ -65,5 +71,60 @@ describe("draw transaction intents", () => {
         amount: 1n,
       }),
     ).toThrow(/32-byte/i);
+  });
+
+  it("builds an explicit FXRP approval intent for the canonical facility", () => {
+    const intent = buildApproveAssetIntent({
+      assetAddress: collateralAssetAddress,
+      spender: capitalFacilityAddress,
+      amount: 1_000_000n,
+      assetSymbol: "FXRP",
+    });
+    const decoded = decodeFunctionData({ abi: erc20Abi, data: intent.data });
+
+    expect(intent).toMatchObject({
+      action: "approve_asset",
+      chainId: 114,
+      to: collateralAssetAddress,
+      spender: capitalFacilityAddress,
+      amount: 1_000_000n,
+      requiresExplicitApproval: true,
+    });
+    expect(decoded.functionName).toBe("approve");
+    expect(decoded.args).toEqual([capitalFacilityAddress, 1_000_000n]);
+  });
+
+  it("builds the collateral lock intent without submitting it", () => {
+    const intent = buildLockCollateralIntent({ rootAccordId: root, amount: 1_000_000n });
+    const decoded = decodeFunctionData({ abi: capitalFacilityAbi, data: intent.data });
+
+    expect(decoded.functionName).toBe("lockCollateral");
+    expect(decoded.args).toEqual([root, 1_000_000n]);
+    expect(intent.preconditions.join(" ")).toMatch(/token approval/i);
+  });
+
+  it("builds a bounded provider-session intent from fixture eligibility inputs", () => {
+    const round = createBorrowerSessionId(actor, root, "round");
+    const rootValidUntil = BigInt(Math.floor(Date.now() / 1000) + 7200);
+    const roundExpiry = rootValidUntil - 60n;
+    const intent = buildOpenSyndicationIntent({
+      rootAccordId: root,
+      roundId: round,
+      maxFeeBps: 700,
+      roundExpiry,
+      rootValidUntil,
+      providerAddresses: sandboxProviderAddresses,
+    });
+    const decoded = decodeFunctionData({ abi: capitalFacilityAbi, data: intent.data });
+
+    expect(decoded.functionName).toBe("openSyndication");
+    expect(decoded.args).toEqual([
+      root,
+      round,
+      700,
+      roundExpiry,
+      sandboxProviderAddresses,
+    ]);
+    expect(intent.warnings.join(" ")).toMatch(/does not verify FCC output/i);
   });
 });

@@ -25,15 +25,18 @@ Frontend paths:
 - `/` — public product story and current evidence boundary;
 - `/demo` — six-stage Guided Demo, deterministic and transaction-free;
 - `/facilities/<root-accord-id>` — recorded Coston2 facility workspace;
-- `/borrower` — separate wallet-bound sandbox for a fresh Root Accord; and
+- `/borrower` — wallet-bound sandbox for a fresh Root Accord through collateral
+  lock and bounded provider-session opening; and
 - `/docs` — deployed documentation hub with links back to repository evidence.
 
 For the fastest team walkthrough, open `http://localhost:5173/demo`. The
 Guided Demo replays the six-stage facility lifecycle using deterministic local
 state only; it does not connect a wallet or write to Coston2. The optional
-`/borrower` sandbox can prepare a fresh wallet-bound Root Accord on Coston2
-after explicit wallet approval. See [`docs/TEAM_DEMO.md`](../docs/TEAM_DEMO.md)
-for the complete boundary and runbook.
+`/borrower` sandbox can create a fresh wallet-bound Root Accord, approve and
+lock 1 FXRP, and open a bounded provider session on Coston2 after explicit
+wallet approval for each write. It stops at the coordinator boundary. See
+[`docs/TEAM_DEMO.md`](../docs/TEAM_DEMO.md) for the complete boundary and
+runbook.
 
 Use `npm run build` for the TypeScript and production-bundle gate and
 `npm test` for semantic/invariant tests. The root-context production image is:
@@ -90,9 +93,16 @@ preconditions, warnings, and full calldata before a separate “Approve in
 wallet” action. Submission is fixed to Coston2 and confirmation is read from the
 public receipt; Concord never receives a private key.
 
-Only the recorded treasury borrower can pass the client-side authority gate,
+Only the recorded treasury borrower can pass the recorded-facility draw gate,
 and the contract independently enforces that authority and available capacity.
-The recorded snapshot is not silently rewritten after a new transaction; the
-review reports live post-confirmation capacity separately. The FCC label remains
+The fresh `/borrower` path binds its own Root Accord to the wallet that calls
+`createRootAccord`, then builds explicit `approve(address,uint256)`,
+`lockCollateral`, and `openSyndication` intents. Each intent displays its
+contract, parameters, preconditions, warnings, and calldata before a separate
+wallet approval. The sandbox requires the same wallet for all three follow-on
+actions and stops before provider quotes, FCC/CoFill evidence, verification,
+Child Accord materialization, provider funding, draw, or repayment. The
+recorded snapshot is not silently rewritten after a new transaction; the review
+reports live post-confirmation capacity separately. The FCC label remains
 “simulated development TEE”; token settlement and public EVM state are not
 represented as private.
