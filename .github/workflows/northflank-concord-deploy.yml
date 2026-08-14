@@ -188,11 +188,10 @@ jobs:
                   initialDelaySeconds: 90,
                   periodSeconds: 30,
                   timeoutSeconds: 5,
-                  failureThreshold: 5,
-                  successThreshold: 1
+                  failureThreshold: 5
                 }
               ],
-              autoscaling: {horizontal: {enabled: false}}
+              autoscaling: {horizontal: {enabled: false, minReplicas: 1, maxReplicas: 1}}
             }' >"$proxy_body"
 
           tee_body="${RUNNER_TEMP}/concord-fcc-tee.json"
@@ -249,11 +248,10 @@ jobs:
                   initialDelaySeconds: 90,
                   periodSeconds: 30,
                   timeoutSeconds: 5,
-                  failureThreshold: 5,
-                  successThreshold: 1
+                  failureThreshold: 5
                 }
               ],
-              autoscaling: {horizontal: {enabled: false}}
+              autoscaling: {horizontal: {enabled: false, minReplicas: 1, maxReplicas: 1}}
             }' >"$tee_body"
 
           proxy_create="$(api POST "/projects/${NF_PROJECT}/services/combined" "$proxy_body")"
