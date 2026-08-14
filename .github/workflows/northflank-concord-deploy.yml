@@ -88,6 +88,16 @@ jobs:
             ' "$response_file" >/dev/null
           }
 
+          response_service_id() {
+            local response_file="$1"
+            local service_name="$2"
+            jq -r --arg name "$service_name" '
+              ((.data // {}) | if type == "array" then . else (.services // []) end)
+              | map(select(.name == $name or .id == $name))[0]
+              | (.id // .name // empty)
+            ' "$response_file"
+          }
+
           response_has_secret() {
             local response_file="$1"
             local secret_name="$2"
@@ -98,12 +108,8 @@ jobs:
           }
 
           services_response="$(api GET "/projects/${NF_PROJECT}/services")"
-          for service_name in concord-fcc-proxy concord-fcc-tee; do
-            if response_has_service "$services_response" "$service_name"; then
-              echo "Refusing to overwrite existing Northflank service ${service_name}; inspect it before rerunning." >&2
-              exit 1
-            fi
-          done
+          proxy_id="$(response_service_id "$services_response" concord-fcc-proxy)"
+          tee_id="$(response_service_id "$services_response" concord-fcc-tee)"
 
           secrets_response="$(api GET "/projects/${NF_PROJECT}/secrets")"
           for secret_name in concord-fcc-proxy-runtime concord-fcc-tee-runtime; do
@@ -164,8 +170,7 @@ jobs:
                 dockerfile: {
                   buildEngine: "buildkit",
                   dockerFilePath: "/infra/railway/proxy.Dockerfile",
-                  dockerWorkDir: "/",
-                  buildkit: {useCache: true, cacheStorageSize: 16384}
+                  dockerWorkDir: "/"
                 }
               },
               healthChecks: [
@@ -190,8 +195,7 @@ jobs:
                   timeoutSeconds: 5,
                   failureThreshold: 5
                 }
-              ],
-              autoscaling: {horizontal: {enabled: false, minReplicas: 1, maxReplicas: 1}}
+              ]
             }' >"$proxy_body"
 
           tee_body="${RUNNER_TEMP}/concord-fcc-tee.json"
@@ -226,8 +230,7 @@ jobs:
                 dockerfile: {
                   buildEngine: "buildkit",
                   dockerFilePath: "/go/Dockerfile",
-                  dockerWorkDir: "/",
-                  buildkit: {useCache: true, cacheStorageSize: 16384}
+                  dockerWorkDir: "/"
                 }
               },
               healthChecks: [
@@ -250,19 +253,26 @@ jobs:
                   timeoutSeconds: 5,
                   failureThreshold: 5
                 }
-              ],
-              autoscaling: {horizontal: {enabled: false, minReplicas: 1, maxReplicas: 1}}
+              ]
             }' >"$tee_body"
 
-          proxy_create="$(api POST "/projects/${NF_PROJECT}/services/combined" "$proxy_body")"
-          proxy_id="$(jq -r '.data.id // .data.service.id // .data.name // .data.service.name // empty' "$proxy_create")"
-          [[ -n "$proxy_id" ]] || { echo "Northflank did not return a proxy service id." >&2; exit 1; }
-          echo "Created Northflank service concord-fcc-proxy (${proxy_id})."
+          if [[ -z "$proxy_id" ]]; then
+            proxy_create="$(api POST "/projects/${NF_PROJECT}/services/combined" "$proxy_body")"
+            proxy_id="$(jq -r '.data.id // .data.service.id // .data.name // .data.service.name // empty' "$proxy_create")"
+            [[ -n "$proxy_id" ]] || { echo "Northflank did not return a proxy service id." >&2; exit 1; }
+            echo "Created Northflank service concord-fcc-proxy (${proxy_id})."
+          else
+            echo "Reusing Northflank service concord-fcc-proxy (${proxy_id})."
+          fi
 
-          tee_create="$(api POST "/projects/${NF_PROJECT}/services/combined" "$tee_body")"
-          tee_id="$(jq -r '.data.id // .data.service.id // .data.name // .data.service.name // empty' "$tee_create")"
-          [[ -n "$tee_id" ]] || { echo "Northflank did not return a TEE service id." >&2; exit 1; }
-          echo "Created Northflank service concord-fcc-tee (${tee_id})."
+          if [[ -z "$tee_id" ]]; then
+            tee_create="$(api POST "/projects/${NF_PROJECT}/services/combined" "$tee_body")"
+            tee_id="$(jq -r '.data.id // .data.service.id // .data.name // .data.service.name // empty' "$tee_create")"
+            [[ -n "$tee_id" ]] || { echo "Northflank did not return a TEE service id." >&2; exit 1; }
+            echo "Created Northflank service concord-fcc-tee (${tee_id})."
+          else
+            echo "Reusing Northflank service concord-fcc-tee (${tee_id})."
+          fi
 
           proxy_secret_body="${RUNNER_TEMP}/concord-fcc-proxy-secret.json"
           jq -n \
