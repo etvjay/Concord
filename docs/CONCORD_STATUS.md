@@ -224,6 +224,16 @@ Explorer links:
 
 ## Durable CI evidence
 
+- Current handoff commit `155c05ea41262ae391ed3426ada5cb677092203b` passed the
+  [Concord verification run](https://github.com/etvjay/Concord/actions/runs/31792244127),
+  including Solidity/Foundry, Go extension and tooling, TypeScript SDK, and
+  repository/documentation gates.
+- The same commit passed the read-only
+  [Coston2 asset-resolution run](https://github.com/etvjay/Concord/actions/runs/31792244126)
+  and the manually dispatched
+  [frontend workflow](https://github.com/etvjay/Concord/actions/runs/31792436520),
+  including the production frontend Docker build.
+
 - Commit `039460c65b98eb02ccf577bcd92a02827ebb000e` passed the deterministic
   [GitHub Actions verification run](https://github.com/etvjay/Concord/actions/runs/31633719358).
 - The passing jobs were Solidity/Foundry lifecycle tests, Go extension and
