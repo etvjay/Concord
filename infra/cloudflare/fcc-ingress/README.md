@@ -16,16 +16,17 @@ semantics. It only forwards the proxy endpoints that the FCC setup needs:
 - GET /action/status...
 - GET /action/result...
 
-The upstream URL is intentionally a secret so it is not committed. For this
-hackathon fallback it points at the public HTTPS URL for the persistent
-Codespaces port that maps to host port 6674.
+The upstream URL is intentionally a secret so it is not committed. The current
+development deployment points it at the public HTTPS URL for the Northflank
+proxy's `6664` port. Keep the proxy's `6663` port private; the worker should
+only relay the public FCC routes listed above.
 
 ## Deploy
 
 From this directory, with a current Cloudflare API token and account ID:
 
     npx wrangler deploy
-    printf '%s' 'https://<codespace-name>-6674.app.github.dev' | npx wrangler secret put CONCORD_UPSTREAM_URL
+    printf '%s' 'https://<northflank-6664-hostname>.code.run' | npx wrangler secret put CONCORD_UPSTREAM_URL
 
 The stable Worker URL is:
 
@@ -35,7 +36,7 @@ Verify the relay before using it for any FCC operation:
 
     curl -fsS https://concord-fcc-ingress.microcosm.workers.dev/info
 
-This is a development/demo ingress boundary. A Codespaces public port is
-anonymous internet access and becomes private again when the Codespace is
-restarted, so the port must be re-forwarded and re-publicized after every
-restart. Do not describe this fallback as a production FCC deployment.
+This is a development/demo ingress boundary. The generated Northflank
+`code.run` hostname can change if the service is recreated; update the secret
+before cutover if that happens. Do not describe this fallback as a production
+FCC deployment.
