@@ -1,0 +1,24 @@
+diff --git a/pkg/storage/redis.go b/pkg/storage/redis.go
+index 3f8fd17..0000000 100644
+--- a/pkg/storage/redis.go
++++ b/pkg/storage/redis.go
+@@ -4,8 +4,9 @@ import (
+ 	"context"
+ 	"encoding/json"
+ 	"errors"
+ 	"fmt"
++	"os"
+ 	"time"
+ 
+ 	"github.com/redis/go-redis/v9"
+ )
+@@ -20,5 +21,8 @@ func NewClient(host string) *redis.Client {
+ // NewClient creates a new Redis client connected to the given host.
+ func NewClient(host string) *redis.Client {
+ 	return redis.NewClient(&redis.Options{
+-		Addr: host})
++		Addr:     host,
++		Username: os.Getenv("REDIS_USERNAME"),
++		Password: os.Getenv("REDIS_PASSWORD"),
++	})
+ }

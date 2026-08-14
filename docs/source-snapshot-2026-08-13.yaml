@@ -1,0 +1,72 @@
+snapshot:
+  captured_at_utc: 2026-08-13T19:14:40Z
+  freshness: FRESH
+  environment: Coston2
+  chain_id: 114
+  tee_mode: simulated
+  hardware_attestation_claim: false
+  official_skills:
+    repository: https://github.com/flare-foundation/flare-ai-skills
+    revision: 0bd60deb977df97455da720df1aaf765480b8141
+    consulted:
+      - flare-general
+      - flare-fassets
+      - flare-fcc
+      - flare-fdc (boundary only; not implemented in the MVP)
+  developer_hub:
+    - https://dev.flare.network/fcc/guides/getting-started
+    - https://dev.flare.network/network/overview
+    - https://dev.flare.network/support/faqs
+    - https://dev.flare.network/fxrp/token-interactions/fxrp-address
+  official_repositories:
+    - repository: https://github.com/flare-foundation/fce-extension-scaffold
+      revision: e3f587949069780084e2ced8a53c9419ed05c250
+      finding: current scaffold supports Go, Python, and TypeScript implementations; Concord intentionally uses Go.
+  verified_facts:
+    - Coston2 uses chain ID 114 and the configured public RPC.
+    - The official Coston2 FCC development walkthrough uses LOCAL_MODE=false and SIMULATED_TEE=true.
+    - The walkthrough requires a public HTTPS extension-proxy URL and Coston2 indexer database credentials for the local proxy.
+    - The current scaffold path includes pre-build, start-services, post-build, and test phases.
+    - Flare's FAQ identifies Coston2 as the primary dApp testnet and states that FCC is available there while in development.
+    - FCC development registration requires one active machine in status 2 (PRODUCTION), a fresh availability check, a registered teeId, and a reachable stable public HTTPS extension URL.
+    - The extension receives provider delivery at the scaffold external proxy port 6664; the Docker host mapping used by this repository is 6674.
+    - Rotating quick-tunnel URLs are not valid for a registered Coston2 machine; the named tunnel token form is `run --token <token>`.
+    - The official Coston2 FTDC proxy endpoints are `https://tee-proxy-coston2-1.flare.rocks` and `https://tee-proxy-coston2-2.flare.rocks`; they are normal infrastructure proxies, not Concord's extension endpoint.
+    - The current DevHub walkthrough specifies the Coston2 indexer endpoint as host `34.38.42.208`, port `3306`, database `indexer`; credentials remain secret inputs.
+  contradictions:
+    - id: FCC-QUICK-TUNNEL-SCOPE
+      statement: The DevHub getting-started walkthrough still documents quick tunnels for development and says to update EXT_PROXY_URL when a quick-tunnel URL changes.
+      current_operational_constraint: A registered Coston2 machine must use one stable public HTTPS URL; restarting a rotating tunnel strands the onchain machine record and can create a new simulated TEE identity.
+      resolution: Concord permits quick tunnels only for unregistered smoke tests and requires a stable named-tunnel URL/token for the guarded registration workflow.
+    - id: FCC-WORKERS-DEV-INGRESS-FALLBACK
+      statement: The official path requires a stable public HTTPS extension-proxy URL; a named Cloudflare Tunnel is one supported way to provide it.
+      current_operational_constraint: This account cannot self-assign the Cloudflare Connectivity Directory Admin role required for the VPC/tunnel path, and no custom domain is available.
+      resolution: Concord uses the stable Workers.dev URL `https://concord-fcc-ingress.microcosm.workers.dev` as a narrow development relay to the disposable Codespace public port. It forwards `/instruction`, `/info`, `/health`, `/metrics`, `/action/status...`, and `/action/result...`; it is not represented as a named tunnel or production ingress.
+  concord_decisions:
+    - No product-semantic contradiction was found.
+    - Simulated TEE evidence remains development-path evidence, not production hardware-backed confidentiality.
+    - FDC remains an evidence seam and is not added to the MVP.
+  live_gate_inputs_completed:
+    - funded Coston2 deployment/proxy accounts
+    - a stable public HTTPS EXT_PROXY_URL (the current guarded branch uses the Workers.dev relay fallback)
+    - current extension registration and active TEE-machine evidence for extension 66188
+    - signed quote submission, CoFill finalization, allocation verification, and child materialization
+    - real provider funding, multi-child draw, repayment, and explorer receipts
+  live_evidence:
+    extension_id: "0x000000000000000000000000000000000000000000000000000000000001028c"
+    tee_id: "0xeE39d5e7d1C5043232282e3CC884B41a9Db22c85"
+    facility: "0xfaff601a18a9fca33378953515aa0f3ef9286ecd"
+    root_accord_id: "0x6e03af41b0194c5a369a50629474090cfc5b041a712144855e6efb1a574cfddd"
+    round_id: "0x7323280ede4786463744a755e4cddf9ce2a91be952d05d152679b58b67d176ce"
+    allocation_digest: "0xf17a292655b898d8b00c9794565972ed838cd3de2812f6fa59d877d6963c88ec"
+    complete_lifecycle_run: "https://github.com/etvjay/Concord/actions/runs/31734593116"
+    evidence_artifact: "https://github.com/etvjay/Concord/actions/runs/31734593116/artifacts/9194681063"
+    final_root_state: ACTIVE
+    final_committed_capacity: 9000000
+    final_drawn_principal: 0
+    final_available_capacity: 9000000
+    draw_leg_count: 2
+  remaining_boundaries:
+    - production hardware-backed TEE execution is not evidenced; the run used the documented simulated development TEE
+    - a named Cloudflare Tunnel/custom-domain ingress is not provisioned; the stable Workers.dev relay is a development fallback
+    - the browser frontend and wallet UX are not the source of the live lifecycle evidence

@@ -1,0 +1,32 @@
+name: Hosted FCC read-only smoke check
+
+on:
+  workflow_dispatch:
+    inputs:
+      proxy_url:
+        description: "Stable public HTTPS URL of the extension proxy"
+        required: true
+        type: string
+      extension_id:
+        description: "Expected Concord FCC extension ID"
+        required: true
+        default: "66188"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.1"
+          cache-dependency-path: tools/go.sum
+      - name: Confirm proxy binding and active TEE registry state
+        env:
+          EXT_PROXY_URL: ${{ inputs.proxy_url }}
+          CONCORD_EXTENSION_ID: ${{ inputs.extension_id }}
+        run: ./scripts/check-hosted-fcc.sh

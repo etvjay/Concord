@@ -177,9 +177,9 @@ jobs:
                 {
                   protocol: "HTTP",
                   type: "readinessProbe",
-                  path: "/info",
-                  port: 6664,
-                  initialDelaySeconds: 30,
+                  path: "/healthy",
+                  port: 6663,
+                  initialDelaySeconds: 15,
                   periodSeconds: 30,
                   timeoutSeconds: 5,
                   failureThreshold: 5,
@@ -188,9 +188,9 @@ jobs:
                 {
                   protocol: "HTTP",
                   type: "livenessProbe",
-                  path: "/info",
-                  port: 6664,
-                  initialDelaySeconds: 90,
+                  path: "/healthy",
+                  port: 6663,
+                  initialDelaySeconds: 30,
                   periodSeconds: 30,
                   timeoutSeconds: 5,
                   failureThreshold: 5
@@ -263,6 +263,8 @@ jobs:
             echo "Created Northflank service concord-fcc-proxy (${proxy_id})."
           else
             echo "Reusing Northflank service concord-fcc-proxy (${proxy_id})."
+            api PATCH "/projects/${NF_PROJECT}/services/combined/${proxy_id}" "$proxy_body" >/dev/null
+            echo "Updated proxy health checks and ports."
           fi
 
           if [[ -z "$tee_id" ]]; then

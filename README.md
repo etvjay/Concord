@@ -1,174 +1,188 @@
-# Hello World Extension
+# Concord
 
-A working Hello World example for building Flare Confidential Compute (FCC) extensions. This repository demonstrates a complete, runnable extension with on-chain contracts, deployment tooling, and registration scripts — everything you need to understand how extensions work on the Flare TEE infrastructure.
+Concord is a confidential programmable relationship system for coordinating
+capital between independent parties on Flare.
 
-**The same extension is implemented in Go, Python and TypeScript.** Pick one with `LANGUAGE` in `.env`; everything else — contracts, deployment, registration, tests — is identical regardless of choice.
+The MVP is an FXRP-backed syndicated capital facility:
 
-## Choosing a Language
+```text
+Root Accord
+  └─ Makkari session
+       └─ CoFill allocation
+            └─ Child Accords
+                 └─ funded commitments
+                      └─ multi-child draw and DrawLegs
+                           └─ repayment and restored capacity
+```
+
+The persistent economic relationship is the canonical object. Transactions,
+FCC sessions, allocations, child relationships, draws, legs, settlements, and
+repayments are explicit nodes in its lineage.
+
+## Current implementation
+
+- Solidity `AccordRegistry` stores relationship identity and parent-child
+  lineage.
+- `CapitalFacility` enforces FXRP collateral, USDT0 funding, selected versus
+  funded capacity, deterministic multi-child draws, exposure accounting,
+  repayment, expiry, and close rules.
+- `ConcordInstructionSender` submits encrypted `SUBMIT_QUOTE` and
+  `FINALIZE_ROUND` instructions through the official Flare FCC scaffold.
+- The Go extension validates signed provider quotes and runs deterministic
+  lowest-fee-first CoFill with a partial final allocation.
+- The FCC extension requires ECIES-encrypted payloads through the TEE decrypt
+  endpoint. Local unit tests inject a decrypt function; they do not turn the
+  production handler into a plaintext path.
+- The React frontend renders the recorded Coston2 Root Accord, Makkari/CoFill
+  formation, three funded Child Accords, explicit draw legs, repayment,
+  restored capacity, and evidence boundary through one shared SDK model. It
+  connects injected wallets, switches to Coston2, reads live capacity, prepares
+  canonical draw calldata locally, requires a separate wallet approval, and
+  tracks the public receipt without retaining keys.
+
+## Truth boundary
+
+This repository does not claim private FXRP or USDT0 transfers, private EVM
+execution, or production hardware-backed confidentiality. Coston2 FCC
+development may use the documented simulated TEE path. Public settlement,
+root/child exposure, accepted executable capacity, and lineage remain onchain.
+
+The allocation verifier is an explicit boundary: an offchain verifier must
+validate the FCC result binding, active machine/signature evidence, operation,
+round, root, and digest before calling `markAllocationVerified`. The first
+checkpoint does not pretend that an EOA is a native FCC proof verifier.
+
+## Architecture in plain language
+
+| Term | Plain-language meaning |
+|---|---|
+| Accord | A persistent economic relationship recorded onchain. |
+| Root Accord | The facility-level relationship: collateral, capacity, exposure, and lifecycle. |
+| Child Accord | One provider's governed commitment inside the root relationship. |
+| Makkari session | The bounded FCC session where provider terms are coordinated confidentially. |
+| CoFill | The deterministic allocator that chooses the lowest-fee eligible offers. |
+| FCC proxy | The HTTPS doorway that receives FCC traffic and forwards it to the private runtime. |
+| TEE | The service that decrypts and signs FCC development responses; here it is simulated, not hardware-backed. |
+| Redis | Private queue/state support for the proxy; it is not the economic source of truth. |
+
+The public economic truth is on Coston2: accepted capacity, funding, draws,
+repayment, and parent-child lineage. The hosted proxy/TEE is an operational
+development path around that onchain relationship.
+
+## Build and test
+
+The canonical extension runtime is the current Flare FCE scaffold, with Go as
+the Concord implementation language. Install Foundry and Go 1.25.1+, then:
 
 ```bash
-LANGUAGE=go          # default. Smallest image (~22MB distroless), bit-for-bit reproducible
-LANGUAGE=python      # ~268MB. Same-machine reproducible
-LANGUAGE=typescript  # ~472MB. Same-machine reproducible
+forge test
+
+(cd go && GOTOOLCHAIN=local go test ./...)
+(cd tools && GOTOOLCHAIN=local go test ./...)
 ```
 
-All three implement identical behaviour and are verified against the same golden wire fixtures by `./scripts/test-conformance.sh`. The Go path is the most thoroughly reproducible because it produces a static binary on a distroless base; Python wheels and `node_modules` trees embed build-host variance (see [REPRODUCIBILITY.md](REPRODUCIBILITY.md)).
+Use an installed Foundry/Go toolchain, or set `PATH` and `FOUNDRY_SOLC` to
+your own toolchain locations. The repository does not depend on a
+workspace-specific tool path.
 
-Language selection is **convention-based**: `LANGUAGE=<dir>` is valid iff `<dir>/language.env` exists, so adding a fourth language requires no changes to any script, tool or compose file — you create one directory.
-
-> **→ [Working in Multiple Languages](docs/languages.md)** covers choosing between them, the same handler written three ways, and a step-by-step for adding your own. The normative spec an implementation must satisfy is [docs/extension-contract.md](docs/extension-contract.md).
-
-## Repository Structure
-
-The repo splits into a **language-neutral spine** (contracts, deployment tooling, scripts) and **pluggable language implementations**. You customize one language directory plus the Solidity contract.
-
-```
-├── go/                                 # ── Go implementation
-│   ├── cmd/main.go                     # ★ Extension server entry point (standalone, for dev)
-│   ├── cmd/docker/main.go              # Combined TEE node + extension (single-process image)
-│   ├── cmd/start-tee/main.go           # Host-process runner for --local mode
-│   ├── internal/config/config.go       # ★ OPType constants, version, port defaults
-│   ├── internal/extension/extension.go # ★ MAIN CUSTOMIZATION POINT: processAction routing
-│   ├── internal/extension/utils.go     # Boilerplate: actionHandler, buildResult
-│   ├── pkg/types/types.go              # ★ Request/response types
-│   ├── Dockerfile                      # Single-process image (distroless)
-│   └── language.env                    # Language manifest (marks this dir as an implementation)
-├── python/                             # ── Python implementation
-│   ├── base/                           # Framework: server, wire types, encoding, node client
-│   ├── app/config.py                   # ★ OPType constants and version
-│   ├── app/handlers.py                 # ★ MAIN CUSTOMIZATION POINT: your handlers
-│   ├── app/abi.py                      # ★ ABI decoding for non-JSON payloads
-│   ├── tests/                          # pytest suite
-│   ├── Dockerfile                      # Two-process image (tee-node binary + python)
-│   └── language.env
-├── typescript/                         # ── TypeScript implementation
-│   ├── src/base/                       # Framework: server, wire types, encoding, node client
-│   ├── src/app/config.ts               # ★ OPType constants and version
-│   ├── src/app/handlers.ts             # ★ MAIN CUSTOMIZATION POINT: your handlers
-│   ├── src/app/abi.ts                  # ★ ABI decoding for non-JSON payloads
-│   ├── src/__tests__/                  # vitest suite
-│   ├── Dockerfile                      # Two-process image (tee-node binary + node)
-│   └── language.env
-│
-├── contracts/InstructionSender.sol     # ★ Your extension's on-chain entry point (shared)
-├── docker/node-base.Dockerfile         # Shared tee-node builder for non-Go images
-├── testdata/conformance/               # Golden wire fixtures, asserted against every language
-├── config/
-│   ├── extension.env                   # Generated by pre-build (gitignored)
-│   └── proxy/extension_proxy.toml      # Proxy config (Redis, DB, ports, addresses)
-├── scripts/                            # ── Language-neutral
-│   ├── full-setup.sh                   # Chains all phases: pre-build → compose → post-build → test
-│   ├── pre-build.sh                    # Compile + deploy + register → writes config
-│   ├── post-build.sh                   # Allow TEE version + register TEE on-chain
-│   ├── test.sh                         # On-chain end-to-end test (identical for all languages)
-│   ├── test-unit.sh                    # Unit tests, dispatched via language.env
-│   ├── test-conformance.sh             # Wire-contract conformance, no chain required
-│   ├── check-versions.sh               # Fails when dependency pins drift apart
-│   ├── build-node-base.sh              # Builds the shared tee-node base image
-│   ├── generate-bindings.sh            # Compile contract → generate Go bindings
-│   └── lib/{language,versions}.sh      # Language resolution + version derivation
-├── tools/                              # ── Language-neutral deployment tooling (Go)
-│   ├── cmd/deploy-contract/            # Deploys InstructionSender to chain
-│   ├── cmd/register-extension/         # Registers extension on TeeExtensionRegistry
-│   ├── cmd/allow-tee-version/          # Registers TEE code hash as allowed version
-│   ├── cmd/register-tee/               # Registers extension TEE machine on-chain
-│   ├── cmd/run-test/                   # Sends instructions and verifies results
-│   └── pkg/utils/instructions.go       # Deploy, SetExtensionId, SendSayHello helpers
-├── docker-compose.yaml                 # Redis + proxy + extension-tee
-├── foundry.toml                        # Foundry config for compiling contracts
-└── .env.example                        # Sample env vars, including LANGUAGE
-
-★ = Files developers MUST modify for their extension
-```
-
-`tools/` is deliberately independent of every language implementation, which is what lets one deployment and test path serve all of them.
-
-## Creating Your Extension
-
-The scaffold ships with a working Hello World. To build your extension you modify four things: the operation constants, the handlers, the Solidity contract, and the test assertions.
-
-| # | File | What you do |
-|---|------|-------------|
-| 1 | `<lang>` config — `go/internal/config/config.go`, `python/app/config.py`, or `typescript/src/app/config.ts` | Define your OPType and OPCommand constants |
-| 2 | `<lang>` handlers — `go/internal/extension/extension.go`, `python/app/handlers.py`, or `typescript/src/app/handlers.ts` | Implement your action handlers and state |
-| 3 | `contracts/InstructionSender.sol` | Add matching `bytes32` constants and send functions |
-| 4 | `tools/cmd/run-test/main.go` | Write test payloads and response assertions |
-
-Go additionally has `go/pkg/types/types.go` for request/response structs; Python and TypeScript declare those shapes inline in the handlers.
-
-The key link between your Solidity contract and your handlers is the **OPType** and **OPCommand** pair, which must match exactly across every layer:
-
-```
-Solidity:    bytes32 constant OP_TYPE_GREETING      = bytes32("GREETING");
-             bytes32 constant OP_COMMAND_SAY_HELLO  = bytes32("SAY_HELLO");
-
-Go:          OPTypeGreeting    = "GREETING"        // internal/config/config.go
-             OPCommandSayHello = "SAY_HELLO"
-
-Python:      OP_TYPE_GREETING     = "GREETING"     # app/config.py
-             OP_COMMAND_SAY_HELLO = "SAY_HELLO"
-
-TypeScript:  OP_TYPE_GREETING     = "GREETING"     // src/app/config.ts
-             OP_COMMAND_SAY_HELLO = "SAY_HELLO"
-```
-
-A mismatch means the action falls through to "unsupported op type" (HTTP 501).
-
-Every handler follows the same 4-step pattern in all three languages: decode the request, validate it, execute your logic, return a result.
-
-> ### **→ [Read the Extension Development Guide](docs/extension-guide.md)** for a detailed walkthrough, and **[docs/extension-contract.md](docs/extension-contract.md)** for the normative wire and container contract.
-
-## Making It Your Own
-
-This repository works out of the box as a Hello World extension. When you're ready to build your own extension, you'll rename the HelloWorld placeholders to your own names and replace the SAY_HELLO logic with your own operations.
-
-> ### **→ [Follow the Making It Your Own guide](docs/manual-setup.md)** for step-by-step renaming instructions.
->
-> Using [Claude Code](https://claude.ai/code)? Run `/rename-scaffold` to do it automatically.
-
-
-## Run It
-
-With local infrastructure up (`docker compose up` from `e2e/`):
+Generate deployment bindings after changing the instruction sender:
 
 ```bash
-cp .env.example .env                            # set DEPLOYMENT_PRIVATE_KEY and CHAIN_ID
-LANGUAGE=go ./scripts/full-setup.sh --test      # or python, typescript
+./scripts/generate-bindings.sh
 ```
 
-Prerequisites, configuration, ports and the failure table are in
-[docs/getting-started.md](docs/getting-started.md). Coston2 deployment and the platform
-traps that cost redeploys are in [docs/deployment-steps.md](docs/deployment-steps.md).
+The current Coston2 FCC sequence remains the official scaffold sequence:
 
-## Testing
+```text
+pre-build → start-services --chain coston2 → post-build → run-test
+```
 
-Three layers, cheapest first — unit (`test-unit.sh`), wire conformance against golden
-fixtures with no chain required (`test-conformance.sh`), and on-chain end-to-end
-(`test.sh`). Conformance is what guarantees the three implementations stay
-byte-identical on the wire, and it is the acceptance test for any new language. See
-[docs/testing.md](docs/testing.md).
+The observed Coston2 sender, FCC extension registration, and facility deployment
+receipts are recorded in [docs/CONCORD_STATUS.md](docs/CONCORD_STATUS.md). The
+complete provider-funding, multi-child settlement, repayment, and
+restored-capacity proof is recorded there with transaction and workflow
+evidence. The latest hosted development checkpoint is recorded in
+[docs/current-runtime.md](docs/current-runtime.md); it has a fresh public
+`/info` check, but its newly generated simulated TEE identity is not yet an
+onchain-registered machine.
 
-## Further Reading
+Build the frontend from its exact lockfile:
 
-**Building your extension**
+```bash
+(cd frontend && npm ci --ignore-scripts --no-audit --no-fund)
+(cd frontend && npm run build && npm test)
+```
 
-- [Extension Development Guide](docs/extension-guide.md) — how the code works and how to add your own logic
-- [Working in Multiple Languages](docs/languages.md) — choosing a language, working in each, and **adding your own**
-- [Making It Your Own](docs/manual-setup.md) — renaming from HelloWorld to your own extension
-- [InstructionSender Contract](docs/instruction-sender.md) — how the on-chain contract works and how to customize it
+The root [`vercel.json`](vercel.json) deploys the same frontend from the
+repository root so the shared SDK and recorded Coston2 deployment remain
+available to the build. It also applies the single-page application fallback
+for direct facility, funding, evidence, child, and draw URLs. Vercel Deployment
+Protection must be disabled for the production URL before it is described as
+public.
 
-**Reference**
+The 2026-08-14 checkpoint has no public Vercel frontend URL yet: the connected
+team rejected Production deployment with HTTP 403 until the integration is
+granted Production Deploy permission. The Vercel project must also have
+Settings → Deployment Protection → Vercel Authentication disabled for
+Production. The FCC development runtime is now running on Northflank with the
+Cloudflare Worker relay; see the [current status](docs/CONCORD_STATUS.md) and
+[current runtime checkpoint](docs/current-runtime.md) before making a
+hosting or registration claim.
 
-- [Extension Container Contract](docs/extension-contract.md) — the normative wire format and container spec every implementation must satisfy
-- [Testing Guide](docs/testing.md) — the test layers, conformance fixtures, and what to run when
-- [Reproducibility](REPRODUCIBILITY.md) — what each language's build actually guarantees
+The current always-on FCC development-host plan and safe simulated-TEE identity
+cutover are in
+[docs/fcc-always-on-hosting.md](docs/fcc-always-on-hosting.md). The
+judge-ready walkthrough, evidence ledger, claim boundary, and submission copy
+are in [docs/DEMO_AND_SUBMISSION.md](docs/DEMO_AND_SUBMISSION.md).
+From a clean checkout, run `./scripts/judge-check.sh` for the credential-free,
+read-only judge preflight. Use `--registry` only after the current simulated
+TEE has been deliberately registered and its availability has been verified.
 
-**Per-language**
+## Repository map
 
-- [go/README.md](go/README.md) · [python/README.md](python/README.md) · [typescript/README.md](typescript/README.md)
+```text
+contracts/
+  AccordRegistry.sol
+  CapitalFacility.sol
+  ConcordInstructionSender.sol
+  ConcordTypes.sol
+  interfaces/
+  test/
+go/                         FCC extension and CoFill
+tools/                      deployment, FCC verification, and test commands
+config/                     network and proxy configuration templates
+docs/                       product, architecture, truth, and runbooks
+scripts/                    scaffold lifecycle and binding commands
+api/                        REST/OpenAPI integration contract
+sdk/typescript/             typed read and unsigned-intent client
+frontend/                   frontend boundary and implementation map
+infra/northflank/           Northflank FCC proxy/TEE/Redis deployment contract
+infra/railway/              long-running FCC proxy/TEE deployment config
+```
 
----
+## Shared surfaces
 
-## Built On
+The shared product contract is documented in
+[docs/shared-product-contract.md](docs/shared-product-contract.md). The
+frontend map is in [docs/frontend-map.md](docs/frontend-map.md), and the
+machine-readable REST contract is [api/openapi.yaml](api/openapi.yaml).
 
-Flare Confidential Compute — see the [FCC overview](https://dev.flare.network/fcc/overview) for the underlying primitives (extensions, signing policies, data providers, attestation, Protocol Managed Wallets).
+The unified CLI can check the environment and run the read-only API/MCP
+surfaces:
+
+```bash
+./scripts/concord doctor --offline
+./scripts/concord api -facility 0x... -registry 0x...
+./scripts/concord mcp -api-url http://127.0.0.1:8080
+```
+
+These surfaces prepare unsigned transaction intents only. They do not custody,
+sign, broadcast, or grant FCC verifier authority.
+
+## Official Flare sources
+
+- [Build Your First FCC Extension](https://dev.flare.network/fcc/guides/getting-started)
+- [Coston2 network configuration](https://dev.flare.network/network/overview)
+- [FXRP address guidance](https://dev.flare.network/fxrp/token-interactions/fxrp-address)
+- [Official FCE scaffold](https://github.com/flare-foundation/fce-extension-scaffold)
+- [Official Foundry periphery package](https://github.com/flare-foundation/flare-foundry-periphery-package)

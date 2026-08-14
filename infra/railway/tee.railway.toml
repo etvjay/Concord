@@ -1,0 +1,6 @@
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "go/Dockerfile"
+
+[deploy]
+restartPolicyType = "ALWAYS"

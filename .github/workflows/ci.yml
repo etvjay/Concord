@@ -1,0 +1,856 @@
+name: Concord verification
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      deploy_sender:
+        description: 'Deploy a new ConcordInstructionSender on Coston2'
+        required: false
+        default: false
+        type: boolean
+      register_extension:
+        description: 'Register the existing sender as a Flare FCC extension'
+        required: false
+        default: false
+        type: boolean
+      deploy_facility:
+        description: 'Deploy the Concord AccordRegistry and CapitalFacility on Coston2'
+        required: false
+        default: false
+        type: boolean
+      setup_fcc:
+        description: 'Start the official Coston2 FCC scaffold and register one TEE machine'
+        required: false
+        default: false
+        type: boolean
+      open_round:
+        description: 'Create the deterministic FXRP root Accord and open its Makkari round'
+        required: false
+        default: false
+        type: boolean
+      fund_provider_gas:
+        description: 'Send 5 C2FLR to each provider for approval and funding gas'
+        required: false
+        default: false
+        type: boolean
+      execute_fcc_round:
+        description: 'Submit three signed provider offers, finalize CoFill, verify FCC evidence, and materialize Child Accords'
+        required: false
+        default: false
+        type: boolean
+      materialize_existing:
+        description: 'Materialize a previously verified FCC artifact without replaying the finalized round'
+        required: false
+        default: false
+        type: boolean
+      source_run_id:
+        description: 'Workflow run ID containing concord-fcc-round-evidence when materialize_existing is true'
+        required: false
+        default: ''
+        type: string
+      execute_facility_flow:
+        description: 'Fund all materialized children, execute a multi-child draw, repay it, and assert restored capacity'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  solidity:
+    name: Solidity / Foundry
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+      - name: Show toolchain
+        run: forge --version
+      - name: Run Solidity lifecycle tests
+        run: forge test -vvv
+
+  go:
+    name: Go extension and tooling
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Install Go 1.25.1
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.1"
+          cache: false
+      - name: Test Concord FCC extension
+        working-directory: go
+        env:
+          GOTOOLCHAIN: local
+        run: go test ./...
+      - name: Test deployment, verifier, API and MCP tooling
+        working-directory: tools
+        env:
+          GOTOOLCHAIN: local
+        run: go test ./...
+      - name: Check Flare dependency pin consistency
+        run: bash scripts/check-versions.sh
+
+  sdk:
+    name: TypeScript SDK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Install Node.js 22.10.0
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.10.0"
+      - name: Install SDK dependencies
+        working-directory: sdk/typescript
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Build SDK declarations
+        working-directory: sdk/typescript
+        run: npm run build
+
+  repository:
+    name: Repository and documentation gates
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Parse shell scripts
+        run: find scripts -type f -name "*.sh" -print0 | xargs -0 -n1 bash -n
+      - name: Validate Concord documentation contract
+        run: bash scripts/check-docs.sh
+      - name: Validate evidence template
+        run: bash scripts/check-evidence-template.sh
+      - name: Validate read-only Coston2 preflight command
+        run: bash scripts/coston2-preflight.sh --offline
+
+
+  codespace_fcc_runtime:
+    name: Coston2 FCC runtime in disposable Codespace
+    if: github.event_name == 'workflow_dispatch' && inputs.setup_fcc == true && github.ref == 'refs/heads/agent/concord-rebuild'
+    runs-on: ubuntu-latest
+    env:
+      CODESPACE_NAME: friendly-engine-r7r5qrwvvrj5c5777
+      GH_TOKEN: ${{ secrets.CONCORD_CODESPACE_PAT }}
+      PROXY_PRIVATE_KEY: ${{ secrets.CONCORD_FCC_PROXY_PRIVATE_KEY }}
+      INDEXER_DB_HOST: ${{ secrets.CONCORD_FCC_INDEXER_DB_HOST }}
+      INDEXER_DB_NAME: ${{ secrets.CONCORD_FCC_INDEXER_DB_NAME }}
+      INDEXER_DB_USER: ${{ secrets.CONCORD_FCC_INDEXER_DB_USER }}
+      INDEXER_DB_PASSWORD: ${{ secrets.CONCORD_FCC_INDEXER_DB_PASSWORD }}
+    steps:
+      - name: Check out requested ref
+        uses: actions/checkout@v4
+      - name: Prepare and start official scaffold
+        shell: bash
+        run: bash scripts/prepare-coston2-codespace.sh
+      - name: Register proxy port with Codespaces
+        shell: bash
+        run: |
+          set -euo pipefail
+          log_file="${RUNNER_TEMP}/concord-codespace-port-forward.log"
+          gh codespace ports forward 6674:6674 -c "$CODESPACE_NAME" >"$log_file" 2>&1 &
+          forward_pid=$!
+          cleanup() {
+            kill "$forward_pid" 2>/dev/null || true
+          }
+          trap cleanup EXIT
+          for _ in $(seq 1 30); do
+            if gh codespace ports --codespace "$CODESPACE_NAME" --json sourcePort \
+              | jq -e 'any(.[]; .sourcePort == 6674)' >/dev/null; then
+              echo "Codespaces registered proxy port 6674"
+              exit 0
+            fi
+            if ! kill -0 "$forward_pid" 2>/dev/null; then
+              cat "$log_file" >&2 || true
+              exit 1
+            fi
+            sleep 1
+          done
+          cat "$log_file" >&2 || true
+          exit 1
+      - name: Make proxy port public
+        shell: bash
+        run: gh codespace ports visibility 6674:public -c "$CODESPACE_NAME"
+      - name: Verify public proxy port
+        shell: bash
+        run: |
+          set -euo pipefail
+          public_url="$(gh codespace ports --codespace "$CODESPACE_NAME" --json sourcePort,browseUrl,visibility \
+            | jq -r '.[] | select(.sourcePort == 6674 and .visibility == "public") | .browseUrl' | head -n 1)"
+          test -n "$public_url"
+          curl --fail --silent --show-error "$public_url/info" \
+            | jq '{extensionId: .machineData.extensionId, codeHash: .machineData.codeHash, platform: .machineData.platform, chainId: .teeInfo.chainId, lastSigningPolicyId: .teeInfo.lastSigningPolicyId}'
+      - name: Install Go for relay registration
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.1"
+          cache: false
+      - name: Register simulated development TEE through stable Worker relay
+        shell: bash
+        env:
+          CHAIN: coston2
+          CHAIN_URL: https://coston2-api.flare.network/ext/C/rpc
+          NORMAL_PROXY_URL: https://tee-proxy-coston2-1.flare.rocks
+          EXT_PROXY_URL: ${{ secrets.CONCORD_FCC_PUBLIC_PROXY_URL }}
+          EXT_PROXY_HOST_URL: ${{ secrets.CONCORD_FCC_PUBLIC_PROXY_URL }}
+          LOCAL_MODE: "false"
+          SIMULATED_TEE: "true"
+          DEPLOYMENT_PRIVATE_KEY: ${{ secrets.CONCORD_E2E_DEPLOYER_PRIVATE_KEY }}
+          INITIAL_OWNER: "0x1aF42c70837f08c6C89a6FA274EB9eeF040820B3"
+          GOVERNANCE_SIGNERS: "0x1aF42c70837f08c6C89a6FA274EB9eeF040820B3"
+          GOVERNANCE_THRESHOLD: "1"
+          ADDRESSES_FILE: ./config/coston2/deployed-addresses.json
+          REGISTER_TEE_COMMAND: rRap
+        run: |
+          set -euo pipefail
+          test -n "$DEPLOYMENT_PRIVATE_KEY"
+          test -n "$EXT_PROXY_URL"
+          test -n "$EXT_PROXY_HOST_URL"
+          case "$EXT_PROXY_URL" in
+            https://*) ;;
+            *) echo 'relay registration requires a public HTTPS Worker URL' >&2; exit 1 ;;
+          esac
+          curl --fail --silent --show-error --max-time 20 "$EXT_PROXY_URL/info" \
+            | jq -e '.machineData.extensionId == "0x000000000000000000000000000000000000000000000000000000000001028c" and .teeInfo.chainId == 114' >/dev/null
+          bash scripts/post-build.sh
+      - name: Verify one active production TEE machine
+        shell: bash
+        env:
+          CHAIN_URL: https://coston2-api.flare.network/ext/C/rpc
+        run: |
+          set -euo pipefail
+          (cd tools && go run ./cmd/query-tee \
+            -rpc "$CHAIN_URL" \
+            -reg 0x1a9C4A0f9D76c0b1D91d22E24E573a9b377618aE \
+            -ext 66188) | tee "$RUNNER_TEMP/concord-tee-query.txt"
+          active_count="$(grep -Ec '^[[:space:]]+[0-9]+: 0x[0-9a-fA-F]{40} url="https://' "$RUNNER_TEMP/concord-tee-query.txt" || true)"
+          test "$active_count" = 1
+          tee_id="$(sed -n 's/^[[:space:]]*[0-9]*: \(0x[0-9a-fA-F]\{40\}\) url=.*/\1/p' "$RUNNER_TEMP/concord-tee-query.txt" | head -n 1)"
+          test -n "$tee_id"
+          (cd tools && go run ./cmd/query-tee \
+            -rpc "$CHAIN_URL" \
+            -reg 0x1a9C4A0f9D76c0b1D91d22E24E573a9b377618aE \
+            "$tee_id") | tee "$RUNNER_TEMP/concord-tee-machine.txt"
+          grep -q 'getTeeMachineStatus: 2' "$RUNNER_TEMP/concord-tee-machine.txt"
+          grep -q 'getTeeMachine:.*url="https://' "$RUNNER_TEMP/concord-tee-machine.txt"
+          {
+            echo 'Coston2 FCC scaffold registered exactly one simulated development TEE through the stable Worker relay.'
+            echo "TEE machine status: 2 (PRODUCTION); teeId: $tee_id"
+            echo 'The relay is an ingress fallback; it is not a named Cloudflare Tunnel or production hardware-TEE claim.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+
+  live_fcc_round:
+    name: Coston2 FCC round and Child Accord materialization
+    if: github.event_name == 'workflow_dispatch' && inputs.setup_fcc == true && inputs.execute_fcc_round == true && github.ref == 'refs/heads/agent/concord-rebuild'
+    needs: codespace_fcc_runtime
+    concurrency:
+      group: concord-coston2-fcc-round
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    env:
+      CHAIN_URL: https://coston2-api.flare.network/ext/C/rpc
+      EXT_PROXY_URL: ${{ secrets.CONCORD_FCC_PUBLIC_PROXY_URL }}
+      DEPLOYMENT_PRIVATE_KEY: ${{ secrets.CONCORD_E2E_DEPLOYER_PRIVATE_KEY }}
+      CONCORD_E2E_PROVIDER_A_PRIVATE_KEY: ${{ secrets.CONCORD_E2E_PROVIDER_A_PRIVATE_KEY }}
+      CONCORD_E2E_PROVIDER_B_PRIVATE_KEY: ${{ secrets.CONCORD_E2E_PROVIDER_B_PRIVATE_KEY }}
+      CONCORD_E2E_PROVIDER_C_PRIVATE_KEY: ${{ secrets.CONCORD_E2E_PROVIDER_C_PRIVATE_KEY }}
+      INSTRUCTION_SENDER: "0x574b523eA944EFe9143AF9d6c46bfA925beE2968"
+      FACILITY: "0xfaff601a18a9fca33378953515aa0f3ef9286ecd"
+      TEE_REGISTRY: "0x1a9C4A0f9D76c0b1D91d22E24E573a9b377618aE"
+      EXTENSION_ID: "0x000000000000000000000000000000000000000000000000000000000001028c"
+      ADDRESSES_FILE: ./config/coston2/deployed-addresses.json
+    steps:
+      - name: Check out requested ref
+        uses: actions/checkout@v4
+
+      - name: Install Go 1.25.1
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.1"
+          cache: false
+
+      - name: Build ephemeral signed provider offers from live round state
+        shell: bash
+        run: |
+          set -euo pipefail
+          round_id="$(jq -r '.rootRound.roundId' config/coston2/concord-deployment.json)"
+          root_id="$(jq -r '.rootRound.rootAccordId' config/coston2/concord-deployment.json)"
+          provider_a="$(jq -r '.rootRound.eligibleProviders[0]' config/coston2/concord-deployment.json)"
+          provider_b="$(jq -r '.rootRound.eligibleProviders[1]' config/coston2/concord-deployment.json)"
+          provider_c="$(jq -r '.rootRound.eligibleProviders[2]' config/coston2/concord-deployment.json)"
+          test "$round_id" != "null"
+          test "$root_id" != "null"
+          mkdir -p "$RUNNER_TEMP/concord-quotes"
+          (cd go && GOTOOLCHAIN=local go run ./cmd/build-quotes \
+            -rpc "$CHAIN_URL" \
+            -facility "$FACILITY" \
+            -extension-id "$EXTENSION_ID" \
+            -round-id "$round_id" \
+            -root-accord-id "$root_id" \
+            -out-dir "$RUNNER_TEMP/concord-quotes" \
+            -provider-a "$provider_a" \
+            -provider-b "$provider_b" \
+            -provider-c "$provider_c")
+          jq -e '.roundId == $round and .rootAccordId == $root' \
+            --arg round "$round_id" --arg root "$root_id" \
+            "$RUNNER_TEMP/concord-quotes/finalize-round.json" >/dev/null
+
+      - name: Submit quotes and finalize CoFill through FCC
+        shell: bash
+        env:
+          CONCORD_QUOTES: ${{ runner.temp }}/concord-quotes/quote-a.json,${{ runner.temp }}/concord-quotes/quote-b.json,${{ runner.temp }}/concord-quotes/quote-c.json
+          CONCORD_FINALIZE: ${{ runner.temp }}/concord-quotes/finalize-round.json
+          CONCORD_EVIDENCE_OUT: ${{ runner.temp }}/concord-fcc-action.json
+          LOCAL_MODE: "false"
+        run: |
+          set -euo pipefail
+          case "$EXT_PROXY_URL" in https://*) ;; *) echo 'FCC round requires public HTTPS proxy URL' >&2; exit 1 ;; esac
+          bash scripts/test.sh
+
+      - name: Verify FCC evidence and materialize Child Accords
+        shell: bash
+        run: |
+          set -euo pipefail
+          round_id="$(jq -r '.rootRound.roundId' config/coston2/concord-deployment.json)"
+          root_id="$(jq -r '.rootRound.rootAccordId' config/coston2/concord-deployment.json)"
+          (cd tools && GOTOOLCHAIN=local go run ./cmd/verify-allocation \
+            -c "$CHAIN_URL" \
+            -facility "$FACILITY" \
+            -teeRegistry "$TEE_REGISTRY" \
+            -result "$RUNNER_TEMP/concord-fcc-action.json" \
+            -extensionId "$EXTENSION_ID" \
+            -roundId "$round_id" \
+            -rootAccordId "$root_id" \
+            -mark \
+            -materialize \
+            -out "$RUNNER_TEMP/concord-allocation-verification.json")
+          jq -e '.broadcast == true and .materialized == true' \
+            "$RUNNER_TEMP/concord-allocation-verification.json" >/dev/null
+          {
+            echo 'FCC round evidence verified against the active Coston2 TEE machine.'
+            echo 'Allocation digest authorized and Child Accords materialized on the canonical CapitalFacility.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Preserve FCC round evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: concord-fcc-round-evidence
+          path: |
+            ${{ runner.temp }}/concord-fcc-action.json
+            ${{ runner.temp }}/concord-allocation-verification.json
+          if-no-files-found: ignore
+
+
+  live_materialize_existing:
+    name: Materialize previously verified FCC allocation
+    if: github.event_name == 'workflow_dispatch' && inputs.materialize_existing == true && github.ref == 'refs/heads/agent/concord-rebuild'
+    permissions:
+      actions: read
+      contents: read
+    concurrency:
+      group: concord-coston2-fcc-materialization
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    env:
+      CHAIN_URL: https://coston2-api.flare.network/ext/C/rpc
+      DEPLOYMENT_PRIVATE_KEY: ${{ secrets.CONCORD_E2E_DEPLOYER_PRIVATE_KEY }}
+      FACILITY: "0xfaff601a18a9fca33378953515aa0f3ef9286ecd"
+      TEE_REGISTRY: "0x1a9C4A0f9D76c0b1D91d22E24E573a9b377618aE"
+      EXTENSION_ID: "0x000000000000000000000000000000000000000000000000000000000001028c"
+    steps:
+      - name: Check out requested ref
+        uses: actions/checkout@v4
+
+      - name: Install Go 1.25.1
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.1"
+          cache: false
+
+      - name: Require source run id
+        shell: bash
+        run: test -n "${{ inputs.source_run_id }}"
+
+      - name: Download signed FCC evidence from source run
+        uses: actions/download-artifact@v4
+        with:
+          name: concord-fcc-round-evidence
+          path: ${{ runner.temp }}/concord-fcc-round-evidence
+          run-id: ${{ inputs.source_run_id }}
+          github-token: ${{ github.token }}
+
+      - name: Verify digest and materialize Child Accords
+        shell: bash
+        run: |
+          set -euo pipefail
+          round_id="$(jq -r '.rootRound.roundId' config/coston2/concord-deployment.json)"
+          root_id="$(jq -r '.rootRound.rootAccordId' config/coston2/concord-deployment.json)"
+          action_file="$(find "$RUNNER_TEMP/concord-fcc-round-evidence" -name concord-fcc-action.json -type f -print -quit)"
+          test -n "$action_file"
+          (cd tools && GOTOOLCHAIN=local go run ./cmd/verify-allocation \
+            -c "$CHAIN_URL" \
+            -facility "$FACILITY" \
+            -teeRegistry "$TEE_REGISTRY" \
+            -result "$action_file" \
+            -extensionId "$EXTENSION_ID" \
+            -roundId "$round_id" \
+            -rootAccordId "$root_id" \
+            -mark \
+            -materialize \
+            -out "$RUNNER_TEMP/concord-allocation-verification.json")
+          jq -e '.broadcast == true and .materialized == true' \
+            "$RUNNER_TEMP/concord-allocation-verification.json" >/dev/null
+          {
+            echo "Recovered signed FCC artifact from run ${{ inputs.source_run_id }}."
+            echo 'Allocation digest was already authorized; Child Accords are now materialized on the canonical CapitalFacility.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+
+  live_facility_flow:
+    name: Coston2 funding, multi-child draw, and repayment
+    if: github.event_name == 'workflow_dispatch' && inputs.execute_facility_flow == true && github.ref == 'refs/heads/agent/concord-rebuild'
+    needs: go
+    permissions:
+      contents: read
+    concurrency:
+      group: concord-coston2-facility-flow
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    env:
+      CHAIN_URL: https://coston2-api.flare.network/ext/C/rpc
+      DEPLOYMENT_PRIVATE_KEY: ${{ secrets.CONCORD_E2E_DEPLOYER_PRIVATE_KEY }}
+      CONCORD_E2E_PROVIDER_A_PRIVATE_KEY: ${{ secrets.CONCORD_E2E_PROVIDER_A_PRIVATE_KEY }}
+      CONCORD_E2E_PROVIDER_B_PRIVATE_KEY: ${{ secrets.CONCORD_E2E_PROVIDER_B_PRIVATE_KEY }}
+      CONCORD_E2E_PROVIDER_C_PRIVATE_KEY: ${{ secrets.CONCORD_E2E_PROVIDER_C_PRIVATE_KEY }}
+      FACILITY: "0xfaff601a18a9fca33378953515aa0f3ef9286ecd"
+      USDT0: "0xC1A5B41512496B80903D1f32d6dEa3a73212E71F"
+    steps:
+      - name: Check out requested ref
+        uses: actions/checkout@v4
+
+      - name: Install Go 1.25.1
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.1"
+          cache: false
+
+      - name: Run funded facility lifecycle
+        shell: bash
+        run: |
+          set -euo pipefail
+          root_id="$(jq -r '.rootRound.rootAccordId' config/coston2/concord-deployment.json)"
+          test "$root_id" != "null"
+          mkdir -p "$RUNNER_TEMP/concord-facility-flow"
+          (cd tools && GOTOOLCHAIN=local go run ./cmd/facility-flow \
+            -rpc "$CHAIN_URL" \
+            -facility "$FACILITY" \
+            -token "$USDT0" \
+            -root-accord-id "$root_id" \
+            -out "$RUNNER_TEMP/concord-facility-flow/facility-flow.json")
+          jq -e 'all(.invariants[]; . == true) and .drawLegCount >= 2 and .drawnAfter == "0"' \
+            "$RUNNER_TEMP/concord-facility-flow/facility-flow.json" >/dev/null
+          {
+            echo 'All materialized Child Accords funded with real Coston2 USDT0 transfers.'
+            echo 'A multi-child draw was settled, fully repaid, and available capacity was restored.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Preserve facility lifecycle evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: concord-facility-flow-evidence
+          path: ${{ runner.temp }}/concord-facility-flow/facility-flow.json
+          if-no-files-found: ignore
+
+
+  live_sender_deploy:
+    name: Coston2 sender deployment (manual only)
+    if: github.event_name == 'workflow_dispatch' && inputs.deploy_sender == true
+    runs-on: ubuntu-latest
+    env:
+      CHAIN_URL: https://coston2-api.flare.network/ext/C/rpc
+      DEPLOYMENT_PRIVATE_KEY: ${{ secrets.CONCORD_E2E_DEPLOYER_PRIVATE_KEY }}
+    steps:
+      - name: Check out requested ref
+        uses: actions/checkout@v4
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - name: Deploy instruction sender
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$DEPLOYMENT_PRIVATE_KEY"
+          owner="$(cast wallet address --private-key "$DEPLOYMENT_PRIVATE_KEY")"
+          tee_registry="$(jq -r '.[] | select(.name == "FlareTeeManager") | .address' config/coston2/deployed-addresses.json)"
+          test "$owner" != ""
+          test "$tee_registry" != "null"
+          test "$tee_registry" != ""
+          export DEPLOYMENT_OWNER="$owner"
+          export TEE_EXTENSION_REGISTRY="$tee_registry"
+          export TEE_MACHINE_REGISTRY="$tee_registry"
+          DEPLOY_PHASE=sender bash scripts/deploy-coston2.sh
+
+
+  live_extension_register:
+    name: Coston2 FCC extension registration (manual only)
+    if: github.event_name == 'workflow_dispatch' && inputs.register_extension == true
+    runs-on: ubuntu-latest
+    env:
+      CHAIN_URL: https://coston2-api.flare.network/ext/C/rpc
+      DEPLOYMENT_PRIVATE_KEY: ${{ secrets.CONCORD_E2E_DEPLOYER_PRIVATE_KEY }}
+      INSTRUCTION_SENDER: "0x574b523eA944EFe9143AF9d6c46bfA925beE2968"
+    steps:
+      - name: Check out requested ref
+        uses: actions/checkout@v4
+
+      - name: Install Go 1.25.1
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.1"
+          cache: false
+
+      - name: Register FCC extension
+        working-directory: tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$DEPLOYMENT_PRIVATE_KEY"
+          test "$INSTRUCTION_SENDER" != ""
+          extension_id="$(go run ./cmd/register-extension \
+            -a ../config/coston2/deployed-addresses.json \
+            -c "$CHAIN_URL" \
+            --instructionSender "$INSTRUCTION_SENDER" \
+            2>"$RUNNER_TEMP/concord-register-extension.log" | tail -1)"
+          cat "$RUNNER_TEMP/concord-register-extension.log" >&2
+          [[ "$extension_id" =~ ^0x[0-9a-fA-F]{64}$ ]]
+          echo "Registered FCC extension ID: $extension_id" >> "$GITHUB_STEP_SUMMARY"
+
+
+  live_facility_deploy:
+    name: Coston2 Concord facility deployment (manual only)
+    concurrency:
+      group: concord-coston2-facility-deployment
+      cancel-in-progress: false
+    if: github.event_name == 'workflow_dispatch' && inputs.deploy_facility == true
+    runs-on: ubuntu-latest
+    env:
+      CHAIN_URL: https://coston2-api.flare.network/ext/C/rpc
+      DEPLOYMENT_PRIVATE_KEY: ${{ secrets.CONCORD_E2E_DEPLOYER_PRIVATE_KEY }}
+      DEPLOYMENT_OWNER: "0x1aF42c70837f08c6C89a6FA274EB9eeF040820B3"
+      ALLOCATION_VERIFIER: "0x1aF42c70837f08c6C89a6FA274EB9eeF040820B3"
+      CONCORD_EXTENSION_ID: "0x000000000000000000000000000000000000000000000000000000000001028c"
+    steps:
+      - name: Check out requested ref
+        uses: actions/checkout@v4
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - name: Deploy Concord facility
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$DEPLOYMENT_PRIVATE_KEY"
+          test "$DEPLOYMENT_OWNER" != ""
+          test "$ALLOCATION_VERIFIER" != ""
+          test "$CONCORD_EXTENSION_ID" != ""
+          existing_facility="$(jq -r '.canonicalFacility.capitalFacility // empty' config/coston2/concord-deployment.json 2>/dev/null || true)"
+          if [[ -n "$existing_facility" ]] && [[ "$(cast code "$existing_facility" --rpc-url "$CHAIN_URL")" != "0x" ]]; then
+            echo "canonical CapitalFacility already has code at $existing_facility; refusing a duplicate deployment" >&2
+            exit 1
+          fi
+          DEPLOY_PHASE=facility bash scripts/deploy-coston2.sh
+
+
+  live_fcc_setup:
+    name: Coston2 FCC scaffold setup (manual only)
+    if: github.event_name == 'workflow_dispatch' && inputs.setup_fcc == true && github.ref != 'refs/heads/agent/concord-rebuild'
+    concurrency:
+      group: concord-coston2-fcc-setup
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    env:
+      CHAIN: coston2
+      CHAIN_URL: https://coston2-api.flare.network/ext/C/rpc
+      NORMAL_PROXY_URL: https://tee-proxy-coston2-1.flare.rocks
+      EXT_PROXY_URL: ${{ secrets.CONCORD_FCC_PUBLIC_PROXY_URL }}
+      EXT_PROXY_HOST_URL: ${{ secrets.CONCORD_FCC_PUBLIC_PROXY_URL }}
+      TUNNEL_ARGS: ${{ secrets.CONCORD_FCC_TUNNEL_ARGS }}
+      LOCAL_MODE: "false"
+      SIMULATED_TEE: "true"
+      DEPLOYMENT_PRIVATE_KEY: ${{ secrets.CONCORD_E2E_DEPLOYER_PRIVATE_KEY }}
+      DEPLOYMENT_OWNER: "0x1aF42c70837f08c6C89a6FA274EB9eeF040820B3"
+      INITIAL_OWNER: "0x1aF42c70837f08c6C89a6FA274EB9eeF040820B3"
+      GOVERNANCE_SIGNERS: "0x1aF42c70837f08c6C89a6FA274EB9eeF040820B3"
+      GOVERNANCE_THRESHOLD: "1"
+      EXTENSION_ID: "0x000000000000000000000000000000000000000000000000000000000001028c"
+      INSTRUCTION_SENDER: "0x574b523eA944EFe9143AF9d6c46bfA925beE2968"
+      PROXY_PRIVATE_KEY: ${{ secrets.CONCORD_FCC_PROXY_PRIVATE_KEY }}
+      INDEXER_DB_HOST: ${{ secrets.CONCORD_FCC_INDEXER_DB_HOST }}
+      INDEXER_DB_NAME: ${{ secrets.CONCORD_FCC_INDEXER_DB_NAME }}
+      INDEXER_DB_USER: ${{ secrets.CONCORD_FCC_INDEXER_DB_USER }}
+      INDEXER_DB_PASSWORD: ${{ secrets.CONCORD_FCC_INDEXER_DB_PASSWORD }}
+    steps:
+      - name: Check out requested ref
+        uses: actions/checkout@v4
+
+      - name: Install Go 1.25.1
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.1"
+          cache: false
+
+      - name: Prepare ignored live scaffold configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$DEPLOYMENT_PRIVATE_KEY"
+          test -n "$PROXY_PRIVATE_KEY"
+          test -n "$EXT_PROXY_URL"
+          test -n "$EXT_PROXY_HOST_URL"
+          test -n "$TUNNEL_ARGS"
+          case "$EXT_PROXY_URL" in
+            https://*) ;;
+            *) echo 'FCC setup requires a public HTTPS EXT_PROXY_URL' >&2; exit 1 ;;
+          esac
+          case "$EXT_PROXY_URL" in
+            *trycloudflare.com*|*ngrok*|*loca.lt*)
+              echo 'FCC setup refuses a rotating quick-tunnel URL; use a stable named tunnel hostname' >&2
+              exit 1
+              ;;
+          esac
+          [[ "$TUNNEL_ARGS" == run\ --token\ * ]] || {
+            echo 'FCC setup requires TUNNEL_ARGS in the form: run --token <named-tunnel-token>' >&2
+            exit 1
+          }
+          [[ "$TUNNEL_ARGS" != *--url* ]] || {
+            echo 'FCC setup refuses quick-tunnel --url arguments for a registered machine' >&2
+            exit 1
+          }
+          test -n "$INDEXER_DB_HOST"
+          test -n "$INDEXER_DB_NAME"
+          test -n "$INDEXER_DB_USER"
+          test -n "$INDEXER_DB_PASSWORD"
+          umask 077
+          printf '%s\n' \
+            "CHAIN=$CHAIN" \
+            "CHAIN_URL=$CHAIN_URL" \
+            "NORMAL_PROXY_URL=$NORMAL_PROXY_URL" \
+            "EXT_PROXY_URL=$EXT_PROXY_URL" \
+            "EXT_PROXY_HOST_URL=$EXT_PROXY_HOST_URL" \
+            "LOCAL_MODE=$LOCAL_MODE" \
+            "SIMULATED_TEE=$SIMULATED_TEE" \
+            "PROXY_PRIVATE_KEY=$PROXY_PRIVATE_KEY" \
+            "DEPLOYMENT_PRIVATE_KEY=$DEPLOYMENT_PRIVATE_KEY" \
+            "INITIAL_OWNER=$INITIAL_OWNER" \
+            "GOVERNANCE_SIGNERS=$GOVERNANCE_SIGNERS" \
+            "GOVERNANCE_THRESHOLD=$GOVERNANCE_THRESHOLD" \
+            "ADDRESSES_FILE=./config/coston2/deployed-addresses.json" \
+            > .env
+          printf 'TUNNEL_ARGS=%q\n' "$TUNNEL_ARGS" >> .env
+          printf 'EXTENSION_ID=%s\nINSTRUCTION_SENDER=%s\n' "$EXTENSION_ID" "$INSTRUCTION_SENDER" > config/extension.env
+          printf '%s\n' \
+            'redis_port = "redis:6379"' \
+            'private_key_variable = "PROXY_PRIVATE_KEY"' \
+            'initial_signing_policy_offset = 2' \
+            'signing_policy_fetch_interval = "20s"' \
+            '' \
+            'chain_id = 114' \
+            '' \
+            '[db]' \
+            "host = \"$INDEXER_DB_HOST\"" \
+            'port = 3306' \
+            "database = \"$INDEXER_DB_NAME\"" \
+            "username = \"$INDEXER_DB_USER\"" \
+            "password = \"$INDEXER_DB_PASSWORD\"" \
+            'log_queries = false' \
+            '' \
+            '[addresses]' \
+            'flare_systems_manager = "0xA90Db6D10F856799b10ef2A77EBCbF460aC71e52"' \
+            'relay = "0xa10B672D1c62e5457b17af63d4302add6A99d7dE"' \
+            'voter_registry = "0x6a0AF07b7972177B176d3D422555cbc98DfDe914"' \
+            '' \
+            '[ports]' \
+            'internal = "6663"' \
+            'external = "6664"' \
+            '' \
+            '[info_timing]' \
+            'cycle_internal = "10s"' \
+            'cycle_queue_response_wait = "2s"' \
+            '' \
+            '[voting]' \
+            'proposal_expiration = "12s"' \
+            'max_pending_request = 10000' \
+            > config/proxy/extension_proxy.coston2.docker.toml
+
+      - name: Start official Coston2 FCC scaffold with HTTPS tunnel
+        shell: bash
+        run: ./scripts/start-services.sh --chain coston2 --tunnel
+
+      - name: Register simulated development TEE machine
+        shell: bash
+        run: |
+          set -euo pipefail
+          proxy_info="$(curl --fail --silent --show-error --max-time 20 "$EXT_PROXY_URL/info")"
+          proxy_extension_id="$(jq -r '.extensionId // .machineData.extensionId // empty' <<<"$proxy_info")"
+          test "$proxy_extension_id" = "$EXTENSION_ID" || {
+            echo "extension proxy /info is bound to '$proxy_extension_id', expected '$EXTENSION_ID'" >&2
+            exit 1
+          }
+          REGISTER_TEE_COMMAND=rRap ./scripts/post-build.sh
+          (cd tools && go run ./cmd/query-tee \
+            -rpc "$CHAIN_URL" \
+            -reg 0x1a9C4A0f9D76c0b1D91d22E24E573a9b377618aE \
+            -ext 66188) | tee "$RUNNER_TEMP/concord-tee-query.txt"
+          active_count="$(grep -Ec '^[[:space:]]+[0-9]+: 0x[0-9a-fA-F]{40} url="https://' "$RUNNER_TEMP/concord-tee-query.txt" || true)"
+          test "$active_count" = 1 || {
+            echo "expected exactly one active Coston2 TEE machine for extension 66188, found $active_count" >&2
+            exit 1
+          }
+          tee_id="$(sed -n 's/^[[:space:]]*[0-9]*: \(0x[0-9a-fA-F]\{40\}\) url=.*/\1/p' "$RUNNER_TEMP/concord-tee-query.txt" | head -n1)"
+          test -n "$tee_id"
+          (cd tools && go run ./cmd/query-tee \
+            -rpc "$CHAIN_URL" \
+            -reg 0x1a9C4A0f9D76c0b1D91d22E24E573a9b377618aE \
+            "$tee_id") | tee "$RUNNER_TEMP/concord-tee-machine.txt"
+          grep -q 'getTeeMachineStatus: 2' "$RUNNER_TEMP/concord-tee-machine.txt"
+          grep -q 'getTeeMachine:.*url="https://' "$RUNNER_TEMP/concord-tee-machine.txt"
+          {
+            echo 'Coston2 FCC scaffold registered exactly one development TEE machine.'
+            echo "TEE machine status: 2 (PRODUCTION); teeId: $tee_id"
+            echo 'The machine is valid only while this host and its stable HTTPS URL remain available.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Tear down ephemeral FCC services
+        if: always()
+        shell: bash
+        run: |
+          docker compose -f docker-compose.yaml -f docker-compose.coston2.yaml down --remove-orphans || true
+          docker compose -f docker-compose.cloudflared.yaml down --remove-orphans || true
+
+
+  live_open_round:
+    name: Coston2 root Accord and Makkari round (manual only)
+    if: github.event_name == 'workflow_dispatch' && inputs.open_round == true
+    concurrency:
+      group: concord-coston2-open-round
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    env:
+      CHAIN_URL: https://coston2-api.flare.network/ext/C/rpc
+      DEPLOYMENT_PRIVATE_KEY: ${{ secrets.CONCORD_E2E_DEPLOYER_PRIVATE_KEY }}
+      CAPITAL_FACILITY: ""
+      FXRP_TOKEN: ""
+      ROOT_ID: ""
+      ROUND_ID: ""
+      POLICY_HASH: ""
+      TARGET_CAPACITY: "9000000"
+      COLLATERAL_AMOUNT: "1000000"
+      ROOT_VALID_UNTIL: ""
+      ROUND_EXPIRY: ""
+      MAX_FEE_BPS: "700"
+      PROVIDER_A: "0x8d9340278094DF3F032c674C912D8eA08c17437C"
+      PROVIDER_B: "0xF2E25459108A0454a85d03848AD6059C271cc9a5"
+      PROVIDER_C: "0x9537eA25C28e8c1663e8B57C52A0761a244183A1"
+    steps:
+      - name: Check out requested ref
+        uses: actions/checkout@v4
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - name: Create root Accord and open Makkari round
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$DEPLOYMENT_PRIVATE_KEY"
+          CAPITAL_FACILITY="$(jq -r '.canonicalFacility.capitalFacility // empty' config/coston2/concord-deployment.json)"
+          FXRP_TOKEN="$(jq -r '.assets.fxrp' config/coston2/concord-deployment.json)"
+          test -n "$CAPITAL_FACILITY"
+          test -n "$FXRP_TOKEN"
+          test "$(cast code "$CAPITAL_FACILITY" --rpc-url "$CHAIN_URL")" != "0x"
+          ROOT_ID="$(cast keccak "concord-coston2-root-${GITHUB_RUN_ID}")"
+          ROUND_ID="$(cast keccak "concord-coston2-round-${GITHUB_RUN_ID}")"
+          POLICY_HASH="$(cast keccak 'concord-coston2-policy-v2')"
+          ROOT_VALID_UNTIL="$(date -u -d '+7 days' +%s)"
+          ROUND_EXPIRY="$(date -u -d '+3 days' +%s)"
+          send() {
+            local label="$1"
+            shift
+            local output tx
+            output="$(cast send "$@" --rpc-url "$CHAIN_URL" --private-key "$DEPLOYMENT_PRIVATE_KEY" --json)"
+            tx="$(jq -r '.transactionHash // .hash // empty' <<<"$output")"
+            test "$tx" != ""
+            echo "$label: $tx"
+            echo "$label: $tx" >> "$GITHUB_STEP_SUMMARY"
+          }
+          send approve_fxrp \
+            "$FXRP_TOKEN" 'approve(address,uint256)' "$CAPITAL_FACILITY" "$COLLATERAL_AMOUNT"
+          send create_root \
+            "$CAPITAL_FACILITY" 'createRootAccord(bytes32,uint256,uint64,bytes32)' \
+            "$ROOT_ID" "$TARGET_CAPACITY" "$ROOT_VALID_UNTIL" "$POLICY_HASH"
+          send lock_collateral \
+            "$CAPITAL_FACILITY" 'lockCollateral(bytes32,uint256)' "$ROOT_ID" "$COLLATERAL_AMOUNT"
+          send open_syndication \
+            "$CAPITAL_FACILITY" 'openSyndication(bytes32,bytes32,uint32,uint64,address[])' \
+            "$ROOT_ID" "$ROUND_ID" "$MAX_FEE_BPS" "$ROUND_EXPIRY" \
+            "[$PROVIDER_A,$PROVIDER_B,$PROVIDER_C]"
+          echo "Root ID: $ROOT_ID" >> "$GITHUB_STEP_SUMMARY"
+          echo "Round ID: $ROUND_ID" >> "$GITHUB_STEP_SUMMARY"
+          echo 'Root Accord is PROPOSED/SYNDICATING with 1 FXRP locked and a 9 USDT0 target (6 decimals).' >> "$GITHUB_STEP_SUMMARY"
+
+
+  live_provider_gas:
+    name: Coston2 provider gas funding (manual only)
+    if: github.event_name == 'workflow_dispatch' && inputs.fund_provider_gas == true
+    concurrency:
+      group: concord-coston2-provider-gas
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    env:
+      CHAIN_URL: https://coston2-api.flare.network/ext/C/rpc
+      DEPLOYMENT_PRIVATE_KEY: ${{ secrets.CONCORD_E2E_DEPLOYER_PRIVATE_KEY }}
+      PROVIDER_A: "0x8d9340278094DF3F032c674C912D8eA08c17437C"
+      PROVIDER_B: "0xF2E25459108A0454a85d03848AD6059C271cc9a5"
+      PROVIDER_C: "0x9537eA25C28e8c1663e8B57C52A0761a244183A1"
+      GAS_AMOUNT: "5ether"
+    steps:
+      - name: Check out requested ref
+        uses: actions/checkout@v4
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - name: Fund provider gas balances
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$DEPLOYMENT_PRIVATE_KEY"
+          sender="$(cast wallet address --private-key "$DEPLOYMENT_PRIVATE_KEY")"
+          echo "Funding providers from $sender with $GAS_AMOUNT each."
+          for provider in "$PROVIDER_A" "$PROVIDER_B" "$PROVIDER_C"; do
+            output="$(cast send "$provider" --value "$GAS_AMOUNT" --rpc-url "$CHAIN_URL" --private-key "$DEPLOYMENT_PRIVATE_KEY" --json)"
+            tx="$(jq -r '.transactionHash // .hash // empty' <<<"$output")"
+            test -n "$tx"
+            echo "$provider: $tx"
+            echo "$provider gas funding: $tx" >> "$GITHUB_STEP_SUMMARY"
+          done
