@@ -750,6 +750,19 @@ code { font: 500 0.77rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; ove
 .privacy-boundary strong { font-size:.8rem; }
 .privacy-boundary p { font-size:.76rem; }
 .proof-detail { border-color:var(--line-strong); background:#fff; }
+.docs-hub { display:grid; gap:1.4rem; }
+.docs-hub__actions { display:flex; flex-wrap:wrap; gap:.55rem; margin-top:1rem; }
+.docs-card h2 { margin-bottom:.55rem; }
+.docs-card > p { max-width:520px; margin:0; }
+.docs-card__links { display:grid; margin-top:1.15rem; border-top:1px solid var(--line); }
+.docs-card__link { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.85rem 0; border-bottom:1px solid var(--line); color:var(--ink); }
+.docs-card__link:hover { color:var(--blue); }
+.docs-card__link span { min-width:0; }
+.docs-card__link strong,.docs-card__link small { display:block; }
+.docs-card__link strong { font-size:.78rem; }
+.docs-card__link small { margin-top:.2rem; color:var(--muted); font-size:.7rem; line-height:1.4; }
+.docs-card__link > svg { width:.9rem; flex:0 0 auto; color:#8d969d; }
+.docs-card__link:hover > svg { color:var(--blue); }
 
 @media (max-width: 1040px) {
   .landing-hero__grid { grid-template-columns: 1fr 1fr; }

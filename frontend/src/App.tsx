@@ -107,7 +107,7 @@ function PublicHeader() {
         <a href="#product">Product</a>
         <a href="#journey">How it works</a>
         <a href="#privacy">Privacy</a>
-        <a href="https://github.com/etvjay/Concord/tree/main/docs" target="_blank" rel="noreferrer">Docs</a>
+        <Link to="/docs">Docs</Link>
       </nav>
       <div className="public-header__actions">
         <WalletControl compact />
@@ -328,7 +328,7 @@ type RouteGuide = {
 
 const globalRoutes: Array<{ label: string; to: string; icon: IconType; matches: (pathname: string) => boolean }> = [
   { label: "Demo", to: "/demo", icon: SparklesIcon, matches: (pathname) => pathname === "/demo" },
-  { label: "Facilities", to: "/facilities", icon: DocumentTextIcon, matches: (pathname) => pathname !== "/settings" && pathname !== "/demo" && pathname !== "/borrower" },
+  { label: "Facilities", to: "/facilities", icon: DocumentTextIcon, matches: (pathname) => pathname !== "/settings" && pathname !== "/demo" && pathname !== "/borrower" && pathname !== "/docs" },
 ];
 
 function routeGuide(pathname: string): RouteGuide {
@@ -346,6 +346,12 @@ function routeGuide(pathname: string): RouteGuide {
     current: "Fresh facility",
     crumbs: [],
     back: { label: "Guided demo", to: "/demo" },
+  };
+  if (pathname === "/docs") return {
+    section: "Documentation",
+    current: "Concord docs",
+    crumbs: [],
+    back: { label: "Public site", to: "/" },
   };
   if (pathname === "/facilities") return {
     section: "Workspace",
@@ -581,7 +587,7 @@ function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => void })
         <p className="drawer-label">CONTEXT</p>
         <nav aria-label="Mobile secondary navigation">
           <NavLink to="/settings" onClick={onClose}><ServerStackIcon aria-hidden="true" />Network & assets</NavLink>
-          <a href="https://github.com/etvjay/Concord/tree/main/docs" target="_blank" rel="noreferrer"><DocumentTextIcon aria-hidden="true" />Documentation</a>
+          <Link to="/docs" onClick={onClose}><DocumentTextIcon aria-hidden="true" />Documentation</Link>
         </nav>
         <div className="drawer-disclosure"><InformationCircleIcon aria-hidden="true" /><p><strong>Development evidence</strong><span>Coston2 · simulated TEE · public settlement</span></p></div>
       </aside>
@@ -618,7 +624,7 @@ function AppShell({ children, demoMode = false }: PropsWithChildren<{ demoMode?:
         <Brand />
         <nav className="app-header__nav" aria-label="Application navigation">
           {globalRoutes.map((route) => <GlobalNavLink key={route.to} route={route} pathname={location.pathname} />)}
-          <a href="https://github.com/etvjay/Concord/tree/main/docs" target="_blank" rel="noreferrer"><DocumentTextIcon aria-hidden="true" /><span>Docs</span></a>
+          <NavLink to="/docs"><DocumentTextIcon aria-hidden="true" /><span>Docs</span></NavLink>
         </nav>
         <div className="app-header__context">
           <HelpCenter onStartTour={startTour} />
@@ -968,6 +974,79 @@ function BorrowerPage() {
   return <AppShell><BorrowerSandbox /></AppShell>;
 }
 
+const repositoryDocsUrl = (file: string) => `https://github.com/etvjay/Concord/blob/main/docs/${file}`;
+
+function DocsPage() {
+  const sections = [
+    {
+      title: "Start with the proof",
+      copy: "Use these first when you need to understand what the current build actually demonstrates.",
+      links: [
+        { label: "Run the guided demo", detail: "Six steps · no transactions", to: "/demo", internal: true },
+        { label: "Open the recorded facility", detail: "Coston2 · chain 114", to: rootHref, internal: true },
+        { label: "Team demo runbook", detail: "Rehearsal and borrower boundary", to: repositoryDocsUrl("TEAM_DEMO.md") },
+        { label: "Judge quickstart", detail: "Evidence ledger and claim limits", to: repositoryDocsUrl("JUDGES.md") },
+      ],
+    },
+    {
+      title: "Understand the system",
+      copy: "The protocol vocabulary and relationship model, in plain language and implementation terms.",
+      links: [
+        { label: "Architecture", detail: "Accord · Makkari · CoFill · lifecycle", to: repositoryDocsUrl("architecture.md") },
+        { label: "Lineage", detail: "Parent-child causal graph", to: repositoryDocsUrl("lineage.md") },
+        { label: "Shared product contract", detail: "State, authority, and interface semantics", to: repositoryDocsUrl("shared-product-contract.md") },
+        { label: "Frontend map", detail: "Routes and state-to-action behavior", to: repositoryDocsUrl("frontend-map.md") },
+      ],
+    },
+    {
+      title: "Check the boundary",
+      copy: "These documents separate observed Coston2 behavior from simulated development infrastructure and future work.",
+      links: [
+        { label: "Current status", detail: "What is and is not evidenced", to: repositoryDocsUrl("CONCORD_STATUS.md") },
+        { label: "Current runtime", detail: "Northflank, Worker, and simulated TEE checkpoint", to: repositoryDocsUrl("current-runtime.md") },
+        { label: "Demo and submission", detail: "Narrative, receipts, and approved claims", to: repositoryDocsUrl("DEMO_AND_SUBMISSION.md") },
+        { label: "Testing", detail: "Local, Coston2, and read-only judge checks", to: repositoryDocsUrl("testing.md") },
+      ],
+    },
+  ];
+
+  return (
+    <AppShell>
+      <PageHeading
+        eyebrow="DOCUMENTATION"
+        title="Concord docs"
+        description="A repository-backed guide to the relationship primitive, the recorded Coston2 proof, the frontend demo paths, and the limits of the current development runtime."
+        action={<Status label="Repo-backed" />}
+      />
+      <div className="docs-hub">
+        <div className="privacy-boundary" role="note">
+          <InformationCircleIcon aria-hidden="true" />
+          <div>
+            <strong>Start with the guided demo.</strong>
+            <p>It is deterministic and transaction-free. The borrower sandbox is a separate wallet-bound test path; it does not reuse or rewrite the recorded facility.</p>
+            <div className="docs-hub__actions"><Link className="button button--primary button--compact" to="/demo"><SparklesIcon aria-hidden="true" />Run guided demo</Link><Link className="button button--secondary button--compact" to="/borrower"><UserGroupIcon aria-hidden="true" />Borrower sandbox</Link></div>
+          </div>
+        </div>
+        <div className="dossier-grid">
+          {sections.map((section) => (
+            <section className="dossier-section docs-card" key={section.title}>
+              <h2>{section.title}</h2>
+              <p>{section.copy}</p>
+              <div className="docs-card__links">
+                {section.links.map((link) => link.internal ? (
+                  <Link className="docs-card__link" to={link.to} key={link.label}><span><strong>{link.label}</strong><small>{link.detail}</small></span><ArrowRightIcon aria-hidden="true" /></Link>
+                ) : (
+                  <a className="docs-card__link" href={link.to} target="_blank" rel="noreferrer" key={link.label}><span><strong>{link.label}</strong><small>{link.detail}</small></span><ArrowTopRightOnSquareIcon aria-hidden="true" /></a>
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      </div>
+    </AppShell>
+  );
+}
+
 function NotFound() {
   return <AppShell><div className="not-found"><DocumentTextIcon /><span className="eyebrow">NOT OBSERVED</span><h1>This relationship is not in the recorded evidence.</h1><p>Concord is not asserting an empty or zero state for this identifier.</p><Link className="button button--primary" to="/facilities">Return to facilities</Link></div></AppShell>;
 }
@@ -983,6 +1062,7 @@ export function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/demo" element={<DemoPage />} />
       <Route path="/borrower" element={<BorrowerPage />} />
+      <Route path="/docs" element={<DocsPage />} />
       <Route path="/facilities" element={<FacilitiesPage />} />
       <Route path="/facilities/:rootId" element={<ObservedFacilityRoute><OverviewPage /></ObservedFacilityRoute>} />
       <Route path="/facilities/:rootId/funding" element={<ObservedFacilityRoute><FundingPage /></ObservedFacilityRoute>} />

@@ -20,6 +20,14 @@ npm ci --ignore-scripts --no-audit --no-fund
 npm run dev
 ```
 
+Frontend paths:
+
+- `/` — public product story and current evidence boundary;
+- `/demo` — six-stage Guided Demo, deterministic and transaction-free;
+- `/facilities/<root-accord-id>` — recorded Coston2 facility workspace;
+- `/borrower` — separate wallet-bound sandbox for a fresh Root Accord; and
+- `/docs` — deployed documentation hub with links back to repository evidence.
+
 For the fastest team walkthrough, open `http://localhost:5173/demo`. The
 Guided Demo replays the six-stage facility lifecycle using deterministic local
 state only; it does not connect a wallet or write to Coston2. The optional

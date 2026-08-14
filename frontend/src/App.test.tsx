@@ -121,6 +121,15 @@ describe("Concord frontend product semantics", () => {
     expect(screen.getByRole("heading", { name: /start one facility/i })).toBeInTheDocument();
   });
 
+  it("keeps the docs destination inside the deployed SPA", () => {
+    renderRoute("/docs");
+    expect(screen.getByRole("heading", { level: 1, name: "Concord docs" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /run guided demo/i })).toHaveAttribute("href", "/demo");
+    expect(screen.getByRole("link", { name: /team demo runbook/i })).toHaveAttribute("href", "https://github.com/etvjay/Concord/blob/main/docs/TEAM_DEMO.md");
+    expect(screen.getByRole("link", { name: "Facilities" })).not.toHaveAttribute("aria-current", "page");
+    expect(screen.queryByRole("heading", { name: /not in the recorded evidence/i })).not.toBeInTheDocument();
+  });
+
   it("separates the wallet-bound borrower sandbox from the recorded facility", () => {
     renderRoute("/borrower");
     expect(screen.getByTestId("borrower-sandbox")).toBeInTheDocument();

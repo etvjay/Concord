@@ -1,7 +1,7 @@
 # Concord
 
-Concord is a confidential programmable relationship system for coordinating
-capital between independent parties on Flare.
+Concord is a confidential coordination and execution layer for programmable
+multi-party capital relationships on Flare.
 
 The MVP is an FXRP-backed syndicated capital facility:
 
@@ -18,6 +18,60 @@ Root Accord
 The persistent economic relationship is the canonical object. Transactions,
 FCC sessions, allocations, child relationships, draws, legs, settlements, and
 repayments are explicit nodes in its lineage.
+
+> Concord makes the relationship that governs capital programmable.
+
+This is intentionally narrower than “blockchain syndicated lending.” Concord
+is not a complete loan-servicing or agent-bank replacement. The MVP demonstrates
+a relationship primitive and one recorded facility lifecycle that existing
+financial infrastructure could eventually sit around or above.
+
+## Start here
+
+The frontend has explicit paths for the evaluator and the team:
+
+| Path | Purpose | Write boundary |
+|---|---|---|
+| / | Product story and evidence boundary | None |
+| /demo | Six-stage deterministic Guided Demo | No wallet, RPC, or Coston2 writes |
+| /facilities/0x6e03af41b0194c5a369a50629474090cfc5b041a712144855e6efb1a574cfddd | Recorded Coston2 facility | Read presentation of recorded evidence |
+| /borrower | Fresh wallet-bound Root Accord sandbox | Explicit wallet approval for its optional testnet write |
+| /docs | Deployed documentation hub | None |
+
+For the fastest walkthrough:
+
+~~~bash
+cd frontend
+npm ci --ignore-scripts --no-audit --no-fund
+npm run dev
+~~~
+
+Open http://localhost:5173/demo. The Guided Demo is a deterministic scenario
+replay, not additional chain evidence. Use the recorded facility and the
+evidence ledger for the observed proof.
+
+## Why the relationship primitive matters
+
+Concord's distinct design choice is to keep the shared capital relationship
+alive across the lifecycle instead of flattening it into a loan record or one
+anonymous liquidity balance:
+
+1. **Relationship-native architecture.** Root Accord is canonical; transactions
+   are consequences in its lineage.
+2. **Private formation, verifiable consequence.** Provider terms are coordinated
+   inside the intended FCC confidentiality boundary, while the accepted result
+   is bound to public execution context.
+3. **Selection is not commitment.** An allocation does not become liquidity
+   until the provider's transfer succeeds.
+4. **Child-level exposure.** The facility aggregates capacity without erasing
+   which provider funded each draw leg.
+5. **Bounded authority and evidence.** The verifier, borrower, provider, wallet,
+   and runtime have distinct responsibilities; missing or simulated evidence
+   is not presented as production proof.
+
+The first vertical is therefore a concrete test of a more reusable primitive:
+a parent relationship that coordinates independent capital providers while
+retaining their terms, exposure, authority, and settlement lineage.
 
 ## Current implementation
 

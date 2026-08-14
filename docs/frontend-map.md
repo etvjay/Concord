@@ -50,6 +50,7 @@ and cannot be the only way to understand causality.
 | `/` | Outcome-first product story, wallet entry, and public proof | recorded evidence, network identity |
 | `/demo` | Deterministic six-stage team walkthrough with no writes | local scenario state, recorded terminology |
 | `/borrower` | Fresh wallet-bound borrower authorization boundary | Coston2 contract address, connected wallet, unsigned create intent |
+| `/docs` | Deployed documentation hub for the demo, proof, and truth boundary | repository-backed links and frontend routes |
 | `/facilities` | Facility register | accessible/recorded facilities and current state |
 | `/facilities/:rootAccordId` | Primary Root Accord workspace | facility, round, children, invariants |
 | `/facilities/:rootAccordId/funding` | Formation and funded Child Accords | round, allocation, funded children |
