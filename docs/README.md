@@ -26,6 +26,8 @@ record before making a deployment or privacy claim.
 - [coston2-live-runbook.md](coston2-live-runbook.md) — credential-gated live
   integration sequence and evidence checklist.
 - [cloudflared.md](cloudflared.md) — proxy exposure guidance.
+- [fcc-always-on-hosting.md](fcc-always-on-hosting.md) — Northflank topology,
+  identity cutover, and deployment blockers.
 - [cli.md](cli.md) — unified CLI, API, and MCP entry points.
 - [pre-deployment-hardening.md](pre-deployment-hardening.md) — immediate CI,
   correctness, and productization gates before live proof.
@@ -35,6 +37,8 @@ record before making a deployment or privacy claim.
 ## Evidence and truth
 
 - [CONCORD_STATUS.md](CONCORD_STATUS.md) — what is and is not evidenced.
+- [source-snapshot-2026-08-14-deployment.yaml](source-snapshot-2026-08-14-deployment.yaml)
+  — current FCC source refresh and deployment-attempt boundary.
 - [JUDGES.md](JUDGES.md) — five-minute evaluation path, public evidence, and
   live-verification boundaries.
 - [templates/coston2-evidence.template.json](templates/coston2-evidence.template.json)

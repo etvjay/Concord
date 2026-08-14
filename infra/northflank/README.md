@@ -5,6 +5,12 @@ current Coston2 FCC development path. Northflank keeps one proxy service, one
 TEE service, and one private Redis addon running continuously. It does not make
 the simulated TEE identity persistent across a process restart.
 
+Deployment checkpoint: the contract is prepared, but no Northflank project,
+proxy URL, or new machine identity is claimed in this checkout. The first
+operator with Northflank access must create the project, provision the private
+dependencies, and attach live evidence before updating the Coston2 deployment
+records.
+
 ## Topology
 
 ```text
@@ -42,6 +48,10 @@ Do not enable public access. Copy the addon host and port into the proxy's
 
 Copy the keys from `proxy.variables.example` into Northflank runtime variables.
 Put all credential values in a Northflank secret group; do not commit them.
+`REDIS_ENDPOINT` is only the proxy queue/state store. The proxy also requires
+the separate MySQL-compatible `INDEXER_DB_HOST`, `INDEXER_DB_NAME`,
+`INDEXER_DB_USER`, and `INDEXER_DB_PASSWORD`; never substitute Redis for that
+indexer database.
 
 ## 3. TEE combined service
 
@@ -79,15 +89,21 @@ After the first TEE deployment, or after any TEE restart:
 6. Dispatch one new Coston2 development instruction and retain the dispatch,
    status, result, and registry evidence.
 
+When preparing the official `rRap` run, pass a temporary state file outside the
+checkout (for example `/tmp/concord-register-tee.state`). Never commit or
+reuse a state file as a substitute for checking the live machine and
+availability evidence.
+
 The proxy domain survives restarts. The simulated TEE key and `teeId` do not.
 Automatic onchain re-registration is intentionally excluded because a restart
 loop could accumulate stale active machines and cause random provider routing.
 
 ## 5. Availability operations
 
-- Alert when `/info` fails twice or machine availability is older than 4 hours.
-- Treat 6 hours as the hard availability freshness ceiling from current FCC
-  operational guidance.
+- Alert when `/info` fails twice or the latest availability proof is no longer
+  fresh according to the current registration tooling.
+- Retain the availability proof timestamp from the current official scaffold;
+  do not hardcode a freshness ceiling from an old note.
 - Redeploy the proxy independently when possible; restarting the proxy does not
   intentionally rotate the TEE identity.
 - Treat any TEE restart as an identity-rotation incident and run the cutover
@@ -101,4 +117,3 @@ Official Northflank references checked 2026-08-14:
 - https://northflank.com/docs/v1/application/observe/configure-health-checks
 - https://northflank.com/docs/v1/application/infrastructure-as-code/infrastructure-as-code
 - https://northflank.com/docs/v1/application/databases-and-persistence/deploy-databases-on-northflank/deploy-redis-on-northflank
-

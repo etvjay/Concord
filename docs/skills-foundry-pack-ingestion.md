@@ -2,6 +2,16 @@
 
 Status: durably staged and loaded on 2026-08-12.
 
+## Takeover re-ingestion
+
+The attached `Concord-Foundry-Skills-Pack-2026-08-12.zip` was re-ingested for
+the 2026-08-14 Concord takeover. Its outer SHA-256 is unchanged at
+`35bb0180d3a95bb3470470f120a9336e92bba2589f0282741d6d4b342f26c474`, and all
+six nested bundle checksums below were re-verified. The attached GitHub and
+Cloudflare environment files were used only through secret-preserving command
+environments; their values were not printed, committed, or copied into this
+repository.
+
 ## Source
 
 - Uploaded name: `Concord-Foundry-Skills-Pack-2026-08-12(1).zip`

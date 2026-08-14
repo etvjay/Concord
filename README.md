@@ -100,6 +100,15 @@ for direct facility, funding, evidence, child, and draw URLs. Vercel Deployment
 Protection must be disabled for the production URL before it is described as
 public.
 
+The 2026-08-14 deployment checkpoint has no public Vercel URL yet: the
+connected team rejected Production deployment with HTTP 403 until the
+integration is granted Production Deploy permission. The Vercel project must
+also have Settings → Deployment Protection → Vercel Authentication disabled
+for Production. Northflank has likewise
+not been provisioned in this session. See the [current status](docs/CONCORD_STATUS.md)
+and [deployment source snapshot](docs/source-snapshot-2026-08-14-deployment.yaml)
+before making a public-hosting claim.
+
 The current always-on FCC development-host plan and safe simulated-TEE identity
 cutover are in
 [docs/fcc-always-on-hosting.md](docs/fcc-always-on-hosting.md). The
@@ -124,6 +133,7 @@ scripts/                    scaffold lifecycle and binding commands
 api/                        REST/OpenAPI integration contract
 sdk/typescript/             typed read and unsigned-intent client
 frontend/                   frontend boundary and implementation map
+infra/northflank/           Northflank FCC proxy/TEE/Redis deployment contract
 infra/railway/              long-running FCC proxy/TEE deployment config
 ```
 

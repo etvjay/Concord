@@ -108,14 +108,18 @@ check_code() {
 if [[ -n "$PROXY_URL" ]]; then
   INFO_JSON="$(curl --fail --silent --show-error --max-time 20 "$PROXY_URL/info")" || die "FCC proxy /info request failed"
   jq -e 'type == "object"' >/dev/null <<<"$INFO_JSON" || die "FCC proxy /info did not return a JSON object"
-  PROXY_EXTENSION_ID="$(jq -r '.extensionId // empty' <<<"$INFO_JSON")"
-  PROXY_PLATFORM="$(jq -r '.platform // "unknown"' <<<"$INFO_JSON")"
-  PROXY_CODE_HASH="$(jq -r '.codeHash // "unknown"' <<<"$INFO_JSON")"
-  [[ -n "$PROXY_EXTENSION_ID" ]] || die "FCC proxy /info omitted extensionId"
+  PROXY_EXTENSION_ID="$(jq -r '.machineData.extensionId // empty' <<<"$INFO_JSON")"
+  PROXY_PLATFORM="$(jq -r '.machineData.platform // "unknown"' <<<"$INFO_JSON")"
+  PROXY_CODE_HASH="$(jq -r '.machineData.codeHash // "unknown"' <<<"$INFO_JSON")"
+  PROXY_CHAIN_ID="$(jq -r '.teeInfo.chainId // empty' <<<"$INFO_JSON")"
+  PROXY_PUBLIC_KEY="$(jq -c '.teeInfo.publicKey // empty' <<<"$INFO_JSON")"
+  [[ -n "$PROXY_EXTENSION_ID" ]] || die "FCC proxy /info omitted machineData.extensionId"
+  [[ -n "$PROXY_PUBLIC_KEY" && "$PROXY_PUBLIC_KEY" != "null" ]] || die "FCC proxy /info omitted teeInfo.publicKey"
+  [[ "$PROXY_CHAIN_ID" == "114" ]] || die "FCC proxy /info reported chain id '$PROXY_CHAIN_ID', expected 114"
   if [[ -n "$EXPECTED_EXTENSION_ID" && "$PROXY_EXTENSION_ID" != "$EXPECTED_EXTENSION_ID" ]]; then
     die "FCC proxy extensionId '$PROXY_EXTENSION_ID' does not match expected '$EXPECTED_EXTENSION_ID'"
   fi
-  info "FCC proxy /info confirmed: extensionId=$PROXY_EXTENSION_ID platform=$PROXY_PLATFORM codeHash=$PROXY_CODE_HASH"
+  info "FCC proxy /info confirmed: machineData.extensionId=$PROXY_EXTENSION_ID machineData.platform=$PROXY_PLATFORM machineData.codeHash=$PROXY_CODE_HASH teeInfo.chainId=$PROXY_CHAIN_ID"
   if [[ "${SIMULATED_TEE:-false}" == true ]]; then
     info "SIMULATED_TEE=true: this is development-path evidence, not production hardware-backed TEE evidence"
   fi

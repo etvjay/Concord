@@ -49,6 +49,10 @@ fi
 TEE_VERSION="${TEE_VERSION:-v0.1.0}"
 LOCAL_MODE="${LOCAL_MODE:-true}"
 WAIT_TIMEOUT="${WAIT_TIMEOUT:-120}"
+REGISTER_TEE_STATE_FILE="${REGISTER_TEE_STATE_FILE:-/tmp/concord-register-tee.state}"
+case "$REGISTER_TEE_STATE_FILE" in
+    "$PROJECT_DIR"/*) die "REGISTER_TEE_STATE_FILE must be outside the Git checkout: $REGISTER_TEE_STATE_FILE" ;;
+esac
 
 # --- Auto-detect addresses file ---
 if [[ -z "$ADDRESSES_FILE" ]]; then
@@ -93,6 +97,16 @@ log "Chain URL:       $CHAIN_URL"
 log "Addresses file:  $ADDRESSES_FILE"
 log "TEE version:     $TEE_VERSION"
 log "Local mode:      $LOCAL_MODE"
+log "Registration state: $REGISTER_TEE_STATE_FILE (outside checkout)"
+
+# Live Coston2 post-build is a three-transaction-capable workflow. Keep it
+# fail-closed so a restart, CI retry, or an accidentally sourced .env cannot
+# silently broadcast allow-version, governance, or registration changes.
+# CONFIRM_C2_BROADCAST must be exported in the same shell only after the
+# operator has reviewed the exact transaction plan and explicitly confirmed it.
+if [[ "$CHAIN_URL" == *coston2* && "${CONFIRM_C2_BROADCAST:-}" != "YES" ]]; then
+    die "refusing Coston2 broadcasts: review the transaction plan and export CONFIRM_C2_BROADCAST=YES immediately before this deliberate operator run"
+fi
 
 # --- wait_for_url: poll until a URL responds with HTTP 200 ---
 wait_for_url() {
@@ -154,7 +168,7 @@ go run ./cmd/register-tee \
     -p "$EXT_PROXY_URL" \
     -h "${EXT_PROXY_HOST_URL:-$EXT_PROXY_URL}" \
     -ep "$NORMAL_PROXY_URL" \
-    -state "$PROJECT_DIR/config/register-tee.state" \
+    -state "$REGISTER_TEE_STATE_FILE" \
     -command "${REGISTER_TEE_COMMAND:-rRap}" \
     || die "Register TEE failed"
 

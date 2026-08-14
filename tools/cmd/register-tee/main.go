@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"flag"
 	"os"
+	"path/filepath"
 
 	"github.com/flare-foundation/go-flare-common/pkg/logger"
 )
@@ -19,7 +20,7 @@ func main() {
 	epf := flag.String("ep", "http://localhost:6662", "external proxy url (for FTDC)")
 	instructionF := flag.String("i", "", "instructionID")
 	command := flag.String("command", "rap", "steps to run: r=pre-register R=request attestation a=availability check p=promote (deployments want rRap)")
-	stateFile := flag.String("state", "../config/register-tee.state", "state file for resume support")
+	stateFile := flag.String("state", filepath.Join(os.TempDir(), "concord-register-tee.state"), "state file for resume support (outside the Git checkout)")
 	resume := flag.Bool("resume", false, "resume from state file (default: start fresh)")
 
 	flag.Parse()

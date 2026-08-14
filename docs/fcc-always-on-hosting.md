@@ -4,6 +4,20 @@ This runbook moves Concord's current Coston2 FCC development runtime from the
 disposable Codespace relay to a stable, long-running host. It does not alter
 Accord, Makkari, CoFill, Lineage, or the completed facility evidence.
 
+## Current deployment checkpoint
+
+At the 2026-08-14 deployment attempt, the repository contract and read-only
+verification fixes are prepared, but no new hosted runtime is evidenced. The
+Vercel production deployment was rejected by the connected team with HTTP 403
+because the integration lacks Production Deploy permission. No Northflank API
+or dashboard connection is available in this session, so no Northflank project,
+managed proxy URL, new `teeId`, registration transaction, pause transaction, or
+fresh availability proof is recorded. Do not treat the placeholders below as
+live endpoints.
+
+The exact source refresh for this attempt is recorded in
+[`docs/source-snapshot-2026-08-14-deployment.yaml`](source-snapshot-2026-08-14-deployment.yaml).
+
 ## Recommended topology: Northflank
 
 Northflank is the primary target for the public Coston2 test because its
@@ -76,6 +90,10 @@ name, update `PROXY_URL` accordingly.
 The exact setup contract and environment templates are in
 `infra/northflank/README.md`.
 
+The proxy's Redis endpoint and its MySQL-compatible Coston2 indexer database
+are separate private dependencies. The official Coston2 scaffold requires the
+indexer credentials; Redis cannot be used as an indexer substitute.
+
 ## Identity and cutover rule
 
 The stable hostname survives a restart; the simulated TEE identity does not.
@@ -91,6 +109,10 @@ Restarting `concord-fcc-tee` creates a new `teeId`. The safe cutover is:
 5. Run `./scripts/check-hosted-fcc.sh https://your-stable-domain 66188`.
 6. Dispatch a new development-path instruction and retain the transaction,
    proxy status, and result evidence before updating deployment records.
+
+Prepare the official `rRap` sequence with a temporary state file outside the
+checkout (for example `/tmp/concord-register-tee.state`). A restart must not
+automatically re-register its rotated simulated identity.
 
 Do not automate registration on every restart: that can accumulate stale active
 machines and make provider selection appear random. Registration and stale

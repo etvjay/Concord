@@ -17,7 +17,7 @@ first, see [deployment-steps.md](deployment-steps.md).
 ## Confirm the deployment is live
 
 ```bash
-curl -s "$EXT_PROXY_URL/info" | jq '{extensionId, codeHash, platform}'
+curl -s "$EXT_PROXY_URL/info" | jq '{machineData: {extensionId: .machineData.extensionId, codeHash: .machineData.codeHash, platform: .machineData.platform}, teeInfo: {publicKey: .teeInfo.publicKey, chainId: .teeInfo.chainId}}'
 ```
 
 | Field | Expect |

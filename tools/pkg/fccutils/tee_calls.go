@@ -27,6 +27,9 @@ func TeeInfo(nodeURL string) (*types.SignedTeeInfoResponse, error) {
 		return nil, errors.Errorf("%s", err)
 	}
 	defer result.Body.Close()
+	if result.StatusCode != http.StatusOK {
+		return nil, errors.Errorf("proxy /info returned HTTP %d", result.StatusCode)
+	}
 
 	var teeInfo types.SignedTeeInfoResponse
 	err = json.NewDecoder(result.Body).Decode(&teeInfo)
