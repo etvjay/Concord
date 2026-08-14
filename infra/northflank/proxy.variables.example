@@ -1,0 +1,19 @@
+# Public values
+PORT=6664
+INDEXER_DB_PORT=3306
+
+# Private Northflank service/addon address
+REDIS_ENDPOINT=<redis-private-host>:<redis-private-port>
+
+# Secrets — store in a Northflank secret group
+PROXY_PRIVATE_KEY=<secret>
+INDEXER_DB_HOST=<secret>
+INDEXER_DB_NAME=<secret>
+INDEXER_DB_USER=<secret>
+INDEXER_DB_PASSWORD=<secret>
+
+# Current Coston2 defaults. Refresh against the official FCE scaffold before cutover.
+FLARE_SYSTEMS_MANAGER=0xA90Db6D10F856799b10ef2A77EBCbF460aC71e52
+FLARE_RELAY=0xa10B672D1c62e5457b17af63d4302add6A99d7dE
+VOTER_REGISTRY=0x6a0AF07b7972177B176d3D422555cbc98DfDe914
+

@@ -4,22 +4,23 @@ This runbook moves Concord's current Coston2 FCC development runtime from the
 disposable Codespace relay to a stable, long-running host. It does not alter
 Accord, Makkari, CoFill, Lineage, or the completed facility evidence.
 
-## Recommended topology: Railway
+## Recommended topology: Northflank
 
-Railway is the primary target because it supports Dockerfile builds,
-configuration-as-code, private service DNS, stable public domains, and an
-`ALWAYS` restart policy. `ALWAYS` requires a paid plan; free/trial deployments
-must not be described as continuously available.
+Northflank is the primary target for the public Coston2 test because its
+long-running services do not sleep, it supports private service DNS, stable
+public HTTP domains, health checks, and a private Redis addon. The Northflank
+sandbox is useful for the hackathon development runtime, but Northflank does
+not describe the sandbox as production.
 
-Create one Railway project with three services:
+Create one Northflank project with two combined services and one addon:
 
 1. `concord-fcc-proxy` from this repository, using
-   `infra/railway/proxy.railway.toml`. Give port `6664` a stable public HTTPS
-   domain and set `PORT=6664`.
+   `infra/railway/proxy.Dockerfile`. Give port `6664` a stable public HTTPS
+   domain; keep port `6663` private.
 2. `concord-fcc-tee` from this repository, using
-   `infra/railway/tee.railway.toml`. Keep it private.
-3. A private Redis service. Persistence is not required for the current
-   ephemeral development queue; do not expose Redis publicly.
+   `go/Dockerfile`. Keep ports `5501`, `7701`, and `7702` private.
+3. A private Redis addon. Persistence is not an economic source of truth; do
+   not expose Redis publicly.
 
 The provider-facing path is direct:
 
@@ -27,17 +28,17 @@ The provider-facing path is direct:
 Flare providers
   -> https://stable-proxy-host/instruction :6664
   -> tee-proxy
-  -> private Railway DNS :6663
+  -> private Northflank DNS :6663
   -> Concord Go extension TEE
 ```
 
 ### Proxy variables
 
-Store these as Railway secrets/variables. Never commit their values.
+Store these as Northflank secret-group variables. Never commit their values.
 
 ```text
 PROXY_PRIVATE_KEY
-REDIS_ENDPOINT=concord-redis.railway.internal:6379
+REDIS_ENDPOINT=<northflank-redis-private-host>:<port>
 INDEXER_DB_HOST
 INDEXER_DB_PORT=3306
 INDEXER_DB_NAME
@@ -62,15 +63,18 @@ EXTENSION_ID=0x000000000000000000000000000000000000000000000000000000000001028c
 INITIAL_OWNER=<authorized Coston2 owner address>
 GOVERNANCE_SIGNERS=<authorized Coston2 signer address>
 GOVERNANCE_THRESHOLD=1
-PROXY_URL=http://concord-fcc-proxy.railway.internal:6663
+PROXY_URL=http://concord-fcc-proxy:6663
 CONFIG_PORT=5501
 SIGN_PORT=7701
 EXTENSION_PORT=7702
 LOG_LEVEL=INFO
 ```
 
-Service names determine Railway private DNS. If the proxy service has another
+Service names determine Northflank private DNS. If the proxy service has another
 name, update `PROXY_URL` accordingly.
+
+The exact setup contract and environment templates are in
+`infra/northflank/README.md`.
 
 ## Identity and cutover rule
 
@@ -98,15 +102,15 @@ The currently recorded machine is
 Workers.dev-to-Codespace development relay. It remains historical evidence; it
 is not evidence that the old upstream is continuously available.
 
-## Northflank fallback
+## Railway fallback
 
-Northflank can run the same two Dockerfiles as long-running combined services.
-Expose only proxy port `6664` with TLS, keep proxy port `6663`, the TEE ports,
-and Redis private, configure an HTTP `/info` health check, and keep the service
-scale at one or greater. Scale zero is unavailable and is not always-on.
+Railway can run the same two Dockerfiles with a private Redis service. Use the
+checked-in Railway TOML files, a paid plan with `ALWAYS` restart, one replica,
+and a stable public proxy domain. Free or trial Railway deployments must not be
+described as continuously available.
 
-Use the same variables and the same identity cutover. Northflank changes the
-service DNS name only; it does not change Concord or FCC semantics.
+Use the same variables and the same identity cutover. The hosting provider
+changes service DNS only; it does not change Concord or FCC semantics.
 
 ## Reproducibility and operations
 
@@ -116,8 +120,11 @@ service DNS name only; it does not change Concord or FCC semantics.
   registry check against any stable deployment.
 - `proxy.Dockerfile` pins `tee-proxy` to the same `v0.0.18` line as the current
   Concord extension and does not mix Flare dependency versions.
-- Railway configuration declares `ALWAYS` restart. Use a paid plan and alerts;
-  restart policy alone is not a service-level guarantee.
+- Northflank configuration is recorded as an exact service checklist and
+  environment contract because platform secrets and generated addon endpoints
+  must remain outside Git. Import it into a GitOps template after the first
+  project is created and export Northflank's generated specification back to
+  `infra/northflank` for drift control.
 
 ## Truth boundary
 
@@ -130,8 +137,7 @@ Official platform references used for this decision:
 
 - Flare FCE scaffold: https://github.com/flare-foundation/fce-extension-scaffold
 - Flare FCC getting started: https://dev.flare.network/fcc/guides/getting-started
-- Railway config-as-code: https://docs.railway.com/config-as-code/reference
-- Railway private networking: https://docs.railway.com/networking/private-networking
-- Railway restart policy: https://docs.railway.com/deployments/restart-policy
-- Northflank services: https://northflank.com/features/application-layer
+- Northflank infrastructure as code: https://northflank.com/docs/v1/application/infrastructure-as-code/infrastructure-as-code
+- Northflank private ports: https://northflank.com/docs/v1/application/network/configure-ports
 - Northflank health checks: https://northflank.com/docs/v1/application/observe/configure-health-checks
+- Railway config-as-code: https://docs.railway.com/config-as-code/reference

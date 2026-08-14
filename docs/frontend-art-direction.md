@@ -21,6 +21,19 @@ This gives Concord institutional seriousness without making the first-use
 experience feel like a terminal. The default interface is bright, calm, and
 highly legible. Dark mode is not a separate brand or data model.
 
+The implemented public narrative follows progressive disclosure:
+
+1. outcome: one facility composed from multiple accountable providers;
+2. participant value: treasury, provider, and shared understanding;
+3. topology: one Root Accord and independently governed Child Accords;
+4. journey: creation, private coordination, composition, funding, draw, and
+   restored capacity;
+5. privacy boundary; and
+6. recorded Coston2 proof.
+
+Protocol primitive names never have to disappear, but they arrive after the
+human outcome they explain.
+
 The visual territory board is a reference study, not a production asset:
 `docs/assets/concord-visual-territories-v1.png`.
 

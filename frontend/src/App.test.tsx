@@ -1,23 +1,32 @@
 import { render, screen } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
+import { WagmiProvider } from "wagmi";
 import { App } from "./App";
 import { children, draw, facility, formatToken } from "./data/concord";
+import { wagmiConfig } from "./web3";
 
 function renderRoute(path: string) {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
-    <MemoryRouter initialEntries={[path]}>
-      <App />
-    </MemoryRouter>,
+    <WagmiProvider config={wagmiConfig} reconnectOnMount={false}>
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={[path]}>
+          <App />
+        </MemoryRouter>
+      </QueryClientProvider>
+    </WagmiProvider>,
   );
 }
 
 describe("Concord frontend product semantics", () => {
   it("presents the relationship as the product on the landing page", () => {
     renderRoute("/");
-    expect(screen.getByRole("heading", { name: /private capital,\s*coordinated/i })).toBeInTheDocument();
-    expect(screen.getByText(/the relationship is the product/i)).toBeInTheDocument();
-    expect(screen.getByText(/simulated development tee/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /one facility\.\s*many providers\.\s*always accountable/i })).toBeInTheDocument();
+    expect(screen.getByText(/built around the relationship/i)).toBeInTheDocument();
+    expect(screen.getByText(/confidential where coordination needs it/i)).toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: /install wallet/i }).length).toBeGreaterThan(0);
   });
 
   it("renders the observed Root Accord and distinguishes current exposure from restored capacity", () => {

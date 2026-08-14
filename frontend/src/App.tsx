@@ -4,6 +4,7 @@ import {
   ArrowRightIcon,
   ArrowTopRightOnSquareIcon,
   ArrowUpTrayIcon,
+  ArrowsRightLeftIcon,
   BanknotesIcon,
   Bars3Icon,
   BuildingLibraryIcon,
@@ -14,6 +15,7 @@ import {
   DocumentTextIcon,
   EyeSlashIcon,
   FunnelIcon,
+  GlobeAltIcon,
   InformationCircleIcon,
   LockClosedIcon,
   MagnifyingGlassIcon,
@@ -21,6 +23,7 @@ import {
   ServerStackIcon,
   ShareIcon,
   ShieldCheckIcon,
+  SparklesIcon,
   Squares2X2Icon,
   UserGroupIcon,
   WalletIcon,
@@ -28,6 +31,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { CheckCircleIcon as CheckCircleSolid } from "@heroicons/react/20/solid";
 import {
+  type CSSProperties,
   type ComponentType,
   type PropsWithChildren,
   type SVGProps,
@@ -43,6 +47,7 @@ import {
   useLocation,
   useParams,
 } from "react-router-dom";
+import { WalletControl } from "./components/WalletControl";
 import {
   activity,
   children,
@@ -97,37 +102,64 @@ function PublicHeader() {
       <Brand />
       <nav className="public-header__nav" aria-label="Public navigation">
         <a href="#product">Product</a>
-        <a href="#security">Privacy</a>
+        <a href="#journey">How it works</a>
+        <a href="#privacy">Privacy</a>
         <a href="https://github.com/etvjay/Concord/tree/agent/concord-rebuild/docs" target="_blank" rel="noreferrer">Docs</a>
       </nav>
-      <Link className="button button--primary button--compact" to={rootHref}>Open facility</Link>
+      <div className="public-header__actions">
+        <WalletControl compact />
+        <Link className="button button--primary button--compact" to={rootHref}>Open app</Link>
+      </div>
     </header>
   );
 }
 
 function FacilityArtifact() {
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const style = {
+    "--pointer-x": `${tilt.x}deg`,
+    "--pointer-y": `${tilt.y}deg`,
+  } as CSSProperties;
+
   return (
-    <div className="artifact-stage" aria-label="A Root Accord represented as one persistent facility object">
+    <div
+      className="artifact-stage"
+      aria-label="A Root Accord represented as one persistent facility object"
+      onPointerMove={(event) => {
+        if (event.pointerType === "touch") return;
+        const bounds = event.currentTarget.getBoundingClientRect();
+        setTilt({
+          x: ((event.clientY - bounds.top) / bounds.height - 0.5) * -5,
+          y: ((event.clientX - bounds.left) / bounds.width - 0.5) * 7,
+        });
+      }}
+      onPointerLeave={() => setTilt({ x: 0, y: 0 })}
+      style={style}
+    >
+      <span className="artifact-glow artifact-glow--blue" aria-hidden="true" />
+      <span className="artifact-glow artifact-glow--prism" aria-hidden="true" />
       <div className="orbit orbit--one" aria-hidden="true"><i /><i /><i /></div>
       <div className="orbit orbit--two" aria-hidden="true"><i /><i /></div>
-      <div className="facility-artifact">
-        <div className="facility-artifact__face">
-          <div className="facility-artifact__topline">
-            <span>CONCORD</span>
-            <ShieldCheckIcon aria-hidden="true" />
+      <div className="facility-artifact-frame">
+        <div className="facility-artifact">
+          <div className="facility-artifact__face">
+            <div className="facility-artifact__topline">
+              <span>CONCORD</span>
+              <ShieldCheckIcon aria-hidden="true" />
+            </div>
+            <div>
+              <span className="eyebrow">ROOT ACCORD</span>
+              <h2>Coston2 syndicated facility</h2>
+              <strong>{formatToken(facility.targetCapacity)} USDT0</strong>
+            </div>
+            <div className="facility-artifact__rule" />
+            <dl>
+              <div><dt>Collateral</dt><dd>{formatToken(facility.collateralLocked)} FXRP</dd></div>
+              <div><dt>Providers</dt><dd>{children.length} independent</dd></div>
+              <div><dt>State</dt><dd>Active · observed</dd></div>
+            </dl>
+            <div className="facility-artifact__signature" aria-hidden="true">C</div>
           </div>
-          <div>
-            <span className="eyebrow">ROOT ACCORD</span>
-            <h2>Coston2 syndicated facility</h2>
-            <strong>{formatToken(facility.targetCapacity)} USDT0</strong>
-          </div>
-          <div className="facility-artifact__rule" />
-          <dl>
-            <div><dt>Collateral</dt><dd>{formatToken(facility.collateralLocked)} FXRP</dd></div>
-            <div><dt>Providers</dt><dd>{children.length} independent</dd></div>
-            <div><dt>State</dt><dd>Active · observed</dd></div>
-          </dl>
-          <div className="facility-artifact__signature" aria-hidden="true">C</div>
         </div>
       </div>
       <div className="artifact-shadow" aria-hidden="true" />
@@ -136,26 +168,24 @@ function FacilityArtifact() {
 }
 
 function LandingPage() {
-  const capabilities = [
+  const audiences = [
     {
-      icon: RectangleGroupIcon,
-      title: "One persistent facility",
-      copy: "A Root Accord holds participants, assets, capacity, authority, validity, and every derived relationship.",
+      icon: BuildingLibraryIcon,
+      label: "For treasuries",
+      title: "Access one facility, not a maze of disconnected deals.",
+      copy: "Create one collateral-backed capital relationship, draw from composed capacity, and see exactly what remains available.",
     },
     {
-      icon: LockClosedIcon,
-      title: "Confidential coordination",
-      copy: "Provider offers enter a bounded Makkari session and are evaluated through Flare Confidential Compute.",
+      icon: BanknotesIcon,
+      label: "For capital providers",
+      title: "Supply capital on terms that remain independently governed.",
+      copy: "Offer capacity privately, fund only an accepted allocation, and keep your commitment and exposure attributable to you.",
     },
     {
-      icon: Squares2X2Icon,
-      title: "Composed capacity",
-      copy: "CoFill deterministically selects and composes multiple providers without turning them into one anonymous pool.",
-    },
-    {
-      icon: ShareIcon,
-      title: "Explicit lineage",
-      copy: "Every draw leg, settlement, and repayment remains attributable to the relationship that authorized it.",
+      icon: GlobeAltIcon,
+      label: "For every participant",
+      title: "Understand why capital moved and which relationship allowed it.",
+      copy: "From formation through repayment, every action stays connected to its root, child relationship, and settlement evidence.",
     },
   ];
 
@@ -165,42 +195,43 @@ function LandingPage() {
         <PublicHeader />
         <div className="landing-hero__grid">
           <div className="hero-copy">
-            <p className="eyebrow">PROGRAMMABLE CAPITAL RELATIONSHIPS</p>
-            <h1>Private capital,<br />coordinated<span className="accent-dot">.</span></h1>
+            <p className="eyebrow">SYNDICATED CAPITAL INFRASTRUCTURE</p>
+            <h1>One facility.<br />Many providers.<br /><span>Always accountable.</span></h1>
             <p className="hero-copy__body">
-              Concord coordinates one FXRP-backed facility across independent capital providers. Private offers are composed through Flare FCC; funding, draws, repayments, and lineage stay explicit.
+              Concord helps a treasury secure capital from independent providers without losing clarity or control. Offers coordinate confidentially; commitments, draws, repayments, and ownership stay explicit.
             </p>
             <div className="hero-actions">
-              <Link className="button button--primary" to={rootHref}>Open proof facility <ArrowRightIcon aria-hidden="true" /></Link>
-              <Link className="button button--secondary" to={`/evidence/${evidence.resultDigest}`}>Inspect evidence</Link>
+              <Link className="button button--primary" to={rootHref}>Explore the live facility <ArrowRightIcon aria-hidden="true" /></Link>
+              <Link className="button button--secondary" to={`/draws/${draw.id}`}>Follow one draw</Link>
             </div>
             <div className="proof-line" aria-label="Current implementation evidence">
-              <span>Live Coston2 contracts</span>
-              <span>3 funded providers</span>
-              <span>Multi-child draw repaid</span>
+              <span>Live on Coston2</span>
+              <span>3 funded provider relationships</span>
+              <span>Capacity restored after repayment</span>
             </div>
           </div>
           <FacilityArtifact />
         </div>
         <div className="hero-evidence">
-          <span>IMPLEMENTATION TRUTH</span>
-          <div><ShieldCheckIcon aria-hidden="true" /> Coston2 · chain 114</div>
-          <div><ServerStackIcon aria-hidden="true" /> FCC extension 66188</div>
-          <div><InformationCircleIcon aria-hidden="true" /> Simulated development TEE</div>
+          <span>LIVE PRODUCT PROOF</span>
+          <div><ShieldCheckIcon aria-hidden="true" /> One Root Accord</div>
+          <div><UserGroupIcon aria-hidden="true" /> Three funded children</div>
+          <div><ArrowsRightLeftIcon aria-hidden="true" /> Drawn, repaid, restored</div>
+          <Link to={`/evidence/${evidence.resultDigest}`}>Technical evidence <ArrowRightIcon aria-hidden="true" /></Link>
         </div>
       </section>
 
       <section className="landing-section" id="product">
         <div className="section-intro">
-          <p className="eyebrow">THE RELATIONSHIP IS THE PRODUCT</p>
-          <h2>Capital stays understandable from offer to restored capacity.</h2>
-          <p>Transactions are evidence inside the relationship. They are not the organizing object.</p>
+          <p className="eyebrow">BUILT AROUND THE RELATIONSHIP</p>
+          <h2>Private capital that makes sense to everyone involved.</h2>
+          <p>Concord keeps the facility, its participants, and its changing capacity in one understandable structure—without flattening independent providers into an anonymous pool.</p>
         </div>
-        <div className="capability-grid">
-          {capabilities.map(({ icon: Icon, title, copy }, index) => (
-            <article className="capability" key={title}>
-              <span className="capability__index">0{index + 1}</span>
-              <Icon aria-hidden="true" />
+        <div className="audience-grid">
+          {audiences.map(({ icon: Icon, label, title, copy }, index) => (
+            <article className="audience-card" key={label}>
+              <div className="audience-card__top"><span>0{index + 1}</span><Icon aria-hidden="true" /></div>
+              <p className="eyebrow">{label}</p>
               <h3>{title}</h3>
               <p>{copy}</p>
             </article>
@@ -208,41 +239,81 @@ function LandingPage() {
         </div>
       </section>
 
-      <section className="landing-section process-section" id="security">
+      <section className="landing-section composition-section" aria-labelledby="composition-title">
+        <div className="composition-story">
+          <p className="eyebrow">ONE FACILITY · INDEPENDENT RELATIONSHIPS</p>
+          <h2 id="composition-title">Capacity composes.<br />Accountability does not disappear.</h2>
+          <p>A Root Accord gives the treasury one coherent facility. Each accepted provider forms a Child Accord with its own commitment, exposure, terms commitment, and lifecycle.</p>
+          <Link className="text-link" to={`${rootHref}/funding`}>See how this facility was funded <ArrowRightIcon aria-hidden="true" /></Link>
+        </div>
+        <div className="accord-composition" aria-label="One root facility composed from three child provider relationships">
+          <div className="composition-root">
+            <span className="composition-root__mark"><RectangleGroupIcon aria-hidden="true" /></span>
+            <div><small>ROOT ACCORD</small><strong>9 USDT0 committed</strong><span>One facility · active</span></div>
+            <Status label="Available" />
+          </div>
+          <div className="composition-trunk" aria-hidden="true"><span /><span /><span /></div>
+          <div className="composition-children">
+            {children.map((child, index) => (
+              <div className="composition-child" key={child.id}>
+                <span>P{index + 1}</span>
+                <div><small>CHILD ACCORD</small><strong>{formatToken(child.committedCapacity)} USDT0</strong><em>{child.feeBps} bps · funded</em></div>
+              </div>
+            ))}
+          </div>
+          <div className="composition-pulse" aria-hidden="true" />
+        </div>
+      </section>
+
+      <section className="landing-section process-section" id="journey">
         <div className="process-section__copy">
-          <p className="eyebrow">ONE CAUSAL PATH</p>
-          <h2>Complex underneath.<br />Legible at every step.</h2>
-          <p>Guided views use familiar facility language. Detailed views preserve Root Accord IDs, CoFill commitments, child exposure, draw legs, and transaction evidence.</p>
-          <Link className="text-link" to={`${rootHref}/lineage`}>Follow the recorded lineage <ArrowRightIcon aria-hidden="true" /></Link>
+          <p className="eyebrow">FROM NEED TO REUSABLE CAPACITY</p>
+          <h2>A complete capital journey, not a one-off transaction.</h2>
+          <p>The experience starts with familiar outcomes. Concord’s primitives remain available when a participant needs to inspect authority, privacy, allocation, or settlement in depth.</p>
+          <Link className="text-link" to={`${rootHref}/lineage`}>Follow the full relationship <ArrowRightIcon aria-hidden="true" /></Link>
         </div>
         <ol className="process-ledger">
           {[
-            ["Root Accord", "One facility and authority boundary", "Active"],
-            ["Makkari", "Three provider offers coordinated privately", "Finalized"],
-            ["CoFill", "3 + 3 + 3 USDT0 allocated", "Verified"],
-            ["Child Accords", "Three independently funded relationships", "Active"],
-            ["Draw + repayment", "4 USDT0 across two legs, fully repaid", "Restored"],
+            ["Create the facility", "The treasury defines one FXRP-backed capital requirement.", "Root Accord"],
+            ["Coordinate offers privately", "Eligible providers submit signed capacity and fee terms.", "Makkari · FCC"],
+            ["Compose the right capacity", "A deterministic allocation selects providers toward the target.", "CoFill"],
+            ["Fund independent commitments", "Selected providers transfer USDT0 before capacity becomes committed.", "Child Accords"],
+            ["Draw, repay, reuse", "A multi-provider draw is repaid to its obligations and capacity returns.", "Lineage"],
           ].map(([title, copy, state], index) => (
             <li key={title}>
               <span>{index + 1}</span>
               <div><strong>{title}</strong><small>{copy}</small></div>
-              <Status label={state} />
+              <span className="process-ledger__primitive">{state}</span>
             </li>
           ))}
         </ol>
       </section>
 
+      <section className="landing-section privacy-section" id="privacy">
+        <div className="privacy-section__copy">
+          <p className="eyebrow">PRIVACY WITH AN HONEST BOUNDARY</p>
+          <h2>Confidential where coordination needs it. Visible where settlement requires it.</h2>
+          <p>Provider capacity, fee terms, constraints, quote expiry, and losing offers may remain inside the bounded Makkari session. Accepted commitments, token transfers, draw state, repayment, and lineage remain public where Coston2 requires them.</p>
+          <Link className="text-link" to={`${rootHref}/evidence`}>Review the disclosure boundary <ArrowRightIcon aria-hidden="true" /></Link>
+        </div>
+        <div className="privacy-planes">
+          <article className="privacy-plane privacy-plane--confidential"><EyeSlashIcon aria-hidden="true" /><span>CONFIDENTIAL COORDINATION</span><strong>Offers · constraints · losing quotes</strong><small>Makkari session over Flare FCC</small></article>
+          <div className="privacy-bridge"><LockClosedIcon aria-hidden="true" /><span>Verified allocation</span></div>
+          <article className="privacy-plane privacy-plane--public"><GlobeAltIcon aria-hidden="true" /><span>PUBLIC SETTLEMENT</span><strong>Commitments · draws · repayments</strong><small>Coston2 state and token transfers</small></article>
+        </div>
+      </section>
+
       <section className="landing-section proof-section">
         <div className="proof-object">
           <div className="proof-object__halo" aria-hidden="true" />
-          <ShieldCheckIcon aria-hidden="true" />
+          <SparklesIcon aria-hidden="true" />
           <span>RESULT DIGEST</span>
           <code>{shortId(evidence.resultDigest, 14, 12)}</code>
         </div>
         <div className="proof-section__copy">
-          <p className="eyebrow">RECORDED COSTON2 EVIDENCE</p>
-          <h2>A working relationship, not a mock dashboard.</h2>
-          <p>The recorded vertical slice created one root, materialized three children, funded 9 USDT0, drew 4 USDT0 across two children, repaid it, and restored the full 9 USDT0 capacity.</p>
+          <p className="eyebrow">A WORKING COSTON2 RELATIONSHIP</p>
+          <h2>The entire story is inspectable.</h2>
+          <p>The live proof created one root, formed three child relationships, funded 9 USDT0, drew 4 USDT0 across two providers, repaid it, and restored all available capacity.</p>
           <div className="proof-facts">
             <div><strong>9</strong><span>USDT0 funded</span></div>
             <div><strong>2</strong><span>draw legs</span></div>
@@ -253,14 +324,15 @@ function LandingPage() {
       </section>
 
       <section className="landing-cta shell-frame">
-        <span className="eyebrow">EXPLORE THE RELATIONSHIP</span>
-        <h2>See why every movement was allowed.</h2>
-        <Link className="button button--primary" to={rootHref}>Open Concord <ArrowRightIcon aria-hidden="true" /></Link>
+        <span className="eyebrow">SEE CONCORD IN CONTEXT</span>
+        <h2>One facility. Every participant. Every movement explained.</h2>
+        <p>Connect a Coston2 wallet for network identity, or explore the completed public facility without connecting.</p>
+        <div className="landing-cta__actions"><WalletControl /><Link className="button button--primary" to={rootHref}>Explore facility <ArrowRightIcon aria-hidden="true" /></Link></div>
       </section>
 
       <footer className="public-footer">
         <Brand />
-        <p>Persistent programmable capital relationships on Flare.</p>
+        <p>Private syndication and persistent capital relationships on Flare.</p>
         <div><a href="https://github.com/etvjay/Concord" target="_blank" rel="noreferrer">Source</a><a href="https://dev.flare.network/fcc" target="_blank" rel="noreferrer">Flare FCC</a></div>
       </footer>
     </main>
@@ -322,7 +394,7 @@ function AppShell({ children }: PropsWithChildren) {
         </nav>
         <div className="app-header__context">
           <NetworkMark />
-          <button className="account-control"><WalletIcon aria-hidden="true" /><span>{shortId(facility.borrower)}</span></button>
+          <WalletControl compact />
         </div>
       </header>
       <MobileDrawer open={drawer} onClose={() => setDrawer(false)} />

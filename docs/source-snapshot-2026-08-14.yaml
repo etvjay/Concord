@@ -33,9 +33,11 @@ snapshot:
     - SIMULATED_TEE=true remains a supported Coston2 hackathon development path and is not production hardware-backed execution.
     - A simulated TEE restart creates a new identity; the new machine must be registered and promoted and the stale identity paused.
     - Exactly one active machine per endpoint avoids random dispatch to stale machines.
+    - Northflank private services resolve as service-name:port inside one project, and public HTTP ports receive managed HTTPS endpoints.
+    - Northflank sandbox services do not sleep, but Northflank does not position the sandbox as production infrastructure.
     - Railway supports Dockerfile configuration-as-code, private service DNS, and stable public domains.
     - Railway ALWAYS restart is unavailable on free/trial plans; an always-on claim requires a paid plan and no scale-to-zero behavior.
-    - Northflank long-running services are a viable fallback when scale remains at one or greater and only proxy port 6664 is public.
+    - Northflank supports health checks, GitOps templates, private services, and Redis addons for the primary long-running hackathon development topology.
   current_recorded_machine:
     extension_id_decimal: 66188
     tee_id: 0xeE39d5e7d1C5043232282e3CC884B41a9Db22c85
@@ -44,12 +46,13 @@ snapshot:
     registered_url: https://concord-fcc-ingress.microcosm.workers.dev
     availability_now: unavailable_because_disposable_codespace_upstream_is_offline
   decision:
-    primary_host: Railway paid long-running services
-    fallback_host: Northflank long-running combined services
+    primary_host: Northflank long-running combined services plus private Redis addon
+    fallback_host: Railway paid long-running services
     cutover_required: true
-    reason: A stable host removes the disposable Codespace ingress dependency, but the fresh simulated TEE identity must still be deliberately registered and the stale machine paused.
+    reason: Northflank removes the disposable Codespace ingress dependency without scale-to-zero, but a fresh simulated TEE identity must still be deliberately registered and the stale machine paused after any TEE restart.
   product_semantics:
-    contradiction_found: false
+    contradiction_found: true
+    contradiction: The current official Developer Hub supports SIMULATED_TEE=true for a live Coston2 development path, while production deployment guidance states that simulated attestation is rejected for production. Concord resolves this by using simulated mode only for the Coston2 development proof and making no hardware-backed or production TEE claim.
     mvp_changed: false
     fdc_added: false
     privacy_claim_expanded: false

@@ -37,14 +37,15 @@ and cannot be the only way to understand causality.
 
 | Route | Purpose | Required contract data |
 |---|---|---|
-| `/` | Role-aware entry and facility list | health, accessible facilities, role context |
+| `/` | Outcome-first product story, wallet entry, and public proof | recorded evidence, network identity |
+| `/facilities` | Facility register | accessible/recorded facilities and current state |
 | `/facilities/:rootAccordId` | Primary Root Accord workspace | facility, round, children, invariants |
 | `/facilities/:rootAccordId/lineage` | Full causal relationship trail | lineage, linked public actions |
 | `/rounds/:roundId` | Makkari/CoFill status | round, authorization-scoped evidence |
 | `/children/:childAccordId` | Provider relationship view | child, root summary, funding/exposure |
 | `/draws/:drawId` | One draw and its explicit legs | draw, child/provider links, settlements |
 | `/evidence/:resultDigest` | Verification and disclosure boundary | evidence metadata, source, warning |
-| `/settings/network` | Network/assets and disclosure settings | network config, asset decimals |
+| `/settings` | Network/assets and disclosure settings | network config, asset decimals |
 
 ## Components
 
@@ -159,3 +160,8 @@ never call contract methods directly from arbitrary components. Wallet calls
 are made from an action boundary after the API/SDK returns an unsigned intent.
 This keeps the same semantics across web, CLI, REST, MCP, and institution
 integrations.
+
+The current wallet foundation intentionally stops before that write boundary:
+it connects an injected wallet, switches to Coston2, and reads the native
+balance. It does not infer a treasury/provider role from an address and does
+not submit facility transactions.

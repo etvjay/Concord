@@ -35,7 +35,9 @@ repayments are explicit nodes in its lineage.
   production handler into a plaintext path.
 - The React frontend renders the recorded Coston2 Root Accord, Makkari/CoFill
   formation, three funded Child Accords, explicit draw legs, repayment,
-  restored capacity, and evidence boundary through one shared SDK model.
+  restored capacity, and evidence boundary through one shared SDK model. It
+  also connects injected wallets, switches to Coston2, and reads the live
+  native balance without retaining keys or auto-submitting transactions.
 
 ## Truth boundary
 
