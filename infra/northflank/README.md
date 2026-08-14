@@ -48,7 +48,10 @@ Do not enable public access. Copy the addon host and port into the proxy's
 
 Copy the keys from `proxy.variables.example` into Northflank runtime variables.
 Put all credential values in a Northflank secret group; do not commit them.
-`REDIS_ENDPOINT` is only the proxy queue/state store. The proxy also requires
+`REDIS_ENDPOINT` and `REDIS_PASSWORD` come from the addon's private connection
+details. The checked-in proxy image applies a small patch to the pinned
+`tee-proxy` release so go-redis uses that password without exposing Redis
+publicly. Redis is only the proxy queue/state store. The proxy also requires
 the separate MySQL-compatible `INDEXER_DB_HOST`, `INDEXER_DB_NAME`,
 `INDEXER_DB_USER`, and `INDEXER_DB_PASSWORD`; never substitute Redis for that
 indexer database.

@@ -56,6 +56,7 @@ Store these as Northflank secret-group variables. Never commit their values.
 ```text
 PROXY_PRIVATE_KEY
 REDIS_ENDPOINT=<northflank-redis-private-host>:<port>
+REDIS_PASSWORD=<northflank-redis-password>
 INDEXER_DB_HOST
 INDEXER_DB_PORT=3306
 INDEXER_DB_NAME

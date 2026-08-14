@@ -3,6 +3,7 @@ set -eu
 
 : "${PROXY_PRIVATE_KEY:?PROXY_PRIVATE_KEY is required}"
 : "${REDIS_ENDPOINT:?REDIS_ENDPOINT is required, for example concord-redis.railway.internal:6379}"
+: "${REDIS_PASSWORD:?REDIS_PASSWORD is required for the private Redis addon}"
 : "${INDEXER_DB_HOST:?INDEXER_DB_HOST is required}"
 : "${INDEXER_DB_NAME:?INDEXER_DB_NAME is required}"
 : "${INDEXER_DB_USER:?INDEXER_DB_USER is required}"
