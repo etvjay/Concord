@@ -18,7 +18,7 @@ repository.
 - File citation ID: `file_000000000d7881f48366d27a71f127f9`
 - Library file ID: `libfile_09b19d4ba3e081918c774f22a18a02d2`
 - Original upload path: `/workspace/scratch/9b193e913b16/upload/Concord-Foundry-Skills-Pack-2026-08-12(1).zip`
-- Durable archive: `/root/.codex/skills/remote-skills/concord-foundry-skills-pack-2026-08-12-1/Concord-Foundry-Skills-Pack-2026-08-12-1.zip`
+- Durable archive: workspace-managed storage outside this repository.
 - Durable archive SHA-256: `35bb0180d3a95bb3470470f120a9336e92bba2589f0282741d6d4b342f26c474`
 
 The original upload location is recorded for provenance only. The durable
@@ -41,9 +41,8 @@ their recorded SHA-256 checksums:
 
 ## Durable extraction
 
-All package sources are retained beneath:
-
-`/root/.codex/skills/remote-skills/concord-foundry-skills-pack-2026-08-12-1/`
+All package sources are retained in workspace-managed storage outside this
+repository.
 
 Extracted package directories:
 
