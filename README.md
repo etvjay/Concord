@@ -93,6 +93,13 @@ Build the frontend from its exact lockfile:
 (cd frontend && npm run build && npm test)
 ```
 
+The root [`vercel.json`](vercel.json) deploys the same frontend from the
+repository root so the shared SDK and recorded Coston2 deployment remain
+available to the build. It also applies the single-page application fallback
+for direct facility, funding, evidence, child, and draw URLs. Vercel Deployment
+Protection must be disabled for the production URL before it is described as
+public.
+
 The current always-on FCC development-host plan and safe simulated-TEE identity
 cutover are in
 [docs/fcc-always-on-hosting.md](docs/fcc-always-on-hosting.md). The
