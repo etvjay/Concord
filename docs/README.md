@@ -37,11 +37,14 @@ record before making a deployment or privacy claim.
 ## Evidence and truth
 
 - [CONCORD_STATUS.md](CONCORD_STATUS.md) — what is and is not evidenced.
+- [current-runtime.md](current-runtime.md) — latest Northflank, Worker, and
+  simulated-TEE checkpoint (including the registration boundary).
 - [source-snapshot-2026-08-14-deployment.yaml](source-snapshot-2026-08-14-deployment.yaml)
 - [source-snapshot-2026-08-14-live-blocker.yaml](source-snapshot-2026-08-14-live-blocker.yaml)
   — current FCC source refresh and deployment-attempt boundary.
 - [JUDGES.md](JUDGES.md) — five-minute evaluation path, public evidence, and
   live-verification boundaries.
+- `../scripts/judge-check.sh` — credential-free, read-only judge preflight.
 - [templates/coston2-evidence.template.json](templates/coston2-evidence.template.json)
   — blank evidence shape with `not_observed` defaults.
 - [canonical-reconciliation-audit.md](canonical-reconciliation-audit.md) —

@@ -16,6 +16,21 @@ Child Accords
 funded commitments → Draw → DrawLegs → Settlement → Repayment
 ~~~
 
+## Read it this way
+
+| Technical term | What it means in the product |
+|---|---|
+| Accord | A durable relationship between parties, not just a transaction. |
+| Root Accord | The facility that owns the shared collateral, capacity, and lifecycle. |
+| Child Accord | A provider-specific relationship linked to the root. |
+| Makkari | The confidential FCC session used to coordinate provider terms. |
+| CoFill | The deterministic matching step that fills the facility from eligible offers. |
+| FCC proxy | The public HTTP entry point for the FCC runtime. |
+| TEE | The private decrypt/sign service behind the proxy; the current Coston2 path simulates it. |
+
+Redis supports runtime queue/state needs only. The contracts and recorded
+Coston2 receipts remain the source of truth for economic state.
+
 ## Onchain responsibilities
 
 | Component | Responsibility |

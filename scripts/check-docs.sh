@@ -12,7 +12,7 @@ warn() { echo -e "${YELLOW}WARN${NC}  $*"; }
 ok()   { echo -e "${GREEN}ok${NC}    $*"; }
 
 # These are the Concord documents that must exist in a clean checkout.
-REQUIRED="architecture.md getting-started.md testing.md testing-against-coston2.md cloudflared.md CONCORD_STATUS.md JUDGES.md shared-product-contract.md frontend-map.md cli.md coston2-live-runbook.md experiments/coston2-failure-matrix.md"
+REQUIRED="architecture.md getting-started.md testing.md testing-against-coston2.md cloudflared.md CONCORD_STATUS.md current-runtime.md JUDGES.md shared-product-contract.md frontend-map.md cli.md coston2-live-runbook.md experiments/coston2-failure-matrix.md"
 MAX_LINES=500
 
 echo "docs: $DOCS"
@@ -50,6 +50,7 @@ check "getting-started.md" "simulated TEE disclosure" "SIMULATED_TEE"
 check "getting-started.md" "verified-result gate" "-mark"
 check "CONCORD_STATUS.md" "live-evidence boundary" "Not yet evidenced"
 check "CONCORD_STATUS.md" "privacy boundary" "private FXRP"
+check "current-runtime.md" "registration boundary" "onchain registration record"
 check "shared-product-contract.md" "selected versus funded" "selected"
 check "shared-product-contract.md" "unsigned intent boundary" "requiresExplicitApproval"
 check "frontend-map.md" "not-observed state" "not-observed"
@@ -66,6 +67,13 @@ if [[ -f "$DOCS/templates/coston2-evidence.template.json" ]]; then
     ok "Coston2 evidence template present"
 else
     err "Coston2 evidence template missing"
+fi
+
+JUDGE_CHECK="$DOCS/../scripts/judge-check.sh"
+if [[ -x "$JUDGE_CHECK" ]]; then
+    ok "scripts/judge-check.sh is executable"
+else
+    err "scripts/judge-check.sh missing or not executable"
 fi
 
 if (( fail )); then

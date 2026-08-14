@@ -1,13 +1,15 @@
 # Concord status
 
-Updated 2026-08-14 after a deployment attempt that refreshed official FCC
-guidance and hardened the hosted `/info` checks. The complete previously
-observed Coston2 lifecycle remains the canonical deployment proof; the new
-Vercel/Northflank cutover is not claimed without live evidence.
+Updated 2026-08-14 after read-only verification of the Northflank FCC runtime
+and reconciliation of the public repository branch. The complete observed
+Coston2 lifecycle remains the canonical economic proof. The hosted runtime is
+now reachable as a development checkpoint, but its newly generated simulated
+TEE identity is not yet registered on Coston2 and no new Coston2 write was made
+in this pass.
 
 - The fresh source snapshot used for this checkpoint is [source-snapshot-2026-08-14.yaml](source-snapshot-2026-08-14.yaml). It records the current official Coston2 FCC development path and the Northflank/Railway availability decision.
 - The deployment-attempt source refresh is [source-snapshot-2026-08-14-deployment.yaml](source-snapshot-2026-08-14-deployment.yaml). It records the current official source revisions, verified development values, and access blockers.
-- The follow-up live blocker check is [source-snapshot-2026-08-14-live-blocker.yaml](source-snapshot-2026-08-14-live-blocker.yaml). It records the dead Workers.dev `/info` endpoint, the public Systems Explorer reachability check, and the two shutdown Concord Codespaces.
+- The follow-up live blocker check is [source-snapshot-2026-08-14-live-blocker.yaml](source-snapshot-2026-08-14-live-blocker.yaml). It is retained as a historical record of the stopped-Codespace attempt and is superseded for current reachability by [current-runtime.md](current-runtime.md).
 
 ## Works in the durable checkpoint
 
@@ -54,28 +56,40 @@ Vercel/Northflank cutover is not claimed without live evidence.
 - `infra/northflank/`, `infra/railway/`, and
   `docs/fcc-always-on-hosting.md` package the official two-service plus Redis
   FCC topology. Northflank is the primary continuously running hackathon
-  development host; paid Railway is the fallback. No new hosted machine has
-  been registered yet.
+  development host; paid Railway is the fallback. The Northflank proxy, the
+  simulated TEE, and private Redis are currently deployed, but no new hosted
+  machine has been registered yet.
 
-## Current deployment attempt
+## Current hosted runtime
 
-- Vercel root configuration is reproducible and the local frontend install,
-  typecheck/build, and 12 frontend tests passed. The connected Vercel team
-  rejected the requested Production deployment with HTTP 403; no public URL is
-  recorded. Required dashboard action: grant the integration Production Deploy
-  permission, then disable Settings → Deployment Protection → Vercel
-  Authentication for Production before checking the final URL anonymously.
-- Northflank service and Redis/indexer contracts are prepared in
-  `infra/northflank/`, but no live project or stable proxy URL is recorded.
-- A fresh read-only Coston2 check at 2026-08-14T10:22:48Z still finds exactly
-  one active machine for extension `66188`: the historical Codespace relay at
-  status `2`. The old `/info` endpoint currently returns HTTP 404, while the
-  official normal/FTDC proxy returns HTTP 200 with chain ID `114`; this is not
-  new Concord-host evidence.
-- A follow-up check at 2026-08-14T10:49:53Z loaded the public [Coston2 Systems Explorer machine view](https://coston2-systems-explorer.flare.network/tee/objects?tab=machines&machine_extensionId=66188) with HTTP 200, but the raw response had not finished the client-rendered machine table. The GitHub Codespaces API showed both Concord Codespaces in `Shutdown` state with no public port, explaining the Workers.dev 404. No replacement proxy URL is inferred from this check.
-- No Coston2 transaction was broadcast during this attempt. The old identity
-  remains historical evidence until a future operator explicitly confirms the
-  new registration/pause batches with complete transaction details.
+The latest hosted-runtime checkpoint is [current-runtime.md](current-runtime.md).
+The following is the compact claim boundary for it:
+
+- Northflank project `concord` is running in `europe-west` with
+  `concord-fcc-proxy`, `concord-fcc-tee`, and private Redis `concord-redis`.
+  Both services have completed builds/deployments and Redis is running.
+- The proxy keeps `/healthy` private on port `6663` and exposes FCC traffic on
+  public port `6664`. The Cloudflare Worker
+  `https://concord-fcc-ingress.microcosm.workers.dev` relays to that
+  Northflank public port.
+- Direct and relayed `/info` checks return HTTP `200`, extension `66188`, and
+  Coston2 chain ID `114`, with matching code/governance/platform bindings and a
+  proxy signature.
+- The current simulated identity is
+  `0xb1e7a4c1930f1f3c4905b34fafc9c1b8359029a5`. It is ephemeral and has not
+  been registered or availability-checked onchain.
+- Read-only Systems Explorer inspection found the pre-existing records
+  `0x65721B35EAF2648Fd061aB6901e1355ec2eCffd2` (`INITIALIZED`) and
+  `0xeE39d5e7d1C5043232282e3CC884B41a9Db22c85` (`PRODUCTION`) for the same
+  owner/extension. The latter is the historical active machine; it has not
+  been paused.
+- No registration, availability, pause, dispatch, or other Coston2 broadcast
+  was made for the current Northflank identity. Those actions remain
+  confirmation-gated.
+
+The Vercel frontend still has no public deployment URL. Its existing build and
+tests remain documented, but frontend cleanup/deployment is deliberately a
+separate next pass.
 
 ## Observed Coston2 deployment
 
@@ -164,15 +178,15 @@ bound to the current token, and its current root round is recorded below.
 
 ## Not yet evidenced / intentionally bounded
 
-- Production hardware-backed TEE execution has not been claimed; this run used
-  the documented Coston2 simulated development TEE path.
+- Production hardware-backed TEE execution has not been claimed; the hosted
+  runtime uses the documented Coston2 simulated development TEE path.
 - A named Cloudflare Tunnel or custom-domain ingress has not been provisioned;
-  the stable Workers.dev relay is historical evidence only until a fresh
-  `/info` check passes.
-- Cloudflare credentials were ingested for the tunnel path but no tunnel or
-  Worker change is claimed; the available Cloudflare API path could not be
-  reached from this session. The Workers.dev relay remains historical fallback
-  evidence, not the Northflank endpoint.
+  the current Workers.dev relay is a development Worker forwarding to
+  Northflank, not a production ingress claim.
+- The current public `/info` binding is evidenced by the credential-free
+  `scripts/judge-check.sh` path. The optional live registry check remains
+  intentionally pending until the current simulated identity is deliberately
+  registered and a fresh availability proof exists.
 - The institutional frontend now builds canonical draw calldata locally,
   requires the recorded treasury borrower on Coston2, shows the unsigned intent
   before a separate wallet-approval action, and waits for a public receipt.
@@ -180,9 +194,11 @@ bound to the current token, and its current root round is recorded below.
   unsigned-intent API/SDK but are not yet surfaced as frontend controls. The
   canonical evidence above still comes from the contract/FCC runners and
   explorer receipts; browser-submitted transactions are reported separately.
-- The Northflank/Railway runtime bundle is reproducible but not yet deployed;
-  a fresh hosted simulated TEE identity must be registered and the stale
-  machine paused before the endpoint can be called continuously available.
+- The Northflank runtime bundle is deployed and reproducible. The fresh hosted
+  simulated TEE identity must still be registered and the stale machine paused
+  before it can be presented as the active onchain machine. No endpoint is
+  called continuously available or used for a new FCC dispatch until those
+  gates are complete.
 
 ## Privacy truth
 

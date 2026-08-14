@@ -199,5 +199,12 @@ USDT0 across two commitments, repaid it, and restored all capacity.
 - State “simulated development TEE” once, clearly.
 - Add the final public frontend URL to the submission form only after its host
   and exact commit have been verified.
-- Do not describe the historical FCC relay as currently live until
-  `scripts/check-hosted-fcc.sh` passes against a fresh public HTTPS endpoint.
+- Run `scripts/judge-check.sh` from the clean submission commit to verify the
+  recorded proof and current public `/info` binding without credentials.
+- The current Northflank/Worker runtime may be described as a reachable
+  development checkpoint, not as a registered active machine, until
+  `scripts/judge-check.sh --registry` passes during an explicitly approved
+  live window.
+- Do not dispatch a new Coston2 instruction or submit a new lifecycle
+  transaction as part of a demo without recording the resulting receipts and
+  obtaining the separate operator confirmation.

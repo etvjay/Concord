@@ -6,15 +6,25 @@ Accord, Makkari, CoFill, Lineage, or the completed facility evidence.
 
 ## Current deployment checkpoint
 
-At the 2026-08-14 deployment attempt, the repository contract and read-only
-verification fixes are prepared, but no new hosted runtime is evidenced. The
-Vercel production deployment was rejected by the connected team with HTTP 403
-because the integration lacks Production Deploy permission. The historical
-Workers.dev `/info` endpoint returned HTTP 404 at 2026-08-14T10:49:53Z, and the
-GitHub Codespaces API showed both Concord Codespaces as `Shutdown`. No
-Northflank project, managed proxy URL, new `teeId`, registration transaction,
-pause transaction, or fresh availability proof is recorded. Do not treat the
-placeholders below as live endpoints.
+At the 2026-08-14 checkpoint, the Northflank development runtime is deployed
+and reachable. Project `concord` runs in `europe-west` with proxy service
+`concord-fcc-proxy`, simulated TEE service `concord-fcc-tee`, and private Redis
+addon `concord-redis`. Both `/info` paths return HTTP `200`, extension `66188`,
+and chain ID `114`:
+
+- Worker relay: `https://concord-fcc-ingress.microcosm.workers.dev`
+- Direct Northflank proxy: `https://pub6664--concord-fcc-proxy--n4krppffn8ms.code.run`
+
+The private readiness path is `/healthy` on port `6663`; public FCC traffic is
+on port `6664`. The Vercel frontend still has no public URL because the
+connected team rejected Production deployment with HTTP 403 until the
+integration receives Production Deploy permission. The current simulated TEE
+identity is not registered on Coston2, and no registration, pause, availability,
+dispatch, or other Coston2 broadcast is recorded for this deployment.
+
+The earlier blocked deployment attempt is retained in the source snapshots
+below as historical context; it is superseded for current reachability by
+`docs/current-runtime.md`.
 
 The exact source refresh for this attempt is recorded in
 [`docs/source-snapshot-2026-08-14-deployment.yaml`](source-snapshot-2026-08-14-deployment.yaml).
@@ -103,10 +113,10 @@ indexer credentials; Redis cannot be used as an indexer substitute.
 The stable hostname survives a restart; the simulated TEE identity does not.
 Restarting `concord-fcc-tee` creates a new `teeId`. The safe cutover is:
 
-1. Deploy all three services and verify the public `/info` response reports
-   extension `66188`.
-2. Read the new TEE identity from `/info` and register it through the current
-   official scaffold tooling.
+1. Verify all three services and confirm the direct and relayed `/info`
+   responses report extension `66188`.
+2. Read the current TEE identity from `/info` and, only after explicit operator
+   confirmation, register it through the current official scaffold tooling.
 3. Wait for status `2` (`PRODUCTION`) and a fresh availability check.
 4. Pause the stale identity. Maintain exactly one active machine for extension
    `66188` and one machine per endpoint.
@@ -122,11 +132,17 @@ Do not automate registration on every restart: that can accumulate stale active
 machines and make provider selection appear random. Registration and stale
 identity pause remain deliberate operator actions.
 
-The currently recorded machine is
+The currently recorded historical machine is
 `0xeE39d5e7d1C5043232282e3CC884B41a9Db22c85`, proxy identity
 `0x801470C95f78D0cA444e589aF8Ea0858Ce6d613e`, status `2`, using the
 Workers.dev-to-Codespace development relay. It remains historical evidence; it
 is not evidence that the old upstream is continuously available.
+
+The current Northflank process reports simulated identity
+`0xb1e7a4c1930f1f3c4905b34fafc9c1b8359029a5`. It is ephemeral and remains
+unregistered. The registration, stale-machine pause, and any FCC dispatch are
+deliberate operator actions; this repository's judge preflight never performs
+them.
 
 ## Railway fallback
 

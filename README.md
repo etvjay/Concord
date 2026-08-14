@@ -52,6 +52,23 @@ validate the FCC result binding, active machine/signature evidence, operation,
 round, root, and digest before calling `markAllocationVerified`. The first
 checkpoint does not pretend that an EOA is a native FCC proof verifier.
 
+## Architecture in plain language
+
+| Term | Plain-language meaning |
+|---|---|
+| Accord | A persistent economic relationship recorded onchain. |
+| Root Accord | The facility-level relationship: collateral, capacity, exposure, and lifecycle. |
+| Child Accord | One provider's governed commitment inside the root relationship. |
+| Makkari session | The bounded FCC session where provider terms are coordinated confidentially. |
+| CoFill | The deterministic allocator that chooses the lowest-fee eligible offers. |
+| FCC proxy | The HTTPS doorway that receives FCC traffic and forwards it to the private runtime. |
+| TEE | The service that decrypts and signs FCC development responses; here it is simulated, not hardware-backed. |
+| Redis | Private queue/state support for the proxy; it is not the economic source of truth. |
+
+The public economic truth is on Coston2: accepted capacity, funding, draws,
+repayment, and parent-child lineage. The hosted proxy/TEE is an operational
+development path around that onchain relationship.
+
 ## Build and test
 
 The canonical extension runtime is the current Flare FCE scaffold, with Go as
@@ -84,8 +101,10 @@ The observed Coston2 sender, FCC extension registration, and facility deployment
 receipts are recorded in [docs/CONCORD_STATUS.md](docs/CONCORD_STATUS.md). The
 complete provider-funding, multi-child settlement, repayment, and
 restored-capacity proof is recorded there with transaction and workflow
-evidence. The FCC machine and relay details are historical unless a fresh
-reachability check passes.
+evidence. The latest hosted development checkpoint is recorded in
+[docs/current-runtime.md](docs/current-runtime.md); it has a fresh public
+`/info` check, but its newly generated simulated TEE identity is not yet an
+onchain-registered machine.
 
 Build the frontend from its exact lockfile:
 
@@ -101,21 +120,23 @@ for direct facility, funding, evidence, child, and draw URLs. Vercel Deployment
 Protection must be disabled for the production URL before it is described as
 public.
 
-The 2026-08-14 deployment checkpoint has no public Vercel URL yet: the
-connected team rejected Production deployment with HTTP 403 until the
-integration is granted Production Deploy permission. The Vercel project must
-also have Settings → Deployment Protection → Vercel Authentication disabled
-for Production. Northflank has likewise
-not been provisioned in this session. See the [current status](docs/CONCORD_STATUS.md)
-and [deployment source snapshot](docs/source-snapshot-2026-08-14-deployment.yaml),
-plus the [live blocker check](docs/source-snapshot-2026-08-14-live-blocker.yaml)
-before making a public-hosting claim.
+The 2026-08-14 checkpoint has no public Vercel frontend URL yet: the connected
+team rejected Production deployment with HTTP 403 until the integration is
+granted Production Deploy permission. The Vercel project must also have
+Settings → Deployment Protection → Vercel Authentication disabled for
+Production. The FCC development runtime is now running on Northflank with the
+Cloudflare Worker relay; see the [current status](docs/CONCORD_STATUS.md) and
+[current runtime checkpoint](docs/current-runtime.md) before making a
+hosting or registration claim.
 
 The current always-on FCC development-host plan and safe simulated-TEE identity
 cutover are in
 [docs/fcc-always-on-hosting.md](docs/fcc-always-on-hosting.md). The
 judge-ready walkthrough, evidence ledger, claim boundary, and submission copy
 are in [docs/DEMO_AND_SUBMISSION.md](docs/DEMO_AND_SUBMISSION.md).
+From a clean checkout, run `./scripts/judge-check.sh` for the credential-free,
+read-only judge preflight. Use `--registry` only after the current simulated
+TEE has been deliberately registered and its availability has been verified.
 
 ## Repository map
 

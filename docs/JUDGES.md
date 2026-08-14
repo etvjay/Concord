@@ -1,9 +1,10 @@
 # Concord judge quickstart
 
 This page is the shortest truthful path for evaluating Concord. A live Docker
-endpoint is not required to inspect the completed Coston2 proof. The live FCC
-runtime is an optional, scheduled verification path and must not be confused
-with the recorded onchain evidence.
+endpoint is not required to inspect the completed Coston2 proof. A current
+public FCC development endpoint is available for read-only binding checks, but
+it must not be confused with the recorded onchain evidence or an onchain
+registered machine.
 
 ## What Concord is
 
@@ -18,16 +19,18 @@ root-child lineage.
 
 1. Read the [current status](CONCORD_STATUS.md) and the
    [deployment record](../config/coston2/concord-deployment.json).
-2. Open the [complete facility lifecycle run](https://github.com/etvjay/Concord/actions/runs/31734593116)
+2. From a clean checkout, run the credential-free preflight:
+   `./scripts/judge-check.sh`.
+3. Open the [complete facility lifecycle run](https://github.com/etvjay/Concord/actions/runs/31734593116)
    and its [public evidence artifact](https://github.com/etvjay/Concord/actions/runs/31734593116/artifacts/9194681063).
-3. Inspect the [FCC round run](https://github.com/etvjay/Concord/actions/runs/31733200629),
+4. Inspect the [FCC round run](https://github.com/etvjay/Concord/actions/runs/31733200629),
    [signed action evidence](https://github.com/etvjay/Concord/actions/runs/31733200629/artifacts/9194157272),
    and [materialization recovery run](https://github.com/etvjay/Concord/actions/runs/31733740564).
-4. Verify the public Coston2 contract and settlement receipts in the
+5. Verify the public Coston2 contract and settlement receipts in the
    [Coston2 explorer](https://coston2-explorer.flare.network):
    `CapitalFacility 0xfaff601a18a9fca33378953515aa0f3ef9286ecd` and
    `AccordRegistry 0x68b19a3967760489b57341669cd7ea960b5f7367`.
-5. Review the contract lifecycle tests and the deterministic CoFill tests in
+6. Review the contract lifecycle tests and the deterministic CoFill tests in
    `contracts/test/`, `go/`, and `tools/`.
 
 ## Observed result
@@ -50,23 +53,29 @@ deployment record and evidence artifact.
 ## Live verification boundary
 
 Concord's recorded proof does not depend on a continuously running public app.
-If a live FCC rerun is requested, the team must start the disposable Codespace
-runtime, confirm the stable Workers.dev relay `/info` binding, and use the
-credential-gated workflow. The runtime may be available only during a scheduled
-judge window.
+The current development runtime is Northflank-backed and can be checked
+without credentials:
+
+- Worker relay: `https://concord-fcc-ingress.microcosm.workers.dev`
+- Direct Northflank proxy: `https://pub6664--concord-fcc-proxy--n4krppffn8ms.code.run`
+- Both `/info` paths currently return HTTP `200`, extension `66188`, and chain
+  ID `114`.
+- Private readiness is `/healthy` on proxy port `6663`; FCC traffic uses public
+  port `6664`.
 
 The relay used by the recorded run was:
 
 `https://concord-fcc-ingress.microcosm.workers.dev`
 
-It is a development ingress fallback backed by the Codespace proxy. It is not a
-named Cloudflare Tunnel, permanent production hosting, or a production
-hardware-backed TEE. As of the latest checkpoint, its `/info` endpoint is not
-reachable because the backing Codespaces are shut down. Do not present it as a
-live endpoint until `scripts/check-hosted-fcc.sh` passes against a fresh public
-URL. Restarting the simulated TEE can require a new identity and fresh
-registration, so no restart should be made immediately before a planned live
-window without re-running the registration checks.
+It is a development ingress relay to Northflank. It is not a named Cloudflare
+Tunnel, production hosting, or a production hardware-backed TEE. The current
+simulated identity is `0xb1e7a4c1930f1f3c4905b34fafc9c1b8359029a5`; it is not yet
+registered on Coston2. The previously registered `PRODUCTION` machine remains
+the historical record and has not been paused. Do not present the current
+runtime as an active onchain machine until `./scripts/judge-check.sh
+--registry` passes during an explicitly approved live window. Restarting the
+simulated TEE can rotate its identity and requires the same deliberate
+registration/cutover process.
 
 ## What is and is not claimed
 
@@ -96,8 +105,10 @@ judges. They are not required to inspect the recorded proof.
 - **Recorded-chain level:** judges can inspect the Coston2 transactions,
   workflow runs, allocation digest, child lineage, draw, and repayment without
   any private credential.
-- **Live-FCC level:** a new confidential round requires the team-operated
-  credential-gated runtime and an agreed live verification window.
+- **Live-FCC level:** public binding checks are redoable with
+  `./scripts/judge-check.sh`; a new confidential round still requires the
+  team-operated credential-gated runtime, deliberate machine registration, and
+  an agreed live verification window.
 
 The submission should be judged primarily from the first two levels. The third
 level is an optional demonstration convenience, not a reason to claim that the

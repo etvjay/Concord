@@ -15,6 +15,12 @@ resolver can still run from GitHub Actions or a local Foundry installation, and
 the same guarded workflow can be repeated against a newly created disposable
 environment. No private key or proxy credential belongs in the repository.
 
+The current hosted development runtime is Northflank-backed and passes a fresh
+public `/info` binding check through the Cloudflare Worker relay. Its current
+simulated identity is not registered onchain, so this fact does not authorize a
+registration, pause, or FCC dispatch. Run `./scripts/judge-check.sh` for the
+credential-free repository and public-binding gate.
+
 The current development path may use `SIMULATED_TEE=true`. That proves the
 documented development integration path only; it is not production
 hardware-backed TEE evidence. The Coston2 machine must still reach status `2`
@@ -29,15 +35,15 @@ external port `6664` (the scaffold's Docker host mapping is `6674`).
 | Funded Coston2 deployment key | Pays gas for sender, facility, root, collateral, and lifecycle transactions |
 | Treasury and provider accounts | Demonstrate actual USDT0 funding from at least two selected providers |
 | Current Flare scaffold registry configuration | Registers the Concord extension against the live Coston2 FCC path |
-| Stable named-tunnel `EXT_PROXY_URL` | Lets the official proxy route instructions to the Go extension; rotating quick tunnels are not valid for registration |
+| Stable public `EXT_PROXY_URL` | Lets the official proxy route instructions to the Go extension; the current Worker relay is usable for the development path, while rotating quick tunnels are not valid for registration |
 | Indexer/proxy configuration | Required by the official scaffold runtime; credentials stay outside Git |
 | Three signed Concord quote payloads | Demonstrate the private multi-provider input path |
 | One signed finalize payload | Binds the round, root Accord, policy bounds, and eligible providers |
 
-For the immediate hackathon fallback, the stable Worker development relay may
-replace the named tunnel URL only after both the Worker and its Codespaces
-upstream return the same proxy /info binding. This is an ingress substitution,
-not a change to the FCE runtime or Concord product semantics.
+For the current hackathon development path, the stable Worker relay forwards to
+the Northflank proxy. The direct Northflank URL and the Worker URL must return
+the same `/info` binding before any live operator step. This is an ingress
+substitution, not a change to the FCE runtime or Concord product semantics.
 
 Never paste credentials into issues, logs, fixtures, or committed config. Use
 ignored environment files or the deployment system secret store.
@@ -92,7 +98,7 @@ export CHAIN=coston2
 export CHAIN_URL=https://coston2-api.flare.network/ext/C/rpc
 export LOCAL_MODE=false
 export SIMULATED_TEE=true
-export EXT_PROXY_URL=https://your-public-tunnel.example
+export EXT_PROXY_URL=https://concord-fcc-ingress.microcosm.workers.dev
 export DEPLOYMENT_PRIVATE_KEY=0x...
 ~~~
 
@@ -106,12 +112,15 @@ curl -s "$EXT_PROXY_URL/info" | jq '{machineData: {extensionId: .machineData.ext
 If `platform` is the simulated development value or the code hash is documented
 as simulated, preserve that limitation in every demo and release note.
 
-The observed run used
-`https://concord-fcc-ingress.microcosm.workers.dev` as the stable Workers.dev
-relay, extension `66188`, and simulated TEE id
-`0xeE39d5e7d1C5043232282e3CC884B41a9Db22c85`. The relay is a development
-fallback backed by the disposable Codespace proxy; it is not a named tunnel or
-production ingress claim.
+The current read-only deployment uses the Worker relay above, extension
+`66188`, and simulated TEE id
+`0xb1e7a4c1930f1f3c4905b34fafc9c1b8359029a5`; its direct Northflank proxy is
+`https://pub6664--concord-fcc-proxy--n4krppffn8ms.code.run`. Both `/info`
+responses currently return HTTP `200` and chain ID `114`. The earlier Coston2
+vertical slice used the historical machine
+`0xeE39d5e7d1C5043232282e3CC884B41a9Db22c85`. Do not substitute the current
+ephemeral identity into registration or dispatch commands without explicit
+operator confirmation.
 
 ### 4. Deploy and register in two phases
 
