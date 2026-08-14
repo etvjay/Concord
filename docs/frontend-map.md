@@ -8,12 +8,12 @@ implementation follows the live contract/FCC integration evidence gate.
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────┐
-│ Concord   Facilities   Activity   Evidence            Network  Wallet │
+│ Concord   Facilities   Docs                      Help  Network  Wallet │
 ├──────────────────────────────────────────────────────────────────────┤
-│ facility context · role/organization · guided/detail                 │
+│ Back to parent · Facilities / Current facility / Current detail       │
 ├──────────────────────────────────────────────────────────────────────┤
 │ Root Accord · state · FXRP collateral · committed · drawn · available │
-│ expiry · state explanation · next permitted action                    │
+│ expiry · plain-language state · next permitted action                 │
 ├──────────────────────────────────────────────────────────────────────┤
 │ Relationship spine: Root → Makkari → CoFill → children → draw legs    │
 ├──────────────────────────────────────────────────────────────────────┤
@@ -23,14 +23,20 @@ implementation follows the live contract/FCC integration evidence gate.
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
-The first version uses one route-aware global header and no permanent desktop
-sidebar. The global destinations remain stable, while a sticky context bar
-states the current object, shows its parent trail, and provides explicit Back
-and Next actions. Role and organization context are shown in the facility
-header or context controls, while the primary action remains in the
-relationship workspace. On mobile, the global header collapses into the
-accessible hamburger drawer and the context bar retains a compact parent and
-next-step control.
+The first version uses one global header and no permanent desktop sidebar.
+Facilities is the sole product-level destination; Docs and Help are supporting
+utilities. A simple in-content parent return and breadcrumb state where the
+user is. Once inside a facility, stable tabs expose Overview, Funding,
+Activity, Evidence, and Lineage. There are no global Next/Previous controls and
+no mobile bottom navigation duplicating those tabs. On mobile, the header
+collapses into an accessible hamburger drawer and the parent return remains
+visible.
+
+Human-first page titles carry a smaller canonical label such as `ROOT ACCORD`,
+`MAKKARI SESSION`, or `DRAW · DRAW LEGS`. Definitions are available in place
+through an information control. A dismissible first-use primer, optional
+five-step tour, and persistent Help/glossary menu teach the product without
+interrupting repeat use.
 
 The relationship view is the primary screen. A chart or graph is subordinate
 to readable relationship cards and exact amounts; the graph is not decoration
@@ -55,19 +61,19 @@ and cannot be the only way to understand causality.
 
 ## Wayfinding contract
 
-The facility lifecycle has one directed reading path:
+The facility workspace has one stable hierarchy:
 
 ```text
-Facilities → Facility overview → Funding → Activity → Evidence → Lineage
+Facilities → Facility → {Overview | Funding | Activity | Evidence | Lineage}
 ```
 
 Detail objects return to the section that owns them: rounds and Child Accords
 return to Funding, draws return to Activity, and allocation results return to
-Evidence. Each page exposes a breadcrumb, a labelled parent return, and a
-previous/next footer. Lineage ends with an explicit completion state, so a user
-is never sent back into an accidental loop. Route changes reset the document to
-the top so the destination title and context are never hidden by a previous
-page's scroll position.
+Evidence. Each detail exposes a breadcrumb and labelled parent return. There is
+no forced lifecycle tour in normal navigation; users choose the facility tab
+that answers their question. Route changes reset the document to the top so the
+destination title and context are never hidden by a previous page's scroll
+position.
 
 ## Components
 

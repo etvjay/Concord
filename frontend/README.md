@@ -36,17 +36,20 @@ The semantic map remains in `docs/frontend-map.md`. Visual decisions are in
 Heroicons is the single interface icon family. Inter Variable is self-hosted
 through the npm package; no runtime font CDN is required.
 
-The public landing page now leads with the user outcome—one accountable
-facility composed from independent providers—before progressively disclosing
-Accord, Makkari, CoFill, FCC, and Lineage. Its relationship composition,
-prismatic facility object, pointer response, and ambient motion all respect the
-user's reduced-motion preference.
+The public landing page leads with the user outcome—one facility funded by
+multiple accountable providers—before progressively disclosing Accord,
+Makkari, CoFill, FCC, and Lineage. Its restrained facility object and ambient
+motion respect the user's reduced-motion preference. The visual system uses a
+flat neutral canvas, crisp container edges, and cobalt only for proof and
+action emphasis; it does not rely on card gradients or glass effects.
 
-The application shell is route-aware. It distinguishes global destinations
-from facility sections, keeps the current object and parent trail visible, and
-guides the main lifecycle from overview through Funding, Activity, Evidence,
-and Lineage. Rounds, draws, Child Accords, and result evidence return to their
-owning section instead of dropping the user into a navigation loop.
+The application shell has one global product destination, a plain parent trail,
+and stable facility tabs for Overview, Funding, Activity, Evidence, and
+Lineage. Canonical terms remain visible beside human-first titles and have
+in-place definitions. A dismissible first-use primer, optional five-step tour,
+and persistent Help/glossary menu teach the model without blocking experienced
+users. Detail routes return to their owning section instead of creating a
+navigation loop.
 
 ## Wallet connection
 

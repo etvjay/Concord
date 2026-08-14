@@ -35,9 +35,11 @@ deployment proof.
   lineage, child, and draw views from the recorded Coston2 deployment and the
   shared TypeScript SDK types. Injected-wallet connection, Coston2 switching,
   native balance reads, and the official faucet link are live. Its build and
-  nine semantic and wayfinding tests pass locally. The shell now exposes
-  route-aware global state, parent breadcrumbs, contextual Back/Next controls,
-  and an explicit terminal state at the end of the lineage path.
+  ten semantic, invariant, learning, and wayfinding tests pass locally. The
+  shell now exposes a single product-level destination, stable facility tabs,
+  plain parent breadcrumbs, canonical terms with in-place definitions, and an
+  optional first-use tour plus persistent glossary. Forced Back/Next journey
+  controls and duplicate mobile navigation were removed.
 - `infra/northflank/`, `infra/railway/`, and
   `docs/fcc-always-on-hosting.md` package the official two-service plus Redis
   FCC topology. Northflank is the primary continuously running hackathon

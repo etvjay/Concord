@@ -10,7 +10,6 @@ import {
   BuildingLibraryIcon,
   CheckCircleIcon,
   ChevronRightIcon,
-  ClockIcon,
   DocumentDuplicateIcon,
   DocumentTextIcon,
   EyeSlashIcon,
@@ -19,6 +18,7 @@ import {
   InformationCircleIcon,
   LockClosedIcon,
   MagnifyingGlassIcon,
+  QuestionMarkCircleIcon,
   RectangleGroupIcon,
   ServerStackIcon,
   ShareIcon,
@@ -171,22 +171,22 @@ function FacilityArtifact() {
 function LandingPage() {
   const audiences = [
     {
-      icon: BuildingLibraryIcon,
-      label: "For treasuries",
-      title: "Access one facility, not a maze of disconnected deals.",
-      copy: "Create one collateral-backed capital relationship, draw from composed capacity, and see exactly what remains available.",
+      icon: RectangleGroupIcon,
+      label: "ROOT ACCORD",
+      title: "Create one facility.",
+      copy: "The treasury defines one collateral-backed relationship with a clear target, policy, participants, and expiry.",
     },
     {
-      icon: BanknotesIcon,
-      label: "For capital providers",
-      title: "Supply capital on terms that remain independently governed.",
-      copy: "Offer capacity privately, fund only an accepted allocation, and keep your commitment and exposure attributable to you.",
+      icon: LockClosedIcon,
+      label: "MAKKARI · COFILL",
+      title: "Coordinate providers privately.",
+      copy: "Independent providers offer capacity and terms. Concord composes an eligible allocation without publishing losing offers.",
     },
     {
-      icon: GlobeAltIcon,
-      label: "For every participant",
-      title: "Understand why capital moved and which relationship allowed it.",
-      copy: "From formation through repayment, every action stays connected to its root, child relationship, and settlement evidence.",
+      icon: ArrowsRightLeftIcon,
+      label: "CHILD ACCORDS · LINEAGE",
+      title: "Draw, repay, and reuse.",
+      copy: "Every provider portion remains explicit. Repayment reduces the same obligations and restores available capacity.",
     },
   ];
 
@@ -196,10 +196,10 @@ function LandingPage() {
         <PublicHeader />
         <div className="landing-hero__grid">
           <div className="hero-copy">
-            <p className="eyebrow">SYNDICATED CAPITAL INFRASTRUCTURE</p>
-            <h1>One facility.<br />Many providers.<br /><span>Always accountable.</span></h1>
+            <p className="eyebrow">PRIVATE SYNDICATED CAPITAL</p>
+            <h1>One facility.<br /><span>Capital from many providers.</span></h1>
             <p className="hero-copy__body">
-              Concord helps a treasury secure capital from independent providers without losing clarity or control. Offers coordinate confidentially; commitments, draws, repayments, and ownership stay explicit.
+              Concord lets a treasury coordinate funding privately, draw from the combined facility, and see exactly which provider funded every amount.
             </p>
             <div className="hero-actions">
               <Link className="button button--primary" to={rootHref}>Explore the live facility <ArrowRightIcon aria-hidden="true" /></Link>
@@ -224,9 +224,9 @@ function LandingPage() {
 
       <section className="landing-section" id="product">
         <div className="section-intro">
-          <p className="eyebrow">BUILT AROUND THE RELATIONSHIP</p>
-          <h2>Private capital that makes sense to everyone involved.</h2>
-          <p>Concord keeps the facility, its participants, and its changing capacity in one understandable structure—without flattening independent providers into an anonymous pool.</p>
+          <p className="eyebrow">HOW CONCORD WORKS</p>
+          <h2>From capital need to reusable capacity.</h2>
+          <p>Three understandable steps describe the full facility. Concord’s canonical primitives remain visible when you need the exact technical meaning.</p>
         </div>
         <div className="audience-grid">
           {audiences.map(({ icon: Icon, label, title, copy }, index) => (
@@ -240,11 +240,11 @@ function LandingPage() {
         </div>
       </section>
 
-      <section className="landing-section composition-section" aria-labelledby="composition-title">
+      <section className="landing-section composition-section" id="journey" aria-labelledby="composition-title">
         <div className="composition-story">
-          <p className="eyebrow">ONE FACILITY · INDEPENDENT RELATIONSHIPS</p>
-          <h2 id="composition-title">Capacity composes.<br />Accountability does not disappear.</h2>
-          <p>A Root Accord gives the treasury one coherent facility. Each accepted provider forms a Child Accord with its own commitment, exposure, terms commitment, and lifecycle.</p>
+          <p className="eyebrow">ROOT ACCORD · CHILD ACCORDS</p>
+          <h2 id="composition-title">One facility for the treasury. One clear commitment for every provider.</h2>
+          <p>The Root Accord is the facility. Each accepted provider forms a Child Accord, keeping its capital, exposure, terms, and lifecycle independently attributable.</p>
           <Link className="text-link" to={`${rootHref}/funding`}>See how this facility was funded <ArrowRightIcon aria-hidden="true" /></Link>
         </div>
         <div className="accord-composition" aria-label="One root facility composed from three child provider relationships">
@@ -266,35 +266,11 @@ function LandingPage() {
         </div>
       </section>
 
-      <section className="landing-section process-section" id="journey">
-        <div className="process-section__copy">
-          <p className="eyebrow">FROM NEED TO REUSABLE CAPACITY</p>
-          <h2>A complete capital journey, not a one-off transaction.</h2>
-          <p>The experience starts with familiar outcomes. Concord’s primitives remain available when a participant needs to inspect authority, privacy, allocation, or settlement in depth.</p>
-          <Link className="text-link" to={`${rootHref}/lineage`}>Follow the full relationship <ArrowRightIcon aria-hidden="true" /></Link>
-        </div>
-        <ol className="process-ledger">
-          {[
-            ["Create the facility", "The treasury defines one FXRP-backed capital requirement.", "Root Accord"],
-            ["Coordinate offers privately", "Eligible providers submit signed capacity and fee terms.", "Makkari · FCC"],
-            ["Compose the right capacity", "A deterministic allocation selects providers toward the target.", "CoFill"],
-            ["Fund independent commitments", "Selected providers transfer USDT0 before capacity becomes committed.", "Child Accords"],
-            ["Draw, repay, reuse", "A multi-provider draw is repaid to its obligations and capacity returns.", "Lineage"],
-          ].map(([title, copy, state], index) => (
-            <li key={title}>
-              <span>{index + 1}</span>
-              <div><strong>{title}</strong><small>{copy}</small></div>
-              <span className="process-ledger__primitive">{state}</span>
-            </li>
-          ))}
-        </ol>
-      </section>
-
       <section className="landing-section privacy-section" id="privacy">
         <div className="privacy-section__copy">
           <p className="eyebrow">PRIVACY WITH AN HONEST BOUNDARY</p>
-          <h2>Confidential where coordination needs it. Visible where settlement requires it.</h2>
-          <p>Provider capacity, fee terms, constraints, quote expiry, and losing offers may remain inside the bounded Makkari session. Accepted commitments, token transfers, draw state, repayment, and lineage remain public where Coston2 requires them.</p>
+          <h2>Private offers. Public settlement. No misleading claims.</h2>
+          <p>Provider offers and losing terms may remain inside the Makkari session. Accepted commitments, token transfers, draws, repayments, and Lineage remain visible where Coston2 requires them.</p>
           <Link className="text-link" to={`${rootHref}/evidence`}>Review the disclosure boundary <ArrowRightIcon aria-hidden="true" /></Link>
         </div>
         <div className="privacy-planes">
@@ -346,24 +322,10 @@ type RouteGuide = {
   current: string;
   crumbs: RouteLink[];
   back?: RouteLink;
-  previous?: RouteLink;
-  next?: RouteLink;
 };
 
 const globalRoutes: Array<{ label: string; to: string; icon: IconType; matches: (pathname: string) => boolean }> = [
-  { label: "Facilities", to: "/facilities", icon: DocumentTextIcon, matches: (pathname) => pathname === "/facilities" },
-  {
-    label: "Facility",
-    to: rootHref,
-    icon: RectangleGroupIcon,
-    matches: (pathname) => pathname === rootHref
-      || pathname.startsWith(`${rootHref}/funding`)
-      || pathname.startsWith(`${rootHref}/lineage`)
-      || pathname.startsWith("/children/")
-      || pathname.startsWith("/rounds/"),
-  },
-  { label: "Activity", to: `${rootHref}/activity`, icon: ClockIcon, matches: (pathname) => pathname.startsWith(`${rootHref}/activity`) || pathname.startsWith("/draws/") },
-  { label: "Evidence", to: `${rootHref}/evidence`, icon: ShieldCheckIcon, matches: (pathname) => pathname.startsWith(`${rootHref}/evidence`) || pathname.startsWith("/evidence/") },
+  { label: "Facilities", to: "/facilities", icon: DocumentTextIcon, matches: (pathname) => pathname !== "/settings" },
 ];
 
 function routeGuide(pathname: string): RouteGuide {
@@ -375,53 +337,42 @@ function routeGuide(pathname: string): RouteGuide {
     current: "Facilities",
     crumbs: [],
     back: { label: "Public site", to: "/" },
-    next: { label: "Open facility", to: rootHref },
   };
   if (pathname === rootHref) return {
     section: "Root Accord",
     current: "Overview",
     crumbs: [workspaceCrumb],
     back: workspaceCrumb,
-    next: { label: "Funding formation", to: `${rootHref}/funding` },
   };
   if (pathname === `${rootHref}/funding`) return {
     section: "Root Accord",
     current: "Funding",
     crumbs: [workspaceCrumb, facilityCrumb],
     back: { label: "Facility overview", to: rootHref },
-    previous: { label: "Overview", to: rootHref },
-    next: { label: "Activity", to: `${rootHref}/activity` },
   };
   if (pathname === `${rootHref}/activity`) return {
     section: "Root Accord",
     current: "Activity",
     crumbs: [workspaceCrumb, facilityCrumb],
     back: { label: "Facility overview", to: rootHref },
-    previous: { label: "Funding", to: `${rootHref}/funding` },
-    next: { label: "Evidence", to: `${rootHref}/evidence` },
   };
   if (pathname === `${rootHref}/evidence`) return {
     section: "Root Accord",
     current: "Evidence",
     crumbs: [workspaceCrumb, facilityCrumb],
     back: { label: "Facility overview", to: rootHref },
-    previous: { label: "Activity", to: `${rootHref}/activity` },
-    next: { label: "Lineage", to: `${rootHref}/lineage` },
   };
   if (pathname === `${rootHref}/lineage`) return {
     section: "Root Accord",
     current: "Lineage",
     crumbs: [workspaceCrumb, facilityCrumb],
     back: { label: "Facility overview", to: rootHref },
-    previous: { label: "Evidence", to: `${rootHref}/evidence` },
   };
   if (pathname.startsWith("/draws/")) return {
     section: "Activity detail",
     current: "Repaid draw",
     crumbs: [workspaceCrumb, facilityCrumb, { label: "Activity", to: `${rootHref}/activity` }],
     back: { label: "Activity", to: `${rootHref}/activity` },
-    previous: { label: "Activity", to: `${rootHref}/activity` },
-    next: { label: "View lineage", to: `${rootHref}/lineage` },
   };
   if (pathname.startsWith("/children/")) {
     const childId = pathname.slice("/children/".length);
@@ -432,8 +383,6 @@ function routeGuide(pathname: string): RouteGuide {
       current: provider,
       crumbs: [workspaceCrumb, facilityCrumb, { label: "Funding", to: `${rootHref}/funding` }],
       back: { label: "Funding", to: `${rootHref}/funding` },
-      previous: { label: "Funding", to: `${rootHref}/funding` },
-      next: { label: "View lineage", to: `${rootHref}/lineage` },
     };
   }
   if (pathname.startsWith("/rounds/")) return {
@@ -441,16 +390,12 @@ function routeGuide(pathname: string): RouteGuide {
     current: "Syndication round",
     crumbs: [workspaceCrumb, facilityCrumb, { label: "Funding", to: `${rootHref}/funding` }],
     back: { label: "Funding", to: `${rootHref}/funding` },
-    previous: { label: "Funding", to: `${rootHref}/funding` },
-    next: { label: "Allocation evidence", to: `/evidence/${evidence.resultDigest}` },
   };
   if (pathname.startsWith("/evidence/")) return {
     section: "Evidence detail",
     current: "Allocation result",
     crumbs: [workspaceCrumb, facilityCrumb, { label: "Evidence", to: `${rootHref}/evidence` }],
     back: { label: "Evidence", to: `${rootHref}/evidence` },
-    previous: { label: "Evidence", to: `${rootHref}/evidence` },
-    next: { label: "View lineage", to: `${rootHref}/lineage` },
   };
   if (pathname === "/settings") return {
     section: "System context",
@@ -480,23 +425,115 @@ function ContextNavigation({ guide }: { guide: RouteGuide }) {
         {guide.crumbs.map((crumb) => <span key={`${crumb.to}-${crumb.label}`}><Link to={crumb.to}>{crumb.label}</Link><ChevronRightIcon aria-hidden="true" /></span>)}
         <span aria-current="page">{guide.current}</span>
       </nav>
-      <div className="context-navigation__identity"><small>{guide.section}</small><strong>{guide.current}</strong></div>
-      {guide.next && <Link className="context-navigation__next" to={guide.next.to}><span><small>Next</small><strong>{guide.next.label}</strong></span><ArrowRightIcon aria-hidden="true" /></Link>}
     </div>
   );
 }
 
-function JourneyFooter({ guide }: { guide: RouteGuide }) {
-  if (!guide.previous && !guide.next) return null;
+const glossary = [
+  ["Root Accord", "The persistent facility relationship containing participants, assets, authority, capacity, policy, and lifecycle state."],
+  ["Makkari Session", "A bounded private funding session in which permitted providers submit signed offers for one facility."],
+  ["CoFill Allocation", "The deterministic result that composes eligible provider offers toward the facility target."],
+  ["Child Accord", "One provider's independently governed commitment beneath the Root Accord."],
+  ["Draw Leg", "The exact portion of a draw supplied by one Child Accord."],
+  ["Lineage", "The traceable path connecting the facility, funding session, allocation, commitments, draw, settlement, and repayment."],
+] as const;
+
+const tourSteps: Array<{ title: string; canonical: string; copy: string; icon: IconType }> = [
+  { title: "Your facility", canonical: "Root Accord", copy: "One persistent relationship holds the collateral, funded capacity, participants, and lifecycle.", icon: RectangleGroupIcon },
+  { title: "Your current position", canonical: "Capacity and exposure", copy: "Available tells you what can be drawn now. Outstanding tells you what still needs to be repaid.", icon: BanknotesIcon },
+  { title: "Provider commitments", canonical: "Child Accords", copy: "Every funded provider remains independently visible, governed, and attributable beneath the facility.", icon: UserGroupIcon },
+  { title: "Your next action", canonical: "Relationship authority", copy: "Concord explains what can happen next and why the current facility state permits it.", icon: ArrowRightIcon },
+  { title: "How everything connects", canonical: "Lineage", copy: "Funding, draws, repayments, and evidence remain connected to the relationship that authorized them.", icon: ShareIcon },
+];
+
+function ConceptHelp({ term, children }: PropsWithChildren<{ term: string }>) {
   return (
-    <nav className="journey-footer" aria-label="Page sequence">
-      {guide.previous
-        ? <Link to={guide.previous.to}><ArrowLeftIcon aria-hidden="true" /><span><small>Previous</small><strong>{guide.previous.label}</strong></span></Link>
-        : <span />}
-      {guide.next
-        ? <Link className="journey-footer__next" to={guide.next.to}><span><small>Continue to</small><strong>{guide.next.label}</strong></span><ArrowRightIcon aria-hidden="true" /></Link>
-        : <div className="journey-footer__complete"><CheckCircleSolid aria-hidden="true" /><span><small>End of this path</small><strong>Relationship trail complete</strong></span></div>}
-    </nav>
+    <details className="concept-help">
+      <summary aria-label={`What is ${term}?`}><InformationCircleIcon aria-hidden="true" /></summary>
+      <div><strong>{term}</strong><p>{children}</p></div>
+    </details>
+  );
+}
+
+function ProductTour({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [step, setStep] = useState(0);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    setStep(0);
+    dialogRef.current?.focus();
+    const onKey = (event: KeyboardEvent) => event.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+  if (!open) return null;
+  const current = tourSteps[step];
+  const Icon = current.icon;
+  const last = step === tourSteps.length - 1;
+  return (
+    <div className="modal-layer tour-layer">
+      <button className="modal-scrim" aria-label="Close product tour" onClick={onClose} />
+      <div className="product-tour" role="dialog" aria-modal="true" aria-labelledby="tour-title" ref={dialogRef} tabIndex={-1}>
+        <div className="product-tour__top"><span>CONCORD IN 60 SECONDS</span><button className="icon-button" onClick={onClose} aria-label="Close product tour"><XMarkIcon /></button></div>
+        <div className="product-tour__progress" aria-label={`Step ${step + 1} of ${tourSteps.length}`}>{tourSteps.map((_, index) => <span className={index <= step ? "active" : ""} key={index} />)}</div>
+        <div className="product-tour__icon"><Icon aria-hidden="true" /></div>
+        <span className="canonical-label">{current.canonical}</span>
+        <h2 id="tour-title">{current.title}</h2>
+        <p aria-live="polite">{current.copy}</p>
+        <div className="product-tour__actions">
+          <button className="button button--quiet" onClick={onClose}>Skip tour</button>
+          <div>
+            {step > 0 && <button className="button button--secondary" onClick={() => setStep((value) => value - 1)}>Back</button>}
+            <button className="button button--primary" onClick={() => last ? onClose() : setStep((value) => value + 1)}>{last ? "Explore facility" : "Next"}<ArrowRightIcon aria-hidden="true" /></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HelpCenter({ onStartTour }: { onStartTour: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [view, setView] = useState<"menu" | "glossary">("menu");
+  const wrapRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (event: PointerEvent) => {
+      if (!wrapRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    document.addEventListener("pointerdown", close);
+    return () => document.removeEventListener("pointerdown", close);
+  }, [open]);
+  return (
+    <div className="help-center" ref={wrapRef}>
+      <button className="help-trigger" aria-expanded={open} aria-haspopup="dialog" onClick={() => { setOpen((value) => !value); setView("menu"); }}><QuestionMarkCircleIcon aria-hidden="true" /><span>Help</span></button>
+      {open && <div className="help-popover" role="dialog" aria-label="Help and learning">
+        {view === "menu" ? <>
+          <span className="help-popover__label">HELP & LEARNING</span>
+          <h2>Understand Concord</h2>
+          <p>Learn the product at your own pace. Nothing here blocks the facility.</p>
+          <button onClick={() => { setOpen(false); onStartTour(); }}><SparklesIcon /><span><strong>Take the product tour</strong><small>A five-step introduction</small></span><ChevronRightIcon /></button>
+          <button onClick={() => setView("glossary")}><DocumentTextIcon /><span><strong>Concord glossary</strong><small>Plain language and canonical terms</small></span><ChevronRightIcon /></button>
+          <Link to={`${rootHref}/evidence`} onClick={() => setOpen(false)}><ShieldCheckIcon /><span><strong>Privacy and evidence</strong><small>What is private, public, and verified</small></span><ChevronRightIcon /></Link>
+          <Link to="/settings" onClick={() => setOpen(false)}><ServerStackIcon /><span><strong>Network and assets</strong><small>Coston2 environment details</small></span><ChevronRightIcon /></Link>
+        </> : <>
+          <button className="help-popover__back" onClick={() => setView("menu")}><ArrowLeftIcon />Help</button>
+          <span className="help-popover__label">CONCORD GLOSSARY</span>
+          <h2>Canonical vocabulary</h2>
+          <div className="glossary-list">{glossary.map(([term, definition]) => <div key={term}><strong>{term}</strong><p>{definition}</p></div>)}</div>
+        </>}
+      </div>}
+    </div>
+  );
+}
+
+function OnboardingPrimer({ onStart, onDismiss }: { onStart: () => void; onDismiss: () => void }) {
+  return (
+    <aside className="onboarding-primer" aria-label="Optional Concord introduction">
+      <div className="onboarding-primer__icon"><QuestionMarkCircleIcon aria-hidden="true" /></div>
+      <div><strong>New to Concord?</strong><p>See how one facility is funded by multiple providers and how every movement remains traceable.</p></div>
+      <div className="onboarding-primer__actions"><button className="button button--secondary button--compact" onClick={onDismiss}>Explore myself</button><button className="button button--primary button--compact" onClick={onStart}>Take the 60-second tour</button></div>
+    </aside>
   );
 }
 
@@ -537,6 +574,11 @@ function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => void })
 
 function AppShell({ children }: PropsWithChildren) {
   const [drawer, setDrawer] = useState(false);
+  const [tour, setTour] = useState(false);
+  const [showPrimer, setShowPrimer] = useState(() => {
+    try { return window.localStorage.getItem("concord-tour-prompt") !== "dismissed"; }
+    catch { return true; }
+  });
   const location = useLocation();
   const guide = routeGuide(location.pathname);
   useEffect(() => setDrawer(false), [location.pathname]);
@@ -544,6 +586,14 @@ function AppShell({ children }: PropsWithChildren) {
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
   }, [location.pathname]);
+  const dismissPrimer = () => {
+    setShowPrimer(false);
+    try { window.localStorage.setItem("concord-tour-prompt", "dismissed"); } catch { /* storage is optional */ }
+  };
+  const startTour = () => {
+    dismissPrimer();
+    setTour(true);
+  };
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -551,27 +601,30 @@ function AppShell({ children }: PropsWithChildren) {
         <Brand />
         <nav className="app-header__nav" aria-label="Application navigation">
           {globalRoutes.map((route) => <GlobalNavLink key={route.to} route={route} pathname={location.pathname} />)}
+          <a href="https://github.com/etvjay/Concord/tree/agent/concord-rebuild/docs" target="_blank" rel="noreferrer"><DocumentTextIcon aria-hidden="true" /><span>Docs</span></a>
         </nav>
         <div className="app-header__context">
+          <HelpCenter onStartTour={startTour} />
           <NetworkMark />
           <WalletControl compact />
         </div>
       </header>
-      <ContextNavigation guide={guide} />
       <MobileDrawer open={drawer} onClose={() => setDrawer(false)} />
-      <div className="app-content">{children}<JourneyFooter guide={guide} /></div>
+      <div className="app-content">
+        <ContextNavigation guide={guide} />
+        {location.pathname === rootHref && showPrimer && <OnboardingPrimer onStart={startTour} onDismiss={dismissPrimer} />}
+        {children}
+      </div>
       <footer className="app-footer"><Brand /><span>Coston2 · chain 114 · recorded {formatDate(snapshot.deployment.observedAt)}</span><div><a href="https://github.com/etvjay/Concord" target="_blank" rel="noreferrer">Source</a><Link to="/settings">Disclosure</Link></div></footer>
-      <nav className="mobile-bottom-nav" aria-label="Primary mobile navigation">
-        {globalRoutes.map((route) => <GlobalNavLink key={route.to} route={route} pathname={location.pathname} />)}
-      </nav>
+      <ProductTour open={tour} onClose={() => setTour(false)} />
     </div>
   );
 }
 
-function PageHeading({ eyebrow, title, description, action }: { eyebrow: string; title: string; description: string; action?: React.ReactNode }) {
+function PageHeading({ eyebrow, title, description, help, action }: { eyebrow: string; title: string; description: string; help?: string; action?: React.ReactNode }) {
   return (
     <div className="page-heading">
-      <div><p className="eyebrow">{eyebrow}</p><h1>{title}</h1><p>{description}</p></div>
+      <div><div className="canonical-line"><span className="canonical-label">{eyebrow}</span>{help && <ConceptHelp term={eyebrow}>{help}</ConceptHelp>}</div><h1>{title}</h1><p>{description}</p></div>
       {action}
     </div>
   );
@@ -581,9 +634,10 @@ function FacilitiesPage() {
   return (
     <AppShell>
       <PageHeading
-        eyebrow="RELATIONSHIP REGISTER"
+        eyebrow="ROOT ACCORD REGISTER"
         title="Facilities"
-        description="Persistent capital relationships available to this treasury on Coston2."
+        description="Your persistent capital facilities and their current financial position."
+        help="A Root Accord is Concord's canonical facility relationship, containing participants, assets, authority, capacity, policy, and lifecycle state."
         action={<button className="button button--secondary" disabled title="Root creation requires a connected intent service">Create Root Accord</button>}
       />
       <div className="view-tabs"><button className="active">Active facilities</button><button>Archive</button></div>
@@ -638,21 +692,16 @@ function FacilityTabs({ standalone = false }: { standalone?: boolean }) {
   );
 }
 
-function AccordHeader({ onPrepare }: { onPrepare?: () => void }) {
+function AccordHeader() {
   return (
     <>
       <div className="accord-header">
         <div>
-          <div className="accord-header__eyebrow"><span>ROOT ACCORD</span><Status label="Active · observed" /></div>
+          <div className="accord-header__eyebrow"><div className="canonical-line"><span className="canonical-label">ROOT ACCORD</span><ConceptHelp term="Root Accord">The persistent facility relationship containing participants, assets, authority, capacity, policy, and lifecycle state.</ConceptHelp></div><Status label="Active · observed" /></div>
           <h1>Coston2 syndicated facility</h1>
-          <p>One FXRP-backed relationship composed from three independently funded USDT0 commitments.</p>
-          <div className="id-line"><code>{shortId(facility.id, 12, 9)}</code><button className="copy-button" aria-label="Copy Root Accord ID" onClick={() => navigator.clipboard?.writeText(facility.id)}><DocumentDuplicateIcon /></button><span>Expires {formatDate(facility.validUntil)}</span></div>
+          <p>One FXRP-backed facility funded by three independent USDT0 providers.</p>
         </div>
-        <div className="accord-header__action">
-          <span>Next permitted action</span>
-          <button className="button button--primary" onClick={onPrepare}>Prepare draw <ArrowDownTrayIcon aria-hidden="true" /></button>
-          <small>Requires treasury wallet review</small>
-        </div>
+        <details className="technical-summary"><summary>Technical details</summary><div><span>Root Accord ID</span><code>{shortId(facility.id, 12, 9)}</code><button className="copy-button" aria-label="Copy Root Accord ID" onClick={() => navigator.clipboard?.writeText(facility.id)}><DocumentDuplicateIcon /></button><span>Expires {formatDate(facility.validUntil)}</span></div></details>
       </div>
       <FacilityTabs />
     </>
@@ -661,14 +710,13 @@ function AccordHeader({ onPrepare }: { onPrepare?: () => void }) {
 
 function MetricsBand() {
   const metrics = [
-    ["Target", facility.targetCapacity, "Facility requirement"],
-    ["Committed", facility.committedCapacity, "Funded by 3 providers"],
-    ["Drawn", facility.drawnPrincipal, "Current principal"],
-    ["Available", facility.availableCapacity, "Capacity restored"],
+    ["Available now", `${formatToken(facility.availableCapacity)} USDT0`, "Ready to draw"],
+    ["Outstanding", `${formatToken(facility.drawnPrincipal)} USDT0`, "Nothing currently owed"],
+    ["Capital providers", String(children.length), "Independent commitments"],
   ];
   return (
-    <section className="metrics-band" aria-label="Facility metrics">
-      {metrics.map(([label, raw, note], index) => <div key={label} className={index === 3 ? "metric metric--accent" : "metric"}><span>{label}</span><strong>{formatToken(raw)} <small>USDT0</small></strong><p>{note}</p></div>)}
+    <section className="metrics-band metrics-band--three facility-position" aria-label="Facility position">
+      {metrics.map(([label, value, note], index) => <div key={label} className={index === 0 ? "metric metric--accent" : "metric"}><span>{label}</span><strong>{value}</strong><p>{note}</p></div>)}
     </section>
   );
 }
@@ -682,40 +730,18 @@ const relationshipSteps: Array<{ label: string; detail: string; state: string; i
   { label: "Repayment", detail: "4 USDT0", state: "Restored", icon: ArrowUpTrayIcon, href: `${rootHref}/activity` },
 ];
 
-function RelationshipSpine() {
-  return (
-    <section className="section-block">
-      <div className="section-header"><div><span className="eyebrow">CAUSAL RELATIONSHIP</span><h2>Why the capital could move</h2></div><Link className="text-link" to={`${rootHref}/lineage`}>Full lineage <ArrowRightIcon aria-hidden="true" /></Link></div>
-      <ol className="relationship-spine">
-        {relationshipSteps.map(({ label, detail, state, icon: Icon, href }, index) => (
-          <li key={label}>
-            <Link to={href}>
-              <span className="relationship-spine__number">{String(index + 1).padStart(2, "0")}</span>
-              <Icon aria-hidden="true" />
-              <strong>{label}</strong>
-              <small>{detail}</small>
-              <Status label={state} />
-            </Link>
-          </li>
-        ))}
-      </ol>
-    </section>
-  );
-}
-
 function ChildRegister({ compact = false }: { compact?: boolean }) {
   return (
     <section className={`section-block${compact ? " section-block--compact" : ""}`}>
-      <div className="section-header"><div><span className="eyebrow">CHILD ACCORDS</span><h2>Independent provider relationships</h2></div><span className="section-meta">Selected 9 · funded 9 USDT0</span></div>
+      <div className="section-header"><div><div className="canonical-line"><span className="canonical-label">CHILD ACCORDS</span><ConceptHelp term="Child Accord">One provider's independently governed commitment beneath the Root Accord.</ConceptHelp></div><h2>Provider commitments</h2><p>Each provider remains independently attributable beneath the facility.</p></div><span className="section-meta">3 providers · 9 USDT0 funded</span></div>
       <div className="child-table" role="table" aria-label="Funded Child Accords">
-        <div className="child-table__head" role="row"><span role="columnheader">Provider</span><span role="columnheader">State</span><span role="columnheader">Committed</span><span role="columnheader">Drawn</span><span role="columnheader">Available</span><span /></div>
+        <div className="child-table__head" role="row"><span role="columnheader">Provider</span><span role="columnheader">Committed</span><span role="columnheader">Available</span><span role="columnheader">State</span><span /></div>
         {children.map((child, index) => (
           <Link role="row" className="child-row" to={`/children/${child.id}`} key={child.id}>
             <span role="cell" className="provider-cell"><span className="provider-avatar">P{index + 1}</span><span><strong>{providerLabels.get(child.provider.toLowerCase())}</strong><small>{shortId(child.provider)}</small></span></span>
-            <span role="cell"><Status label="Funded · active" /></span>
             <span role="cell"><small>Committed</small>{formatToken(child.committedCapacity)} USDT0</span>
-            <span role="cell"><small>Drawn</small>{formatToken(child.drawnPrincipal)} USDT0</span>
             <span role="cell"><small>Available</small>{formatToken(child.availableCapacity)} USDT0</span>
+            <span role="cell"><Status label="Funded · active" /></span>
             <span role="cell"><ChevronRightIcon aria-hidden="true" /></span>
           </Link>
         ))}
@@ -724,13 +750,23 @@ function ChildRegister({ compact = false }: { compact?: boolean }) {
   );
 }
 
-function StateExplanation() {
+function StateExplanation({ onPrepare }: { onPrepare: () => void }) {
   return (
     <div className="state-explanation">
       <div className="state-explanation__icon"><CheckCircleIcon aria-hidden="true" /></div>
-      <div><span className="eyebrow">CURRENT STATE</span><h2>Funded, repaid, and ready for another draw.</h2><p>Three child relationships funded 9 USDT0. The recorded 4 USDT0 draw was fully repaid, so root and child exposure are zero and the complete 9 USDT0 capacity is available again.</p></div>
-      <div className="invariant-list"><span><CheckCircleSolid aria-hidden="true" />Root exposure matches child exposure</span><span><CheckCircleSolid aria-hidden="true" />Committed capacity matches funded children</span></div>
+      <div><span className="eyebrow">WHAT THIS MEANS</span><h2>All 9 USDT0 is available. Nothing is currently owed.</h2><p>The previous 4 USDT0 draw was fully repaid, so the facility can be used again without creating a new relationship.</p></div>
+      <div className="next-action"><span>Next available action</span><button className="button button--primary" onClick={onPrepare}>Prepare a draw <ArrowDownTrayIcon aria-hidden="true" /></button><small>Requires treasury wallet review</small></div>
     </div>
+  );
+}
+
+function LineageInvitation() {
+  return (
+    <section className="lineage-invitation">
+      <div className="lineage-invitation__icon"><ShareIcon aria-hidden="true" /></div>
+      <div><div className="canonical-line"><span className="canonical-label">LINEAGE</span><ConceptHelp term="Lineage">The traceable path connecting the facility, funding session, allocation, commitments, draw, settlement, and repayment.</ConceptHelp></div><h2>See why every movement was allowed.</h2><p>Follow the facility from private funding through provider commitments, draw legs, settlement, repayment, and restored capacity.</p></div>
+      <Link className="button button--secondary" to={`${rootHref}/lineage`}>View relationship history <ArrowRightIcon /></Link>
+    </section>
   );
 }
 
@@ -791,14 +827,13 @@ function OverviewPage() {
   const [review, setReview] = useState(false);
   return (
     <AppShell>
-      <AccordHeader onPrepare={() => setReview(true)} />
+      <AccordHeader />
       <MetricsBand />
-      <StateExplanation />
-      <RelationshipSpine />
+      <StateExplanation onPrepare={() => setReview(true)} />
       <ChildRegister />
       <section className="split-section">
-        <div className="section-block"><div className="section-header"><div><span className="eyebrow">ACTIVITY</span><h2>Recorded lifecycle</h2></div><Link className="text-link" to={`${rootHref}/activity`}>All activity <ArrowRightIcon /></Link></div><ActivityList limit={3} /></div>
-        <div className="section-block"><div className="section-header"><div><span className="eyebrow">EVIDENCE</span><h2>Verification boundary</h2></div></div><EvidenceSummary /></div>
+        <div className="section-block"><div className="section-header"><div><span className="eyebrow">ACTIVITY</span><h2>Recent activity</h2></div><Link className="text-link" to={`${rootHref}/activity`}>All activity <ArrowRightIcon /></Link></div><ActivityList limit={3} /></div>
+        <LineageInvitation />
       </section>
       <ActionReview open={review} onClose={() => setReview(false)} />
     </AppShell>
@@ -809,9 +844,9 @@ function FundingPage() {
   return (
     <AppShell>
       <FacilityTabs standalone />
-      <PageHeading eyebrow="MAKKARI · COFILL" title="Funding formation" description="How confidential offers became three funded child relationships." />
+      <PageHeading eyebrow="MAKKARI SESSION · COFILL ALLOCATION" title="Funding" description="How private provider offers became three funded commitments." help="Makkari is the bounded private funding session. CoFill is the deterministic allocation that composes eligible offers toward the facility target." />
       <section className="round-summary">
-        <div><span className="eyebrow">SYNDICATION ROUND</span><h2>Allocation finalized</h2><p>CoFill selected the lowest eligible fees and filled the 9 USDT0 target deterministically.</p></div>
+        <div><span className="eyebrow">PRIVATE FUNDING ROUND · MAKKARI</span><h2>Provider allocation completed</h2><p>CoFill selected eligible offers and filled the 9 USDT0 target deterministically.</p></div>
         <dl><div><dt>Target</dt><dd>9 USDT0</dd></div><div><dt>Eligible providers</dt><dd>3</dd></div><div><dt>Maximum fee</dt><dd>{round.maxFeeBps} bps</dd></div><div><dt>Round expiry</dt><dd>{formatDate(round.roundExpiry)}</dd></div></dl>
         <Link className="button button--secondary" to={`/rounds/${round.id}`}>Open round dossier</Link>
       </section>
@@ -825,7 +860,7 @@ function ActivityPage() {
   return (
     <AppShell>
       <FacilityTabs standalone />
-      <PageHeading eyebrow="PUBLIC LIFECYCLE" title="Activity" description="Observed relationship events, ordered by causal progression rather than wallet recency." />
+      <PageHeading eyebrow="ACCORD LIFECYCLE" title="Activity" description="What happened to this facility, ordered by financial progression." help="The Accord lifecycle keeps each action connected to the relationship and authority that permitted it." />
       <section className="section-block activity-page"><ActivityList /></section>
     </AppShell>
   );
@@ -835,7 +870,7 @@ function EvidencePage() {
   return (
     <AppShell>
       <FacilityTabs standalone />
-      <PageHeading eyebrow="VERIFICATION & DISCLOSURE" title="Evidence" description="What Concord observed, what remains withheld, and what the implementation does not claim." />
+      <PageHeading eyebrow="FCC EVIDENCE" title="Evidence" description="What Concord verified, what remains private, and what this implementation does not claim." help="Flare Confidential Compute coordinates permitted private inputs. Accepted commitments and public-chain settlement remain visible where required." />
       <section className="evidence-grid">
         <EvidenceSummary />
         <div className="evidence-dossier">
@@ -855,7 +890,7 @@ function LineagePage() {
   return (
     <AppShell>
       <FacilityTabs standalone />
-      <PageHeading eyebrow="RELATIONSHIP LINEAGE" title="One traceable causal path" description="Each movement links to the relationship, allocation, or draw leg that authorized it." />
+      <PageHeading eyebrow="LINEAGE" title="Relationship history" description="See how the facility, provider commitments, draw, settlement, and repayment connect." help="Lineage is the traceable path linking every action to the relationship that authorized it." />
       <section className="lineage-map">
         {relationshipSteps.map(({ label, detail, state, icon: Icon, href }, index) => <div className="lineage-node" key={label}><span>{String(index + 1).padStart(2, "0")}</span><Icon aria-hidden="true" /><div><strong>{label}</strong><small>{detail}</small></div><Status label={state} /><Link to={href} aria-label={`Open ${label}`}><ChevronRightIcon /></Link></div>)}
       </section>
@@ -873,7 +908,7 @@ function DrawPage() {
   if (drawId !== draw.id) return <NotFound />;
   return (
     <AppShell>
-      <PageHeading eyebrow="DRAW · REPAID" title="4 USDT0 supplied by two child relationships" description="The draw was settled to the treasury and fully mapped back through its originating obligations." action={<Status label="Fully repaid" />} />
+      <PageHeading eyebrow="DRAW · DRAW LEGS" title="4 USDT0 draw" description="Two provider commitments supplied this draw. It was settled to the treasury and fully repaid." help="A Draw Leg records the exact portion supplied by one Child Accord." action={<Status label="Fully repaid" />} />
       <div className="dossier-id"><code>{draw.id}</code><a href={explorerTx(snapshot.deployment.rootRound.facilityLifecycle.drawTransaction)} target="_blank" rel="noreferrer">Settlement receipt <ArrowTopRightOnSquareIcon /></a></div>
       <section className="metrics-band metrics-band--three"><div className="metric"><span>Principal</span><strong>4 <small>USDT0</small></strong><p>Settled to treasury</p></div><div className="metric"><span>Repaid</span><strong>4 <small>USDT0</small></strong><p>Observed on Coston2</p></div><div className="metric metric--accent"><span>Outstanding</span><strong>0 <small>USDT0</small></strong><p>Capacity restored</p></div></section>
       <section className="section-block"><div className="section-header"><div><span className="eyebrow">DRAW LEGS</span><h2>Provider composition</h2></div><span className="section-meta">2 explicit obligations</span></div><DrawLegs /></section>
@@ -889,7 +924,7 @@ function ChildPage() {
   const providerNumber = children.indexOf(child) + 1;
   return (
     <AppShell>
-      <PageHeading eyebrow="CHILD ACCORD" title={`${providerLabels.get(child.provider.toLowerCase())} relationship`} description="An independently governed provider commitment under the parent Root Accord." action={<Status label="Funded · active" />} />
+      <PageHeading eyebrow="CHILD ACCORD" title={`${providerLabels.get(child.provider.toLowerCase())} commitment`} description="This provider's independently governed commitment beneath the facility." help="A Child Accord keeps one provider's commitment, exposure, terms, and lifecycle attributable beneath the Root Accord." action={<Status label="Funded · active" />} />
       <div className="dossier-id"><code>{child.id}</code><Link to={rootHref}>Parent Root Accord <ArrowRightIcon /></Link></div>
       <section className="metrics-band metrics-band--four"><div className="metric"><span>Selected</span><strong>3 <small>USDT0</small></strong><p>CoFill allocation</p></div><div className="metric"><span>Committed</span><strong>3 <small>USDT0</small></strong><p>Funding observed</p></div><div className="metric"><span>Drawn now</span><strong>0 <small>USDT0</small></strong><p>Exposure repaid</p></div><div className="metric metric--accent"><span>Available</span><strong>3 <small>USDT0</small></strong><p>Capacity restored</p></div></section>
       <section className="dossier-grid"><div className="dossier-section"><h2>Provider</h2><dl><div><dt>Participant</dt><dd>Provider {providerNumber}</dd></div><div><dt>Address</dt><dd><code>{shortId(child.provider, 12, 10)}</code></dd></div><div><dt>Accepted fee</dt><dd>{child.feeBps} bps</dd></div><div><dt>Valid until</dt><dd>{formatDate(child.validUntil)}</dd></div></dl></div><div className="dossier-section"><h2>Terms and binding</h2><dl><div><dt>Allocation</dt><dd><code>{shortId(child.allocationId, 12, 10)}</code></dd></div><div><dt>Terms commitment</dt><dd><code>{shortId(child.termsCommitment, 12, 10)}</code></dd></div><div><dt>Root</dt><dd><code>{shortId(child.rootAccordId, 12, 10)}</code></dd></div></dl></div></section>
@@ -902,7 +937,7 @@ function RoundPage() {
   if (roundId !== round.id) return <NotFound />;
   return (
     <AppShell>
-      <PageHeading eyebrow="MAKKARI SESSION" title="Private syndication round" description="A bounded confidential execution session for one Root Accord and one facility target." action={<Status label="Finalized" />} />
+      <PageHeading eyebrow="MAKKARI SESSION" title="Private funding round" description="A bounded confidential session for this facility and its 9 USDT0 target." help="Makkari defines who may participate, which private inputs and computation are permitted, and when the session expires." action={<Status label="Finalized" />} />
       <div className="dossier-id"><code>{round.id}</code><Link to={`${rootHref}/funding`}>Funding formation <ArrowRightIcon /></Link></div>
       <section className="dossier-grid"><div className="dossier-section"><h2>Session objective</h2><dl><div><dt>Root Accord</dt><dd><code>{shortId(round.rootAccordId)}</code></dd></div><div><dt>Target</dt><dd>9 USDT0</dd></div><div><dt>Maximum fee</dt><dd>{round.maxFeeBps} bps</dd></div><div><dt>Eligible providers</dt><dd>{round.eligibleProviderCount}</dd></div><div><dt>Expiry</dt><dd>{formatDate(round.roundExpiry)}</dd></div></dl></div><div className="dossier-section"><h2>Confidentiality boundary</h2><p>Provider capacity, rates, constraints, expiry, and losing quotes may remain confidential inside the session. Accepted executable capacity, provider addresses, commitments, funding, and settlement are public where the chain requires them.</p><div className="privacy-boundary privacy-boundary--inline"><EyeSlashIcon /><div><strong>Private quote data: withheld</strong><p>No zero values are inferred for unavailable quote fields.</p></div></div></div></section>
     </AppShell>
@@ -914,7 +949,7 @@ function EvidenceDetailPage() {
   if (digest !== evidence.resultDigest) return <NotFound />;
   return (
     <AppShell>
-      <PageHeading eyebrow="COFILL EVIDENCE" title="Verified allocation result" description="The deterministic allocation bound to the intended extension, round, Root Accord, and result digest." action={<Status label="Verified" />} />
+      <PageHeading eyebrow="COFILL ALLOCATION" title="Verified provider allocation" description="The deterministic result bound to the intended extension, funding round, Root Accord, and digest." help="CoFill deterministically allocates eligible provider offers toward the facility target while preserving the subsequent independent relationships." action={<Status label="Verified" />} />
       <div className="proof-detail"><ShieldCheckIcon /><code>{evidence.resultDigest}</code></div>
       <section className="dossier-grid"><div className="dossier-section"><h2>Binding</h2><dl><div><dt>Extension</dt><dd>66188</dd></div><div><dt>Root Accord</dt><dd><code>{shortId(evidence.rootAccordId!)}</code></dd></div><div><dt>Round</dt><dd><code>{shortId(evidence.roundId!)}</code></dd></div><div><dt>Selected</dt><dd>3 providers · 9 USDT0</dd></div></dl></div><div className="dossier-section"><h2>Execution truth</h2><dl><div><dt>Network</dt><dd>Coston2 · chain 114</dd></div><div><dt>TEE registry state</dt><dd>Status 2 · one active machine</dd></div><div><dt>TEE mode</dt><dd>Simulated development</dd></div><div><dt>Disclosure</dt><dd>Metadata only</dd></div></dl></div></section>
       <div className="privacy-boundary"><InformationCircleIcon /><div><strong>This is real Coston2 FCC development-path evidence.</strong><p>It is not a claim of private token transfers, private EVM state, production hardware-backed TEE execution, or production institutional readiness.</p></div></div>
@@ -925,7 +960,7 @@ function EvidenceDetailPage() {
 function SettingsPage() {
   return (
     <AppShell>
-      <PageHeading eyebrow="NETWORK & DISCLOSURE" title="Environment" description="The exact network, contracts, assets, observation source, and security boundary used by this interface." />
+      <PageHeading eyebrow="ENVIRONMENT DISCLOSURE" title="Network and assets" description="The exact network, contracts, assets, observation source, and security boundary used by this interface." />
       <section className="settings-list">
         {[
           [ServerStackIcon, "Network", "Coston2 · chain 114", snapshot.deployment.rpcUrl],

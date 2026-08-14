@@ -1,7 +1,7 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { WagmiProvider } from "wagmi";
 import { App } from "./App";
 import { children, draw, facility, formatToken } from "./data/concord";
@@ -21,59 +21,86 @@ function renderRoute(path: string) {
 }
 
 describe("Concord frontend product semantics", () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
   it("presents the relationship as the product on the landing page", () => {
     renderRoute("/");
-    expect(screen.getByRole("heading", { name: /one facility\.\s*many providers\.\s*always accountable/i })).toBeInTheDocument();
-    expect(screen.getByText(/built around the relationship/i)).toBeInTheDocument();
-    expect(screen.getByText(/confidential where coordination needs it/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /one facility\.\s*capital from many providers/i })).toBeInTheDocument();
+    expect(screen.getByText(/from capital need to reusable capacity/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /private offers\. public settlement\. no misleading claims/i })).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: /install wallet/i }).length).toBeGreaterThan(0);
   });
 
   it("renders the observed Root Accord and distinguishes current exposure from restored capacity", () => {
     renderRoute(`/facilities/${facility.id}`);
     expect(screen.getByRole("heading", { level: 1, name: "Coston2 syndicated facility" })).toBeInTheDocument();
-    expect(screen.getByText(/funded, repaid, and ready for another draw/i)).toBeInTheDocument();
+    expect(screen.getByText(/all 9 usdt0 is available\. nothing is currently owed/i)).toBeInTheDocument();
+    expect(screen.getAllByText("ROOT ACCORD").length).toBeGreaterThan(0);
+    expect(screen.getByLabelText("What is Root Accord?")).toBeInTheDocument();
     expect(screen.getAllByText(/9 USDT0/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/0 USDT0/i).length).toBeGreaterThan(0);
   });
 
   it("keeps child commitments and draw legs explicit", () => {
     renderRoute(`/draws/${draw.id}`);
-    expect(screen.getByRole("heading", { name: /supplied by two child relationships/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /4 usdt0 draw/i })).toBeInTheDocument();
+    expect(screen.getAllByText("DRAW · DRAW LEGS").length).toBeGreaterThan(0);
     expect(screen.getByText("Provider 1")).toBeInTheDocument();
     expect(screen.getByText("Provider 2")).toBeInTheDocument();
     expect(draw.legs).toHaveLength(2);
     expect(children).toHaveLength(3);
   });
 
-  it("keeps a draw detail anchored to its parent activity and onward lineage", () => {
+  it("keeps a draw detail anchored to its parent without duplicating global navigation", () => {
     renderRoute(`/draws/${draw.id}`);
     expect(screen.getByRole("link", { name: /back to activity/i })).toHaveAttribute("href", `/facilities/${facility.id}/activity`);
     expect(within(screen.getByRole("navigation", { name: "Breadcrumb" })).getByText("Activity")).toBeInTheDocument();
-    expect(screen.getAllByRole("link", { name: /view lineage/i }).length).toBeGreaterThan(0);
-    expect(screen.getAllByRole("link", { name: "Activity" }).some((link) => link.getAttribute("aria-current") === "page")).toBe(true);
+    expect(within(screen.getByRole("navigation", { name: "Application navigation" })).getByRole("link", { name: "Facilities" })).toHaveAttribute("aria-current", "page");
+    expect(within(screen.getByRole("navigation", { name: "Application navigation" })).queryByRole("link", { name: "Activity" })).not.toBeInTheDocument();
   });
 
-  it("presents facility sections as a directed sequence without repeating the overview header", () => {
+  it("presents facility sections as stable tabs without repeating the overview header", () => {
     document.documentElement.scrollTop = 480;
     renderRoute(`/facilities/${facility.id}/funding`);
     expect(document.documentElement.scrollTop).toBe(0);
-    expect(screen.getByRole("heading", { level: 1, name: "Funding formation" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Funding" })).toBeInTheDocument();
+    expect(screen.getAllByText("MAKKARI SESSION · COFILL ALLOCATION").length).toBeGreaterThan(0);
     expect(screen.queryByRole("heading", { level: 1, name: "Coston2 syndicated facility" })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /back to facility overview/i })).toHaveAttribute("href", `/facilities/${facility.id}`);
     expect(screen.getAllByRole("link", { name: /activity/i }).some((link) => link.getAttribute("href") === `/facilities/${facility.id}/activity`)).toBe(true);
   });
 
-  it("marks lineage as the end of the guided relationship trail", () => {
+  it("presents lineage as relationship history, not a forced journey endpoint", () => {
     renderRoute(`/facilities/${facility.id}/lineage`);
-    expect(screen.getByText("Relationship trail complete")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Relationship history" })).toBeInTheDocument();
+    expect(screen.getAllByText("LINEAGE").length).toBeGreaterThan(0);
     expect(screen.getByRole("link", { name: /back to facility overview/i })).toBeInTheDocument();
+  });
+
+  it("offers an optional tour and glossary without blocking the facility", () => {
+    renderRoute(`/facilities/${facility.id}`);
+    expect(screen.getByText("New to Concord?")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /take the 60-second tour/i }));
+    expect(screen.getByRole("dialog", { name: /your facility/i })).toBeInTheDocument();
+    expect(within(screen.getByRole("dialog", { name: /your facility/i })).getByText("Root Accord")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
+    expect(screen.getByText("Your current position")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /skip tour/i }));
+
+    fireEvent.click(screen.getByRole("button", { name: "Help" }));
+    const help = screen.getByRole("dialog", { name: /help and learning/i });
+    expect(help).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Concord glossary"));
+    expect(within(help).getByText(/the persistent facility relationship/i)).toBeInTheDocument();
   });
 
   it("does not convert an unknown Root Accord into the observed facility", () => {
     renderRoute("/facilities/0xnot-observed");
     expect(screen.getByRole("heading", { name: /not in the recorded evidence/i })).toBeInTheDocument();
-    expect(screen.queryByText(/funded, repaid, and ready for another draw/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/all 9 usdt0 is available/i)).not.toBeInTheDocument();
   });
 });
 
