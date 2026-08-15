@@ -1,5 +1,8 @@
 # Concord
 
+**Demo video:** [Watch the Concord demo on Loom](https://www.loom.com/share/7094452a68b04aac8bb07386acb25ade)<br>
+**Website:** [Open the live Concord website](https://concord-flare.pages.dev/) · [Run the guided demo](https://concord-flare.pages.dev/demo)
+
 Concord is a confidential coordination and execution layer for programmable
 multi-party capital relationships on Flare.
 
